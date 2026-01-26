@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fractional CMO/CCO Services — Michael Dulin, MD, PhD</title>
+    <meta name="description" content="Fractional Chief Medical Officer and Chief Clinical Officer services for healthcare organizations and health tech startups. 70-80% cost savings vs. full-time executive.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #111111;
+            --dark: #1a1a1a;
+            --gray-900: #222222;
+            --gray-700: #444444;
+            --gray-500: #666666;
+            --gray-400: #888888;
+            --gray-300: #aaaaaa;
+            --gray-200: #dddddd;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --accent: #2563eb;
+            --accent-light: #3b82f6;
+            --accent-subtle: #eff6ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.7;
+            color: var(--gray-700);
+            background: var(--white);
+            font-size: 17px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Newsreader', Georgia, serif;
+            color: var(--black);
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        a:hover {
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .container-wide {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        nav .container-wide {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-name {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--black);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--black);
+            opacity: 1;
+        }
+
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 80px 0 60px;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: white;
+            letter-spacing: -0.02em;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            max-width: 600px;
+            margin-bottom: 1.5rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .hero .highlight {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: var(--white);
+            color: #1e3a8a;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 1;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            margin-left: 12px;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Problem Section */
+        .problem {
+            padding: 60px 0;
+            background: var(--gray-100);
+        }
+
+        .problem h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .problem-list {
+            list-style: none;
+            margin-top: 1.5rem;
+        }
+
+        .problem-list li {
+            padding: 12px 0;
+            padding-left: 32px;
+            position: relative;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .problem-list li:last-child {
+            border-bottom: none;
+        }
+
+        .problem-list li::before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        /* Solution Section */
+        .solution {
+            padding: 60px 0;
+        }
+
+        .solution h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 2rem;
+        }
+
+        .benefit-card {
+            padding: 24px;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+        }
+
+        .benefit-card h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .benefit-card p {
+            font-size: 0.95rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        /* Case Study */
+        .case-study {
+            padding: 60px 0;
+            background: var(--gray-100);
+        }
+
+        .case-study-box {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .case-study-box h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .case-study-box h4 {
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+        }
+
+        .case-study-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin: 24px 0;
+            padding: 24px 0;
+            border-top: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat .number {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 2rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .stat .label {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        .quote {
+            font-family: 'Newsreader', Georgia, serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: var(--gray-700);
+            padding: 20px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            border-left: 4px solid var(--accent);
+            margin-top: 24px;
+        }
+
+        /* Services */
+        .services {
+            padding: 60px 0;
+        }
+
+        .services h2 {
+            margin-bottom: 1.5rem;
+        }
+
+        .service-list {
+            margin-top: 2rem;
+        }
+
+        .service-item {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 24px;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .service-item:last-child {
+            border-bottom: none;
+        }
+
+        .service-item h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--black);
+        }
+
+        .service-item p {
+            font-size: 0.95rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        /* Pricing */
+        .pricing {
+            padding: 60px 0;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+        }
+
+        .pricing h2 {
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 2rem;
+        }
+
+        .pricing-card {
+            background: rgba(255,255,255,0.1);
+            padding: 28px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .pricing-card h3 {
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card .price {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 1.75rem;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .pricing-card p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* CTA */
+        .cta {
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        .cta h2 {
+            margin-bottom: 1rem;
+        }
+
+        .cta p {
+            color: var(--gray-500);
+            margin-bottom: 2rem;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta .btn {
+            background: var(--black);
+            color: white;
+        }
+
+        .cta .btn:hover {
+            background: var(--gray-700);
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+        }
+
+        footer a {
+            color: var(--gray-500);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .benefits-grid { grid-template-columns: 1fr; }
+            .case-study-stats { grid-template-columns: 1fr; gap: 16px; }
+            .service-item { grid-template-columns: 1fr; gap: 8px; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .nav-links { display: none; }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container-wide">
+            <a href="index.html" class="nav-name">Michael Dulin, MD</a>
+            <ul class="nav-links">
+                <li><a href="index.html#work">Services</a></li>
+                <li><a href="index.html#media">Media</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+                <li><a href="admin.html" style="color: var(--accent);">Portal →</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <h1>Fractional CMO/CCO Services</h1>
+            <p>Get executive-level clinical leadership without the <span class="highlight">$500k+ annual cost</span>. I provide 8-10 hours per week of focused strategic guidance—proven over 8 years with Gray Matter Analytics.</p>
+            <a href="index.html#contact" class="btn">Schedule a Conversation</a>
+            <a href="#case-study" class="btn btn-outline">See Case Study</a>
+        </div>
+    </section>
+
+    <!-- Problem -->
+    <section class="problem">
+        <div class="container">
+            <h2>The Problem with Full-Time CMO/CCO Positions</h2>
+            <p>Standard full-time Chief Medical Officer and Chief Clinical Officer positions are often unsuitable for small to mid-sized companies that require financial efficiency.</p>
+            <ul class="problem-list">
+                <li><strong>Expensive and difficult to recruit/retain</strong> — ~$500k/year including salary, bonus, and benefits</li>
+                <li><strong>Unused capacity</strong> — Full-time executives often fill time with non-strategic work</li>
+                <li><strong>Role confusion</strong> — Organizational structure causes overlap with non-strategic roles like Medical Director</li>
+                <li><strong>Bureaucratic burden</strong> — Personnel management, budgets, and operations dilute strategic focus</li>
+                <li><strong>Burnout risk</strong> — Non-strategic work leads to lower engagement and performance</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Solution -->
+    <section class="solution">
+        <div class="container">
+            <h2>The Fractional CMO/CCO Model</h2>
+            <p>Leverage an expensive, difficult-to-recruit position for maximal impact using just 8-10 hours per week of focused strategic guidance.</p>
+            <div class="benefits-grid fade-in">
+                <div class="benefit-card">
+                    <h3>💰 70-80% Cost Savings</h3>
+                    <p>Part-time consulting vs. full-time executive salary, bonus, and benefits. No HR complexity.</p>
+                </div>
+                <div class="benefit-card">
+                    <h3>🎯 Strategic Focus</h3>
+                    <p>Dedicated to strategy and innovation—not bureaucratic tasks that dilute impact and cause burnout.</p>
+                </div>
+                <div class="benefit-card">
+                    <h3>🌐 Cross-Industry Insight</h3>
+                    <p>Working with multiple non-competing organizations provides broader perspective on industry changes and innovation.</p>
+                </div>
+                <div class="benefit-card">
+                    <h3>⚡ Flexible Engagement</h3>
+                    <p>Scale utilization based on actual needs. Easy onboarding and exit strategy without HR involvement.</p>
+                </div>
+                <div class="benefit-card">
+                    <h3>🔥 Higher Engagement</h3>
+                    <p>Focused work leads to higher CMO/CCO engagement without risk of burnout from administrative burden.</p>
+                </div>
+                <div class="benefit-card">
+                    <h3>🚀 Competitive Advantage</h3>
+                    <p>Focus on strategy and innovation allows your organization to maintain unique marketplace advantage.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Study -->
+    <section class="case-study" id="case-study">
+        <div class="container">
+            <div class="case-study-box fade-in">
+                <h3>Case Study</h3>
+                <h4>Gray Matter Analytics</h4>
+                <p>Gray Matter Analytics is a start-up technology company building analytics for value-based care. With fewer than 25 employees and VC backing with slim profit margins, they needed clinical insight to guide product development, executive presence for client interactions, and guidance on marketing/sales—but couldn't afford a full-time CMO.</p>
+
+                <div class="case-study-stats">
+                    <div class="stat">
+                        <div class="number">8+</div>
+                        <div class="label">Years of Partnership</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">6</div>
+                        <div class="label">Avg Hours/Week</div>
+                    </div>
+                    <div class="stat">
+                        <div class="number">80%</div>
+                        <div class="label">Cost Savings</div>
+                    </div>
+                </div>
+
+                <div class="quote">
+                    "Fractional CMO working an average of 6 hours per week. Model has now been in place for 8 years."
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services -->
+    <section class="services">
+        <div class="container">
+            <h2>What I Bring</h2>
+            <p>25+ years at the intersection of medicine, data science, and policy—including experience as Chief Clinical Officer at Atrium Health, leading analytics teams that became a Harvard Business School case study.</p>
+
+            <div class="service-list fade-in">
+                <div class="service-item">
+                    <h4>Clinical Strategy</h4>
+                    <p>Product development guidance, clinical workflows, care delivery optimization, and medical insight for health tech platforms.</p>
+                </div>
+                <div class="service-item">
+                    <h4>ACO/VBC Implementation</h4>
+                    <p>CIN/ACO strategy development, payer negotiations, analytics for value-based care, and risk stratification.</p>
+                </div>
+                <div class="service-item">
+                    <h4>AI & Innovation</h4>
+                    <p>Strategic partnerships, technology evaluation, AI implementation, and change management. Singularity-trained.</p>
+                </div>
+                <div class="service-item">
+                    <h4>Client Relations</h4>
+                    <p>Executive-level presence for client and investor interactions, sales support, and provider/payer relationship building.</p>
+                </div>
+                <div class="service-item">
+                    <h4>Provider Recruitment</h4>
+                    <p>Residency program partnerships, dyad leadership mentoring, and strategies for hiring physicians and APPs.</p>
+                </div>
+                <div class="service-item">
+                    <h4>Policy & Compliance</h4>
+                    <p>CMS policy expertise, public health data infrastructure, and health information technology guidance. RWJF Health Policy Fellow.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing">
+        <div class="container">
+            <h2>Engagement Options</h2>
+            <p style="color: rgba(255,255,255,0.9);">Flexible arrangements to match your organization's needs.</p>
+
+            <div class="pricing-grid fade-in">
+                <div class="pricing-card">
+                    <h3>Retainer</h3>
+                    <div class="price">Custom</div>
+                    <p>Monthly retainer includes dedicated hours, use of name/title for organizational support, and in-state travel. Ideal for ongoing strategic partnership.</p>
+                </div>
+                <div class="pricing-card">
+                    <h3>Hourly Consulting</h3>
+                    <div class="price">$350/hour</div>
+                    <p>Executive-level services for strategy, subject matter expertise, and marketing. Media and press interviews at $450/hour.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Discuss?</h2>
+            <p>Let's explore whether the fractional CMO/CCO model is right for your organization.</p>
+            <a href="index.html#contact" class="btn">Get in Touch</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2025 Michael Dulin, MD, PhD · <a href="index.html">Home</a> · <a href="admin.html">Client Portal</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+    </script>
+</body>
+</html>

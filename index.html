@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michael Dulin, MD, PhD — Healthcare AI Expert</title>
+    <meta name="description" content="Physician, researcher, and consultant helping healthcare organizations harness AI to improve care. Robert Wood Johnson Health Policy Fellow. Harvard Business School case study.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #111111;
+            --dark: #1a1a1a;
+            --gray-900: #222222;
+            --gray-700: #444444;
+            --gray-500: #666666;
+            --gray-400: #888888;
+            --gray-300: #aaaaaa;
+            --gray-200: #dddddd;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --accent: #2563eb;
+            --accent-light: #3b82f6;
+            --accent-subtle: #eff6ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.7;
+            color: var(--gray-700);
+            background: var(--white);
+            font-size: 17px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Newsreader', Georgia, serif;
+            color: var(--black);
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        a:hover {
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .container-wide {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Navigation */
+        nav {
+            padding: 24px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        nav .container-wide {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-name {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--black);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            color: var(--black);
+            opacity: 1;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 80px 0 60px;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero .tagline {
+            font-size: 1.5rem;
+            color: var(--gray-500);
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            font-family: 'Newsreader', Georgia, serif;
+            font-style: italic;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin-bottom: 1.5rem;
+        }
+
+        .credentials {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .credential {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--gray-500);
+        }
+
+        .credential-icon {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-subtle);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        /* Featured Banner */
+        .featured-banner {
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .featured-banner .icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .featured-banner-content h3 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .featured-banner-content p {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        /* Sections */
+        section {
+            padding: 60px 0;
+        }
+
+        section h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-subtitle {
+            color: var(--gray-500);
+            margin-bottom: 2rem;
+        }
+
+        /* Work Grid */
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 2rem;
+        }
+
+        .work-card {
+            padding: 24px;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .work-card:hover {
+            border-color: var(--gray-300);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .work-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+        }
+
+        .work-card p {
+            font-size: 0.95rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        /* Recognition */
+        .recognition {
+            background: var(--gray-100);
+            padding: 60px 0;
+        }
+
+        .recognition-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 32px;
+            margin-top: 2rem;
+        }
+
+        .recognition-item {
+            text-align: center;
+        }
+
+        .recognition-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-400);
+            margin-bottom: 8px;
+        }
+
+        .recognition-item .value {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 1.1rem;
+            color: var(--black);
+        }
+
+        /* Timeline */
+        .timeline {
+            margin-top: 2rem;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 24px;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            font-weight: 500;
+        }
+
+        .timeline-content h4 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--black);
+            margin-bottom: 2px;
+        }
+
+        .timeline-content .org {
+            color: var(--accent);
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content p {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            margin: 0;
+        }
+
+        /* Contact */
+        .contact {
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            margin-top: 2rem;
+        }
+
+        .contact-method {
+            margin-bottom: 20px;
+        }
+
+        .contact-method .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-400);
+            margin-bottom: 4px;
+        }
+
+        .contact-method a, .contact-method span {
+            font-size: 1rem;
+            color: var(--black);
+        }
+
+        .contact-form input,
+        .contact-form textarea,
+        .contact-form select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .contact-form input:focus,
+        .contact-form textarea:focus,
+        .contact-form select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .contact-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--gray-700);
+            opacity: 1;
+            color: var(--white);
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--gray-200);
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+        }
+
+        footer a {
+            color: var(--gray-500);
+        }
+
+        /* Easter Eggs */
+        .easter-egg-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .easter-egg-modal.active {
+            display: flex;
+        }
+
+        .easter-egg-content {
+            background: var(--white);
+            padding: 48px;
+            border-radius: 16px;
+            max-width: 500px;
+            text-align: center;
+            animation: scaleIn 0.3s ease;
+        }
+
+        .easter-egg-content h2 {
+            margin-bottom: 16px;
+        }
+
+        .easter-egg-content p {
+            margin-bottom: 24px;
+        }
+
+        .ai-quote {
+            font-family: 'Newsreader', Georgia, serif;
+            font-style: italic;
+            font-size: 1.2rem;
+            color: var(--gray-700);
+            padding: 20px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .close-easter-egg {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .ai-particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 12px;
+            z-index: 9998;
+            animation: floatUp 2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Headshot hover effect */
+        .headshot-container:hover .headshot-main {
+            opacity: 0;
+        }
+        .headshot-container:hover .headshot-alt {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.25rem; }
+            .hero .tagline { font-size: 1.25rem; }
+            .hero-content { flex-direction: column !important; align-items: center !important; text-align: center; }
+            .hero-visual { margin-bottom: 20px; }
+            .credentials { justify-content: center; }
+            .work-grid { grid-template-columns: 1fr; }
+            .recognition-grid { grid-template-columns: 1fr; gap: 24px; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .timeline-item { grid-template-columns: 1fr; gap: 8px; }
+            .nav-links { display: none; }
+            .featured-banner { flex-direction: column; text-align: center; }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container-wide">
+            <a href="#" class="nav-name">Michael Dulin, MD</a>
+            <ul class="nav-links">
+                <li><a href="#work">Services</a></li>
+                <li><a href="#media">Media</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="admin.html" style="color: var(--accent);">Portal →</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content" style="display: flex; gap: 40px; align-items: flex-start;">
+                <!-- Headshot with hover effect -->
+                <div class="hero-visual" style="flex-shrink: 0;">
+                    <div class="headshot-container" style="position: relative; width: 160px; height: 160px; border-radius: 50%; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.15); cursor: pointer;">
+                        <img src="headshot-main.jpg" alt="Michael Dulin, MD, PhD" class="headshot-main" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; transition: opacity 0.4s ease;">
+                        <img src="headshot-alt.jpg" alt="Michael Dulin at work" class="headshot-alt" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; opacity: 0; transition: opacity 0.4s ease;">
+                    </div>
+                    <p style="text-align: center; font-size: 0.75rem; color: var(--gray-400); margin-top: 8px;">MD, PhD</p>
+                </div>
+                <div>
+                    <h1>Michael Dulin</h1>
+                    <p class="tagline">Physician. Executive. Healthcare AI & Innovation.</p>
+                    <p>I'm a family physician, former Chief Clinical Officer, and consultant helping healthcare organizations harness AI, build analytics capabilities, and navigate value-based care. I've spent 25+ years at the intersection of medicine, data science, and policy—including building analytics teams at Atrium Health that became a Harvard Business School case study.</p>
+                    <p>Currently, I practice medicine, serve as a <strong>Fractional CMO/CCO</strong> for healthcare and health tech companies, and teach—including an upcoming course for the National Academy of Medicine on using AI to design your life.</p>
+
+                    <div class="credentials">
+                        <span class="credential"><span class="credential-icon">🎓</span> MD, PhD — UT Houston</span>
+                        <span class="credential"><span class="credential-icon">🏛️</span> RWJ Health Policy Fellow</span>
+                        <span class="credential"><span class="credential-icon">📚</span> Harvard Case Study</span>
+                        <span class="credential"><span class="credential-icon">🚀</span> Singularity University</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Banner -->
+            <div class="featured-banner fade-in">
+                <div class="icon">🤖</div>
+                <div class="featured-banner-content">
+                    <h3>Upcoming: AI for Designing Your Life</h3>
+                    <p>April 2025 — Teaching RWJF Health Policy Fellows at the National Academy of Medicine how to leverage AI tools for personal and professional growth.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- What I Do -->
+    <section id="work">
+        <div class="container">
+            <h2>What I Do</h2>
+            <div class="work-grid fade-in">
+                <a href="fractional-cmo.html" class="work-card" style="text-decoration: none; color: inherit;">
+                    <h3>Fractional CMO/CCO <span style="font-size: 0.8rem; color: var(--accent);">→</span></h3>
+                    <p>Executive clinical leadership for healthcare orgs and health tech startups. Strategy, ACO/VBC guidance, AI implementation, and physician mentorship.</p>
+                </a>
+                <div class="work-card">
+                    <h3>Healthcare AI & Innovation</h3>
+                    <p>Strategic partnerships, technology evaluation, and AI implementation. Singularity-trained with deep change management expertise.</p>
+                </div>
+                <div class="work-card">
+                    <h3>Population Health & VBC</h3>
+                    <p>ACO strategy, CIN development, analytics for value-based care, and payer negotiations. Built Atrium's analytics COE.</p>
+                </div>
+                <div class="work-card">
+                    <h3>Clinical Practice</h3>
+                    <p>Family medicine with focus on LGBTQ+ health and HIV management. Experienced eCW user integrating AI at point of care.</p>
+                </div>
+                <div class="work-card">
+                    <h3>Provider Recruitment</h3>
+                    <p>Experience hiring 50+ physicians/APPs and 60+ data scientists. Residency program partnerships and dyad leadership mentoring.</p>
+                </div>
+                <div class="work-card">
+                    <h3>Speaking & Training</h3>
+                    <p>Keynotes on AI, population health, and digital transformation. Media interviews and executive coaching. HIMSS, AHIP, NAM.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recognition -->
+    <section class="recognition">
+        <div class="container">
+            <h2>Recognition</h2>
+            <div class="recognition-grid fade-in">
+                <div class="recognition-item">
+                    <div class="label">Fellowship</div>
+                    <div class="value">Robert Wood Johnson Health Policy Fellow</div>
+                </div>
+                <div class="recognition-item">
+                    <div class="label">Case Study</div>
+                    <div class="value">Harvard Business School</div>
+                </div>
+                <div class="recognition-item">
+                    <div class="label">Award</div>
+                    <div class="value">RWJ Most Impactful Paper</div>
+                </div>
+                <div class="recognition-item">
+                    <div class="label">Research</div>
+                    <div class="value">$10M+ NIH/AHRQ Funding</div>
+                </div>
+                <div class="recognition-item">
+                    <div class="label">Analytics</div>
+                    <div class="value">Cerner Intelligence Award</div>
+                </div>
+                <div class="recognition-item">
+                    <div class="label">Teaching</div>
+                    <div class="value">NC Outstanding Faculty</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Media & Speaking -->
+    <section id="media" style="padding: 60px 0;">
+        <div class="container">
+            <h2>Media & Speaking</h2>
+            <p class="section-subtitle">Interviews, podcasts, and conference presentations</p>
+
+            <div class="fade-in" style="margin-top: 2rem;">
+                <!-- Featured Interview -->
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                        <span style="font-size: 2rem;">🎙️</span>
+                        <div>
+                            <h3 style="font-family: 'Inter', sans-serif; font-size: 1.1rem; margin-bottom: 4px;">HIMSSCast: AI & Population Health</h3>
+                            <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 8px;">July 2024 — Discussing how AI is advancing population health initiatives, disease burden evaluation, and predictive analytics for healthcare planning.</p>
+                            <a href="https://www.healthcareitnews.com/news/himsscast-where-population-health-getting-boost-artificial-intelligence" target="_blank" style="font-size: 0.85rem;">Listen to Episode →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Featured -->
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                        <span style="font-size: 2rem;">🧬</span>
+                        <div>
+                            <h3 style="font-family: 'Inter', sans-serif; font-size: 1.1rem; margin-bottom: 4px;">Precision Medicine: A Physician & Patient Perspective</h3>
+                            <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 8px;">Healthcare IT News — Sharing insights on genomics and precision medicine from both sides—as a doctor and as someone who tested positive for a genetic mutation that could lead to kidney cancer.</p>
+                            <a href="https://www.healthcareitnews.com/news/effective-precision-medicine-demands-holistic-approach-physician-expert-says" target="_blank" style="font-size: 0.85rem;">Read Article →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Grid -->
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <a href="https://www.ahrq.gov/news/events/nac/2024-03-nac/index.html" target="_blank" style="display: block; padding: 20px; border: 1px solid var(--gray-200); border-radius: 12px; color: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 8px;">AHRQ SNAC Chair</div>
+                        <div style="font-weight: 600; color: var(--black);">National Advisory Council Presentation (2024)</div>
+                    </a>
+                    <a href="https://www.hcinnovationgroup.com/analytics-ai/artifical-intelligence-machine-learning/article/21260539/at-himss22-a-discussion-of-ai-and-the-social-determinants-of-health" target="_blank" style="display: block; padding: 20px; border: 1px solid var(--gray-200); border-radius: 12px; color: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 8px;">HIMSS22 Panel</div>
+                        <div style="font-weight: 600; color: var(--black);">AI and Social Determinants of Health</div>
+                    </a>
+                    <a href="https://www.healthcareitnews.com/news/5-steps-successful-population-health-framework" target="_blank" style="display: block; padding: 20px; border: 1px solid var(--gray-200); border-radius: 12px; color: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 8px;">Healthcare IT News</div>
+                        <div style="font-weight: 600; color: var(--black);">5 Steps to Population Health Success</div>
+                    </a>
+                    <a href="https://nam.edu/six-health-professionals-selected-for-robert-wood-johnson-foundation-health-policy-fellows-program-at-the-national-academy-of-medicine-2020/" target="_blank" style="display: block; padding: 20px; border: 1px solid var(--gray-200); border-radius: 12px; color: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 8px;">National Academy of Medicine</div>
+                        <div style="font-weight: 600; color: var(--black);">RWJF Health Policy Fellow Selection</div>
+                    </a>
+                    <a href="https://analyticsfrontiers.charlotte.edu/speakers/michael-dulin-md-phd" target="_blank" style="display: block; padding: 20px; border: 1px solid var(--gray-200); border-radius: 12px; color: inherit; transition: border-color 0.2s, box-shadow 0.2s;">
+                        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-400); margin-bottom: 8px;">Analytics Frontiers</div>
+                        <div style="font-weight: 600; color: var(--black);">Conference Speaker Profile</div>
+                    </a>
+                </div>
+
+                <!-- Press Mentions -->
+                <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--gray-200);">
+                    <p style="font-size: 0.85rem; color: var(--gray-400); margin-bottom: 12px;">Featured in</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: center;">
+                        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 1.1rem; color: var(--gray-500);">Harvard Business Review</span>
+                        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 1.1rem; color: var(--gray-500);">Wired</span>
+                        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 1.1rem; color: var(--gray-500);">Fierce Health</span>
+                        <span style="font-family: 'Newsreader', Georgia, serif; font-size: 1.1rem; color: var(--gray-500);">AHIP</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Background -->
+    <section id="background">
+        <div class="container">
+            <h2>Background</h2>
+            <p class="section-subtitle">Selected positions and experience</p>
+            <div class="timeline fade-in">
+                <div class="timeline-item">
+                    <div class="timeline-date">2024–now</div>
+                    <div class="timeline-content">
+                        <h4>Family Physician</h4>
+                        <div class="org">Triad Primary Care & Davidson Family Medicine</div>
+                        <p>Primary care with focus on LGBTQ+ health and HIV management</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">Apr 2025</div>
+                    <div class="timeline-content">
+                        <h4>AI Training Faculty</h4>
+                        <div class="org">National Academy of Medicine & RWJF</div>
+                        <p>Teaching health policy fellows to use AI for life design</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2017–now</div>
+                    <div class="timeline-content">
+                        <h4>Fractional CMO</h4>
+                        <div class="org">Gray Matter Analytics</div>
+                        <p>8+ years as fractional executive — product strategy, client relations, VBC analytics</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2020–22</div>
+                    <div class="timeline-content">
+                        <h4>Health Policy Fellow</h4>
+                        <div class="org">Robert Wood Johnson Foundation</div>
+                        <p>One of six physicians selected nationally</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2016–24</div>
+                    <div class="timeline-content">
+                        <h4>Professor (Retired)</h4>
+                        <div class="org">UNC Charlotte</div>
+                        <p>Health Management & Policy; Academy for Population Health Innovation</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2012–16</div>
+                    <div class="timeline-content">
+                        <h4>Chief Clinical Officer, Analytics</h4>
+                        <div class="org">Atrium Health</div>
+                        <p>Built analytics COE — became Harvard Business School case study</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Get in Touch</h2>
+            <div class="contact-grid fade-in">
+                <div>
+                    <div class="contact-method">
+                        <div class="label">Email</div>
+                        <a href="mailto:mdulin@gmail.com">mdulin@gmail.com</a>
+                    </div>
+                    <div class="contact-method">
+                        <div class="label">Phone</div>
+                        <a href="tel:704-641-2157">704-641-2157</a>
+                    </div>
+                    <div class="contact-method">
+                        <div class="label">LinkedIn</div>
+                        <a href="https://www.linkedin.com/in/michaeldulin" target="_blank">linkedin.com/in/michaeldulin</a>
+                    </div>
+                    <div class="contact-method">
+                        <div class="label">Location</div>
+                        <span>Greensboro & Davidson, NC</span>
+                    </div>
+                </div>
+                <form class="contact-form" onsubmit="handleContact(event)">
+                    <input type="text" id="name" placeholder="Name" required>
+                    <input type="email" id="email" placeholder="Email" required>
+                    <select id="inquiry">
+                        <option value="Fractional CMO/CCO">Fractional CMO/CCO Services</option>
+                        <option value="Consulting">Healthcare AI Consulting</option>
+                        <option value="VBC/ACO Strategy">VBC/ACO Strategy</option>
+                        <option value="Speaking">Speaking Engagement</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <textarea id="message" placeholder="Your message..." required></textarea>
+                    <button type="submit" class="btn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>© 2025 Michael Dulin, MD, PhD · <a href="admin.html">Client Portal</a> · <a href="rentals.html">Rental Properties</a></p>
+            <p style="margin-top: 8px; font-size: 0.8rem; color: var(--gray-300);">Try the Konami Code ↑↑↓↓←→←→BA</p>
+        </div>
+    </footer>
+
+    <!-- Easter Egg Modal -->
+    <div class="easter-egg-modal" id="easterEggModal">
+        <div class="easter-egg-content">
+            <h2>🎉 You found it!</h2>
+            <p>Since you know the Konami Code, you might appreciate this:</p>
+            <div class="ai-quote">
+                "The best way to predict the future of healthcare is to invent it—one algorithm, one patient, one thoughtful conversation at a time."
+                <br><br>— Dr. Michael Dulin (with a little help from AI)
+            </div>
+            <p style="font-size: 0.9rem; color: var(--gray-500);">P.S. This website was built with AI assistance. The future is collaborative.</p>
+            <button class="close-easter-egg" onclick="closeEasterEgg()">Continue Exploring</button>
+        </div>
+    </div>
+
+    <script>
+        function handleContact(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const inquiry = document.getElementById('inquiry').value;
+            const message = document.getElementById('message').value;
+
+            const subject = `${inquiry} Inquiry from ${name}`;
+            const body = `From: ${name}\nEmail: ${email}\nInquiry Type: ${inquiry}\n\n${message}`;
+
+            window.location.href = `mailto:mdulin@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+
+        // Scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // Easter Egg: Konami Code
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+        let konamiIndex = 0;
+        let aiModeActive = false;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    activateEasterEgg();
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+
+        function activateEasterEgg() {
+            document.getElementById('easterEggModal').classList.add('active');
+            aiModeActive = true;
+            document.addEventListener('mousemove', createAIParticle);
+        }
+
+        function closeEasterEgg() {
+            document.getElementById('easterEggModal').classList.remove('active');
+        }
+
+        const aiSymbols = ['🤖', '🧠', '💡', '⚡', '✨', '🔮', '📊', '💻'];
+        function createAIParticle(e) {
+            if (!aiModeActive || Math.random() > 0.1) return;
+            const particle = document.createElement('div');
+            particle.className = 'ai-particle';
+            particle.textContent = aiSymbols[Math.floor(Math.random() * aiSymbols.length)];
+            particle.style.left = e.clientX + 'px';
+            particle.style.top = e.clientY + 'px';
+            document.body.appendChild(particle);
+            setTimeout(() => particle.remove(), 2000);
+        }
+
+        document.querySelector('.hero h1').addEventListener('dblclick', () => {
+            const messages = [
+                "Fun fact: I started as an electrical engineer at AMD before med school! 🔌",
+                "Ask me about the time I did a fellowship at Brunel University in London 🇬🇧",
+                "The PhD is in Neurophysiology — brains are fascinating! 🧠",
+                "I've been coding since before it was cool (1987, to be exact) 💾"
+            ];
+            alert(messages[Math.floor(Math.random() * messages.length)]);
+        });
+    </script>
+</body>
+</html>
