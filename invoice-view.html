@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice — Michael Dulin, MD, PhD</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #111111;
+            --gray-700: #444444;
+            --gray-500: #666666;
+            --gray-400: #888888;
+            --gray-200: #dddddd;
+            --gray-100: #f5f5f5;
+            --white: #ffffff;
+            --accent: #2563eb;
+            --accent-subtle: #eff6ff;
+            --green: #16a34a;
+            --green-bg: #f0fdf4;
+            --red: #dc2626;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-700);
+            background: var(--gray-100);
+            font-size: 15px;
+            min-height: 100vh;
+        }
+        h1, h2, h3 { font-family: 'Newsreader', Georgia, serif; color: var(--black); font-weight: 600; }
+
+        .invoice-page {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 24px;
+        }
+
+        .invoice-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .invoice-brand {
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        .invoice-brand .dot {
+            width: 8px; height: 8px; background: var(--accent); border-radius: 50%;
+        }
+
+        .invoice-brand-name {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .invoice-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .invoice-accent { height: 4px; background: var(--accent); }
+
+        .invoice-body { padding: 40px; }
+
+        .invoice-title {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        .invoice-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 28px 0;
+            padding: 20px 0;
+            border-top: 1px solid var(--gray-100);
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .meta-group .meta-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--gray-400);
+            margin-bottom: 2px;
+        }
+
+        .meta-group .meta-value {
+            font-size: 0.95rem;
+            color: var(--black);
+            font-weight: 500;
+        }
+
+        .line-items { width: 100%; border-collapse: collapse; margin: 24px 0; }
+
+        .line-items th {
+            text-align: left;
+            padding: 10px 0;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-400);
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .line-items td {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.95rem;
+        }
+
+        .line-items td:last-child, .line-items th:last-child {
+            text-align: right;
+        }
+
+        .totals {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            margin: 16px 0 28px;
+        }
+
+        .total-row {
+            display: flex;
+            gap: 40px;
+            font-size: 0.95rem;
+        }
+
+        .total-row.grand {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--black);
+            padding-top: 12px;
+            border-top: 2px solid var(--black);
+        }
+
+        .status-banner {
+            padding: 16px 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+
+        .status-paid {
+            background: var(--green-bg);
+            color: var(--green);
+            border: 1px solid #bbf7d0;
+        }
+
+        .status-overdue {
+            background: #fef2f2;
+            color: var(--red);
+            border: 1px solid #fca5a5;
+        }
+
+        .status-sent {
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border: 1px solid #bfdbfe;
+        }
+
+        .payment-instructions {
+            background: var(--gray-100);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-top: 24px;
+        }
+
+        .payment-instructions h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .payment-instructions p {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            white-space: pre-wrap;
+        }
+
+        .invoice-footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 0.85rem;
+            color: var(--gray-400);
+        }
+
+        .invoice-footer a { color: var(--accent); text-decoration: none; }
+
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            background: var(--black);
+            color: var(--white);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            margin-top: 16px;
+            transition: background 0.2s;
+        }
+
+        .contact-btn:hover { background: var(--gray-700); opacity: 1; }
+
+        .loading {
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--gray-400);
+        }
+
+        .loading-spinner {
+            width: 32px; height: 32px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            text-align: center;
+            padding: 80px 24px;
+        }
+
+        .error-msg h2 { margin-bottom: 8px; }
+        .error-msg p { color: var(--gray-500); }
+
+        @media (max-width: 600px) {
+            .invoice-body { padding: 24px; }
+            .invoice-title { font-size: 1.5rem; }
+            .invoice-meta { grid-template-columns: 1fr; gap: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-page">
+        <div class="invoice-header">
+            <div class="invoice-brand">
+                <span class="dot"></span>
+                <span class="invoice-brand-name">Michael Dulin, MD, PhD</span>
+            </div>
+            <a href="index.html" style="font-size: 0.85rem; color: var(--gray-400); text-decoration: none;">mikedulinmd.com</a>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading invoice...</p>
+        </div>
+
+        <div id="error" class="error-msg" style="display:none;">
+            <h2>Invoice Not Found</h2>
+            <p>This invoice link may have expired or is invalid.</p>
+            <a href="index.html" class="contact-btn" style="margin-top: 24px;">← Back to site</a>
+        </div>
+
+        <div id="invoice-content" style="display:none;"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, where, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        const app = initializeApp({
+            apiKey: "AIzaSyB4pbBVj7Dryy3C57V2s6L4N_znGEyuib0",
+            authDomain: "trip-planner-5cc84.firebaseapp.com",
+            projectId: "trip-planner-5cc84",
+            storageBucket: "trip-planner-5cc84.firebasestorage.app",
+            messagingSenderId: "803115812045",
+            appId: "1:803115812045:web:d49aa3df4ee4038c5fd584"
+        });
+
+        const db = getFirestore(app);
+
+        // Get token from URL
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+
+        if (!token) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        } else {
+            loadInvoice(token);
+        }
+
+        async function loadInvoice(token) {
+            try {
+                // Find invoice by magic token
+                const snap = await getDocs(collection(db, 'portal_invoices'));
+                const invoice = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(i => i.magicToken === token);
+
+                if (!invoice) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('error').style.display = 'block';
+                    return;
+                }
+
+                // Mark as viewed
+                if (invoice.status === 'sent' || invoice.status === 'overdue') {
+                    await setDoc(doc(db, 'portal_invoices', invoice.id), {
+                        viewedAt: new Date().toISOString()
+                    }, { merge: true });
+                }
+
+                renderInvoice(invoice);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function renderInvoice(inv) {
+            const statusMap = {
+                paid: '<div class="status-banner status-paid">✓ This invoice has been paid</div>',
+                overdue: '<div class="status-banner status-overdue">⚠ This invoice is past due</div>',
+                sent: '<div class="status-banner status-sent">Invoice pending payment</div>',
+                draft: '<div class="status-banner" style="background:#f5f5f5; color:#888; border:1px solid #ddd;">Draft — not yet finalized</div>',
+                viewed: '<div class="status-banner status-sent">Invoice pending payment</div>'
+            };
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('invoice-content').style.display = 'block';
+            document.getElementById('invoice-content').innerHTML = `
+                ${statusMap[inv.status] || ''}
+                <div class="invoice-card">
+                    <div class="invoice-accent"></div>
+                    <div class="invoice-body">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h1 class="invoice-title">Invoice</h1>
+                                <span style="font-size: 1rem; color: var(--gray-400);">${inv.invoiceNumber || ''}</span>
+                            </div>
+                            <div style="text-align: right; font-size: 0.85rem; color: var(--gray-500);">
+                                <strong style="color: var(--black);">Michael Dulin, MD, PhD</strong><br>
+                                Greensboro & Davidson, NC<br>
+                                mdulin@gmail.com<br>
+                                704-641-2157
+                            </div>
+                        </div>
+
+                        <div class="invoice-meta">
+                            <div class="meta-group">
+                                <div class="meta-label">Bill To</div>
+                                <div class="meta-value">${inv.clientName || ''}</div>
+                                <div style="font-size: 0.85rem; color: var(--gray-500);">${inv.clientEmail || ''}</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div class="meta-group">
+                                    <div class="meta-label">Invoice Date</div>
+                                    <div class="meta-value">${inv.date ? new Date(inv.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</div>
+                                </div>
+                                <div class="meta-group">
+                                    <div class="meta-label">Due Date</div>
+                                    <div class="meta-value" style="${inv.status === 'overdue' ? 'color: var(--red);' : ''}">${inv.dueDate ? new Date(inv.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <table class="line-items">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Rate</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${(inv.lineItems || []).map(item => `<tr>
+                                    <td>${item.description || ''}</td>
+                                    <td>${item.quantity || 1}</td>
+                                    <td>$${(item.rate || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                    <td>$${(item.amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                </tr>`).join('')}
+                            </tbody>
+                        </table>
+
+                        <div class="totals">
+                            <div class="total-row"><span style="color: var(--gray-500);">Subtotal</span><span>$${(inv.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+                            <div class="total-row grand"><span>Total Due</span><span>$${(inv.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+                        </div>
+
+                        ${inv.notes ? `<div class="payment-instructions">
+                            <h3>Payment Instructions</h3>
+                            <p>${inv.notes}</p>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                <div class="invoice-footer">
+                    <p>Questions about this invoice?</p>
+                    <a href="mailto:mdulin@gmail.com?subject=Re: ${inv.invoiceNumber || 'Invoice'}" class="contact-btn">✉ Contact Dr. Dulin</a>
+                    <p style="margin-top: 16px;">
+                        <a href="https://mikedulinmd.com">mikedulinmd.com</a>
+                    </p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
