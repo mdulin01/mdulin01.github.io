@@ -359,6 +359,90 @@
                     log('Created Generations Family Practice client', 'done');
                 }
 
+                // ===== 9. Invoice 1100 — Generations Dec 2025 =====
+                if (existingNumbers.includes('1100') || existingNumbers.includes('INV-1100')) {
+                    log('Invoice 1100 already exists — skipping', 'pending');
+                } else {
+                    const inv1100 = {
+                        clientId: generationsId,
+                        clientName: 'Dr. Alex Tse',
+                        clientEmail: '',
+                        clientAddress1: '1309 Lees Chapel Rd',
+                        clientAddress2: '',
+                        clientCity: 'Greensboro',
+                        clientState: 'NC',
+                        clientZip: '27455',
+                        terms: 'Net 10',
+                        invoiceNumber: '1100',
+                        date: '2025-12-29',
+                        dueDate: '2026-01-08',
+                        status: 'paid',
+                        paidAt: '2026-01-08T00:00:00.000Z',
+                        lineItems: [
+                            { date: '2025-12-02', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2025-12-03', activity: 'Consulting', description: '6.0 hours @ $150/hr', quantity: 6.0, rate: 150, amount: 900 },
+                            { date: '2025-12-08', activity: 'Consulting', description: '6.0 hours @ $150/hr', quantity: 6.0, rate: 150, amount: 900 },
+                            { date: '2025-12-09', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2025-12-10', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2025-12-15', activity: 'Consulting', description: '9.0 hours @ $150/hr', quantity: 9.0, rate: 150, amount: 1350 },
+                            { date: '2025-12-16', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2025-12-17', activity: 'Consulting', description: '5.0 hours @ $150/hr', quantity: 5.0, rate: 150, amount: 750 },
+                            { date: '2025-12-18', activity: 'Consulting', description: '9.0 hours @ $150/hr', quantity: 9.0, rate: 150, amount: 1350 },
+                            { date: '2025-12-26', activity: 'Consulting', description: '6.0 hours @ $150/hr', quantity: 6.0, rate: 150, amount: 900 },
+                            { date: '2025-12-29', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 }
+                        ],
+                        total: 12150,
+                        amountPaid: 12150,
+                        notes: 'Generations Family Practice — December 2025 contractor hours. 81.0 total hours at $150/hr. Signed 12/29/2025.',
+                        magicToken: generateToken(),
+                        createdAt: '2025-12-29T00:00:00.000Z',
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_invoices', 'inv-1100'), inv1100);
+                    log('Created Invoice 1100 — Generations Dec 2025, $12,150 (paid)', 'done');
+                }
+
+                // ===== 10. Invoice 1101 — Generations Jan 2026 =====
+                if (existingNumbers.includes('1101') || existingNumbers.includes('INV-1101')) {
+                    log('Invoice 1101 already exists — skipping', 'pending');
+                } else {
+                    const inv1101 = {
+                        clientId: generationsId,
+                        clientName: 'Dr. Alex Tse',
+                        clientEmail: '',
+                        clientAddress1: '1309 Lees Chapel Rd',
+                        clientAddress2: '',
+                        clientCity: 'Greensboro',
+                        clientState: 'NC',
+                        clientZip: '27455',
+                        terms: 'Net 10',
+                        invoiceNumber: '1101',
+                        date: '2026-01-28',
+                        dueDate: '2026-02-07',
+                        status: 'paid',
+                        paidAt: '2026-02-07T00:00:00.000Z',
+                        lineItems: [
+                            { date: '2026-01-09', activity: 'Consulting', description: '9.0 hours @ $150/hr', quantity: 9.0, rate: 150, amount: 1350 },
+                            { date: '2026-01-12', activity: 'Consulting', description: '9.0 hours @ $150/hr', quantity: 9.0, rate: 150, amount: 1350 },
+                            { date: '2026-01-13', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2026-01-14', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2026-01-19', activity: 'Consulting', description: '9.0 hours @ $150/hr', quantity: 9.0, rate: 150, amount: 1350 },
+                            { date: '2026-01-20', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2026-01-21', activity: 'Consulting', description: '9.0 hours @ $150/hr', quantity: 9.0, rate: 150, amount: 1350 },
+                            { date: '2026-01-27', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 },
+                            { date: '2026-01-28', activity: 'Consulting', description: '8.0 hours @ $150/hr', quantity: 8.0, rate: 150, amount: 1200 }
+                        ],
+                        total: 11400,
+                        amountPaid: 11400,
+                        notes: 'Generations Family Practice — January 2026 contractor hours. 76.0 total hours at $150/hr.',
+                        magicToken: generateToken(),
+                        createdAt: '2026-01-28T00:00:00.000Z',
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_invoices', 'inv-1101'), inv1101);
+                    log('Created Invoice 1101 — Generations Jan 2026, $11,400 (paid)', 'done');
+                }
+
                 log('All done! You can close this page and check the portal.', 'done');
                 btn.textContent = 'Done';
             } catch (e) {

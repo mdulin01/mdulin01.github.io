@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contractor Timesheet Generator</title>
+<style>
+    :root {
+        --accent: #2563eb;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-700: #374151;
+        --gray-900: #111827;
+        --green: #16a34a;
+        --red: #dc2626;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--gray-50);
+        color: var(--gray-900);
+        line-height: 1.5;
+    }
+
+    /* ===== APP LAYOUT ===== */
+    .app-bar {
+        background: white;
+        border-bottom: 1px solid var(--gray-200);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .app-bar h1 {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    .app-bar a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.85rem;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+
+    .panels {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        gap: 24px;
+        align-items: start;
+    }
+
+    @media (max-width: 768px) {
+        .panels { grid-template-columns: 1fr; }
+    }
+
+    /* ===== EDITOR PANEL ===== */
+    .editor {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        padding: 20px;
+    }
+    .editor h2 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--gray-700);
+    }
+
+    .form-group {
+        margin-bottom: 14px;
+    }
+    .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+    }
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid var(--gray-200);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        background: white;
+        color: var(--gray-900);
+    }
+    .form-group input:focus, .form-group select:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    /* Time entries editor */
+    .time-entries {
+        margin-top: 16px;
+    }
+    .time-entry {
+        display: grid;
+        grid-template-columns: 1fr 70px 32px;
+        gap: 6px;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    .time-entry input {
+        padding: 6px 8px;
+        border: 1px solid var(--gray-200);
+        border-radius: 6px;
+        font-size: 0.8rem;
+    }
+    .time-entry input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    .remove-btn {
+        background: none;
+        border: none;
+        color: var(--gray-400);
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 0;
+        line-height: 1;
+    }
+    .remove-btn:hover { color: var(--red); }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.15s;
+    }
+    .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+    .btn-outline {
+        background: white;
+        border: 1px solid var(--gray-200);
+        color: var(--gray-700);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-primary {
+        background: var(--accent);
+        color: white;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-green {
+        background: var(--green);
+        color: white;
+    }
+    .btn-green:hover { background: #15803d; }
+
+    .btn-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    /* ===== SIGNATURE ===== */
+    .sig-section {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--gray-200);
+    }
+    .sig-section h3 {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gray-500);
+        margin-bottom: 8px;
+    }
+    .sig-canvas-wrap {
+        border: 2px dashed var(--gray-200);
+        border-radius: 8px;
+        position: relative;
+        background: white;
+    }
+    .sig-canvas-wrap.has-sig {
+        border-style: solid;
+        border-color: var(--green);
+    }
+    #sig-canvas {
+        display: block;
+        width: 100%;
+        cursor: crosshair;
+        border-radius: 6px;
+    }
+    .sig-preview {
+        padding: 8px;
+        text-align: center;
+    }
+    .sig-preview img {
+        max-height: 60px;
+    }
+    .sig-hint {
+        font-size: 0.7rem;
+        color: var(--gray-400);
+        text-align: center;
+        padding: 4px;
+    }
+
+    /* ===== PREVIEW PANEL ===== */
+    .preview-wrap {
+        background: white;
+        border: 1px solid var(--gray-200);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    .preview-toolbar {
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--gray-50);
+    }
+    .preview-toolbar span {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--gray-500);
+    }
+
+    /* ===== THE ACTUAL TIMESHEET (printable) ===== */
+    .timesheet {
+        padding: 48px;
+        font-family: 'Times New Roman', Times, serif;
+        color: #000;
+        background: white;
+        min-height: 11in;
+    }
+
+    .ts-title {
+        font-size: 14pt;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .ts-info {
+        margin-bottom: 20px;
+    }
+    .ts-info-row {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        font-size: 11pt;
+        line-height: 1.8;
+    }
+    .ts-info-label {
+        font-weight: bold;
+    }
+
+    .ts-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11pt;
+        margin-bottom: 10px;
+    }
+    .ts-table thead th {
+        text-align: left;
+        font-weight: bold;
+        padding: 4px 12px 4px 0;
+        border-bottom: 1.5px solid #000;
+        white-space: nowrap;
+    }
+    .ts-table tbody td {
+        padding: 3px 12px 3px 0;
+        white-space: nowrap;
+    }
+    .ts-table .col-date { width: 120px; }
+    .ts-table .col-hours { width: 120px; text-align: center; }
+    .ts-table .col-rate { width: 100px; text-align: center; }
+    .ts-table .col-amount { width: 100px; text-align: right; }
+    .ts-table tbody td.col-hours { text-align: center; }
+    .ts-table tbody td.col-rate { text-align: center; }
+    .ts-table tbody td.col-amount { text-align: right; }
+
+    .ts-table tfoot td {
+        padding: 6px 12px 4px 0;
+        border-top: 1.5px solid #000;
+        font-weight: bold;
+    }
+    .ts-table tfoot td.col-hours { text-align: center; }
+    .ts-table tfoot td.col-amount { text-align: right; }
+
+    .ts-signature {
+        margin-top: 30px;
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+    }
+    .ts-sig-img {
+        max-height: 50px;
+    }
+    .ts-sig-date {
+        font-size: 11pt;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+        body { background: white; }
+        .app-bar, .editor, .preview-toolbar, .no-print { display: none !important; }
+        .container { max-width: none; padding: 0; }
+        .panels { display: block; }
+        .preview-wrap { border: none; border-radius: 0; }
+        .timesheet { padding: 0.75in 1in; min-height: auto; }
+    }
+</style>
+</head>
+<body>
+
+<div class="app-bar">
+    <h1>Contractor Timesheet Generator</h1>
+    <a href="portal.html">← Back to Portal</a>
+</div>
+
+<div class="container">
+    <div class="panels">
+        <!-- LEFT: Editor -->
+        <div class="editor no-print">
+            <h2>Timesheet Details</h2>
+
+            <div class="form-group">
+                <label>Contractor Name</label>
+                <input type="text" id="contractor-name" value="Michael Dulin" oninput="renderPreview()">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Month</label>
+                    <input type="month" id="ts-month" oninput="renderPreview()">
+                </div>
+                <div class="form-group">
+                    <label>Hourly Rate ($)</label>
+                    <input type="number" id="hourly-rate" value="150" oninput="renderPreview()">
+                </div>
+            </div>
+
+            <div class="time-entries">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <label style="margin:0;font-size:0.75rem;font-weight:500;color:var(--gray-500);text-transform:uppercase;letter-spacing:0.05em;">Work Days</label>
+                    <button class="btn btn-sm btn-outline" onclick="addEntry()">+ Add Day</button>
+                </div>
+                <div id="entry-list"></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--gray-200);font-size:0.8rem;font-weight:600;">
+                    <span>Total</span>
+                    <span id="total-summary">0 hrs · $0</span>
+                </div>
+            </div>
+
+            <!-- Signature Section -->
+            <div class="sig-section">
+                <h3>Signature</h3>
+                <div id="sig-area">
+                    <div class="sig-canvas-wrap" id="sig-wrap">
+                        <canvas id="sig-canvas" height="80"></canvas>
+                        <div class="sig-hint" id="sig-hint">Draw your signature above</div>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-top:6px;">
+                        <button class="btn btn-sm btn-outline" onclick="clearSignature()">Clear</button>
+                        <button class="btn btn-sm btn-primary" onclick="saveSignature()">Save Signature</button>
+                    </div>
+                </div>
+                <div id="sig-saved" style="display:none;">
+                    <div class="sig-canvas-wrap has-sig">
+                        <div class="sig-preview">
+                            <img id="sig-saved-img" alt="Saved signature">
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-top:6px;">
+                        <button class="btn btn-sm btn-outline" onclick="editSignature()">Redraw</button>
+                        <span style="font-size:0.7rem;color:var(--green);display:flex;align-items:center;gap:4px;">✓ Signature saved</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" onclick="window.print()">🖨 Print / Save PDF</button>
+                <button class="btn btn-green" onclick="createInvoice()">Create Invoice</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Preview -->
+        <div class="preview-wrap">
+            <div class="preview-toolbar no-print">
+                <span>Preview</span>
+                <span id="preview-status" style="color:var(--green);">Live</span>
+            </div>
+            <div class="timesheet" id="timesheet-preview">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== STATE =====
+    let entries = [];
+    let signatureDataUrl = null;
+
+    // Try to restore saved signature from session
+    try {
+        const saved = sessionStorage.getItem('ts_signature');
+        if (saved) signatureDataUrl = saved;
+    } catch(e) {}
+
+    // ===== INIT =====
+    function init() {
+        // Default to current month
+        const now = new Date();
+        document.getElementById('ts-month').value = now.toISOString().slice(0, 7);
+
+        // Start with a few blank entries
+        for (let i = 0; i < 5; i++) addEntry();
+
+        // Show saved signature if exists
+        if (signatureDataUrl) {
+            showSavedSignature();
+        }
+
+        initSignaturePad();
+        renderPreview();
+    }
+
+    // ===== TIME ENTRIES =====
+    function addEntry(date = '', hours = '') {
+        const idx = entries.length;
+        entries.push({ date, hours });
+        renderEntries();
+        renderPreview();
+    }
+
+    function removeEntry(idx) {
+        entries.splice(idx, 1);
+        renderEntries();
+        renderPreview();
+    }
+
+    function renderEntries() {
+        const list = document.getElementById('entry-list');
+        list.innerHTML = entries.map((e, i) => `
+            <div class="time-entry">
+                <input type="date" value="${e.date}" onchange="entries[${i}].date=this.value; renderPreview()">
+                <input type="number" step="0.5" min="0" max="24" placeholder="Hrs" value="${e.hours}" onchange="entries[${i}].hours=parseFloat(this.value)||0; renderPreview()">
+                <button class="remove-btn" onclick="removeEntry(${i})" title="Remove">×</button>
+            </div>
+        `).join('');
+        updateSummary();
+    }
+
+    function updateSummary() {
+        const rate = parseFloat(document.getElementById('hourly-rate').value) || 0;
+        const totalHrs = entries.reduce((s, e) => s + (parseFloat(e.hours) || 0), 0);
+        document.getElementById('total-summary').textContent = `${totalHrs.toFixed(1)} hrs · $${(totalHrs * rate).toLocaleString()}`;
+    }
+
+    // ===== SIGNATURE PAD =====
+    let sigCanvas, sigCtx, sigDrawing = false;
+
+    function initSignaturePad() {
+        sigCanvas = document.getElementById('sig-canvas');
+        sigCtx = sigCanvas.getContext('2d');
+
+        // Set canvas internal resolution
+        const rect = sigCanvas.getBoundingClientRect();
+        sigCanvas.width = rect.width;
+        sigCanvas.height = 80;
+
+        sigCtx.strokeStyle = '#000';
+        sigCtx.lineWidth = 2;
+        sigCtx.lineCap = 'round';
+        sigCtx.lineJoin = 'round';
+
+        sigCanvas.addEventListener('mousedown', sigStart);
+        sigCanvas.addEventListener('mousemove', sigMove);
+        sigCanvas.addEventListener('mouseup', sigEnd);
+        sigCanvas.addEventListener('mouseleave', sigEnd);
+
+        // Touch support
+        sigCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); sigStart(e.touches[0]); });
+        sigCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); sigMove(e.touches[0]); });
+        sigCanvas.addEventListener('touchend', sigEnd);
+    }
+
+    function sigStart(e) {
+        sigDrawing = true;
+        document.getElementById('sig-hint').style.display = 'none';
+        const rect = sigCanvas.getBoundingClientRect();
+        sigCtx.beginPath();
+        sigCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    }
+
+    function sigMove(e) {
+        if (!sigDrawing) return;
+        const rect = sigCanvas.getBoundingClientRect();
+        sigCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        sigCtx.stroke();
+    }
+
+    function sigEnd() {
+        sigDrawing = false;
+    }
+
+    function clearSignature() {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        document.getElementById('sig-hint').style.display = 'block';
+        signatureDataUrl = null;
+        renderPreview();
+    }
+
+    function saveSignature() {
+        // Trim the signature canvas to just the drawn area
+        const trimmed = trimCanvas(sigCanvas);
+        if (!trimmed) {
+            alert('Please draw your signature first.');
+            return;
+        }
+        signatureDataUrl = trimmed;
+        try { sessionStorage.setItem('ts_signature', signatureDataUrl); } catch(e) {}
+        showSavedSignature();
+        renderPreview();
+    }
+
+    function showSavedSignature() {
+        document.getElementById('sig-area').style.display = 'none';
+        document.getElementById('sig-saved').style.display = 'block';
+        document.getElementById('sig-saved-img').src = signatureDataUrl;
+    }
+
+    function editSignature() {
+        document.getElementById('sig-area').style.display = 'block';
+        document.getElementById('sig-saved').style.display = 'none';
+        signatureDataUrl = null;
+        clearSignature();
+        initSignaturePad();
+    }
+
+    // Trim whitespace from canvas and return data URL
+    function trimCanvas(canvas) {
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imgData.data;
+        let top = canvas.height, bottom = 0, left = canvas.width, right = 0;
+        let hasContent = false;
+
+        for (let y = 0; y < canvas.height; y++) {
+            for (let x = 0; x < canvas.width; x++) {
+                const a = pixels[(y * canvas.width + x) * 4 + 3];
+                if (a > 0) {
+                    hasContent = true;
+                    if (y < top) top = y;
+                    if (y > bottom) bottom = y;
+                    if (x < left) left = x;
+                    if (x > right) right = x;
+                }
+            }
+        }
+        if (!hasContent) return null;
+
+        const pad = 4;
+        top = Math.max(0, top - pad);
+        bottom = Math.min(canvas.height - 1, bottom + pad);
+        left = Math.max(0, left - pad);
+        right = Math.min(canvas.width - 1, right + pad);
+
+        const trimmed = document.createElement('canvas');
+        trimmed.width = right - left + 1;
+        trimmed.height = bottom - top + 1;
+        trimmed.getContext('2d').putImageData(
+            ctx.getImageData(left, top, trimmed.width, trimmed.height), 0, 0
+        );
+        return trimmed.toDataURL('image/png');
+    }
+
+    // ===== RENDER PREVIEW =====
+    function renderPreview() {
+        const name = document.getElementById('contractor-name').value || 'Michael Dulin';
+        const monthVal = document.getElementById('ts-month').value; // "2025-12"
+        const rate = parseFloat(document.getElementById('hourly-rate').value) || 0;
+
+        // Format month label like "Dec-25"
+        let monthLabel = '—';
+        if (monthVal) {
+            const [y, m] = monthVal.split('-');
+            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            monthLabel = `${monthNames[parseInt(m) - 1]}-${y.slice(2)}`;
+        }
+
+        // Filter valid entries (have date and hours)
+        const validEntries = entries
+            .filter(e => e.date && parseFloat(e.hours) > 0)
+            .sort((a, b) => a.date.localeCompare(b.date));
+
+        const totalHrs = validEntries.reduce((s, e) => s + (parseFloat(e.hours) || 0), 0);
+        const totalAmt = totalHrs * rate;
+
+        // Determine sign date (last work day)
+        let signDate = '';
+        if (validEntries.length) {
+            const last = validEntries[validEntries.length - 1].date;
+            const d = new Date(last + 'T00:00:00');
+            signDate = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+        }
+
+        const el = document.getElementById('timesheet-preview');
+        el.innerHTML = `
+            <div class="ts-title">Contractor Hours</div>
+            <div class="ts-info">
+                <div class="ts-info-row"><span class="ts-info-label">Contractor Name</span><span>${name}</span></div>
+                <div class="ts-info-row"><span class="ts-info-label">Month</span><span>${monthLabel}</span></div>
+            </div>
+            <table class="ts-table">
+                <thead>
+                    <tr>
+                        <th class="col-date">Work day</th>
+                        <th class="col-hours">Scheduled Hours</th>
+                        <th class="col-rate">Hourly Rate</th>
+                        <th class="col-amount">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${validEntries.map(e => {
+                        const hrs = parseFloat(e.hours) || 0;
+                        const d = new Date(e.date + 'T00:00:00');
+                        const dateStr = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+                        return `<tr>
+                            <td class="col-date">${dateStr}</td>
+                            <td class="col-hours">${hrs.toFixed(1)}</td>
+                            <td class="col-rate">$&nbsp;&nbsp;${rate}</td>
+                            <td class="col-amount">$&nbsp;&nbsp;${(hrs * rate).toLocaleString()}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td class="col-hours"><strong>${totalHrs.toFixed(1)}</strong></td>
+                        <td></td>
+                        <td class="col-amount"><strong>$&nbsp;&nbsp;${totalAmt.toLocaleString()}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+            ${signatureDataUrl ? `
+                <div class="ts-signature">
+                    <img src="${signatureDataUrl}" class="ts-sig-img" alt="Signature">
+                    <span class="ts-sig-date">${signDate}</span>
+                </div>
+            ` : ''}
+        `;
+
+        updateSummary();
+    }
+
+    // ===== CREATE INVOICE (link to portal) =====
+    function createInvoice() {
+        const monthVal = document.getElementById('ts-month').value;
+        const rate = parseFloat(document.getElementById('hourly-rate').value) || 0;
+        const validEntries = entries
+            .filter(e => e.date && parseFloat(e.hours) > 0)
+            .sort((a, b) => a.date.localeCompare(b.date));
+
+        if (!validEntries.length) {
+            alert('Add at least one work day first.');
+            return;
+        }
+
+        // Build line items for the portal invoice
+        const lineItems = validEntries.map(e => {
+            const hrs = parseFloat(e.hours) || 0;
+            const d = new Date(e.date + 'T00:00:00');
+            return {
+                date: e.date,
+                activity: 'Consulting Services',
+                description: `${hrs} hours @ $${rate}/hr`,
+                quantity: hrs,
+                rate: rate,
+                amount: hrs * rate
+            };
+        });
+
+        const totalHrs = validEntries.reduce((s, e) => s + (parseFloat(e.hours) || 0), 0);
+        const total = totalHrs * rate;
+
+        // Store in sessionStorage for portal to pick up
+        const invoiceData = {
+            clientId: 'client-generations',
+            month: monthVal,
+            lineItems,
+            total,
+            totalHours: totalHrs,
+            rate
+        };
+
+        try {
+            sessionStorage.setItem('pending_invoice', JSON.stringify(invoiceData));
+            alert(`Invoice data prepared: ${totalHrs} hrs, $${total.toLocaleString()}. Open the portal to create the invoice.`);
+        } catch(e) {
+            alert('Invoice data ready. Open portal.html to create the invoice.');
+        }
+    }
+
+    // ===== QUICK-FILL from common patterns =====
+    function quickFill(data) {
+        entries = data.map(d => ({ date: d[0], hours: d[1] }));
+        renderEntries();
+        renderPreview();
+    }
+
+    // Start
+    init();
+</script>
+</body>
+</html>
