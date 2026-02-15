@@ -3,12 +3,14 @@
 ## Overview
 Professional website for Dr. Mike Dulin. Currently a static HTML site with a main landing page and a fractional CMO services page.
 
-- **Domain**: MikeDulinMD.com
+- **Domain**: MikeDulinMD.com / mikedulinmd.app
 - **GitHub**: github.com/mdulin01/mdulin01.github.io (branch: main)
 - **Hosting**: GitHub Pages (mdulin01.github.io)
+- **Firebase Project**: mikedulinmd (ID: mikedulinmd-cf65b)
+- **Firebase Console**: https://console.firebase.google.com/project/mikedulinmd-cf65b
 
 ## Tech Stack
-Static HTML + inline CSS/JS. Two pages, two headshot images. No build step, no framework. Currently hosted on GitHub Pages (not Vercel).
+Static HTML + inline CSS/JS. No build step, no framework. Currently hosted on GitHub Pages (not Vercel). Firebase project `mikedulinmd-cf65b` created and ready for integration (hosting, analytics, etc.).
 
 ## Architecture
 Minimal — two standalone HTML files:
