@@ -1205,7 +1205,7 @@
     <div class="modal" style="max-width: 700px;">
         <div class="modal-header">
             <h2 id="invoice-modal-title">New Invoice</h2>
-            <button class="btn-icon" onclick="closeModal('invoice-modal')">✕</button>
+            <button class="btn-icon" onclick="saveInvoice()">✕</button>
         </div>
         <div class="modal-body">
             <input type="hidden" id="invoice-edit-id">
@@ -1264,9 +1264,12 @@
                 <textarea class="form-textarea" id="invoice-notes" placeholder="Payment via ACH. Routing: ... Account: ..."></textarea>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" onclick="closeModal('invoice-modal')">Cancel</button>
-            <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
+        <div class="modal-footer" style="justify-content: space-between;">
+            <button class="btn btn-outline" id="invoice-delete-btn" onclick="deleteInvoice()" style="color: var(--red); border-color: var(--red); display: none;">Delete</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline" onclick="closeModal('invoice-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveInvoice()">Save Invoice</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1788,6 +1791,7 @@
             if (!inv) return;
             document.getElementById('invoice-modal-title').textContent = 'Edit Invoice';
             document.getElementById('invoice-edit-id').value = editId;
+            document.getElementById('invoice-delete-btn').style.display = 'inline-flex';
             clientSelect.value = inv.clientId || '';
             document.getElementById('invoice-number').value = inv.invoiceNumber || '';
             document.getElementById('invoice-date').value = inv.date || '';
@@ -1803,6 +1807,7 @@
         } else {
             document.getElementById('invoice-modal-title').textContent = 'New Invoice';
             document.getElementById('invoice-edit-id').value = '';
+            document.getElementById('invoice-delete-btn').style.display = 'none';
             if (presetClientId) clientSelect.value = presetClientId;
 
             // Auto-generate invoice number
@@ -1942,6 +1947,20 @@
         renderAll();
         if (selectedClientId) showClientDetail(selectedClientId);
         showToast('Invoice marked as paid', 'success');
+    };
+
+    window.deleteInvoice = async function() {
+        const editId = document.getElementById('invoice-edit-id').value;
+        if (!editId) return;
+        const inv = invoices.find(i => i.id === editId);
+        if (!confirm(`Delete invoice ${inv?.invoiceNumber || editId}? This cannot be undone.`)) return;
+
+        await deleteDoc(doc(db, 'portal_invoices', editId));
+        invoices = invoices.filter(i => i.id !== editId);
+        closeModal('invoice-modal');
+        renderAll();
+        if (selectedClientId) showClientDetail(selectedClientId);
+        showToast('Invoice deleted', 'success');
     };
 
     window.viewInvoice = function(invoiceId) {
