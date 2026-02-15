@@ -1311,6 +1311,8 @@
     let currentFilter = null;
     let searchQuery = '';
     let selectedClientId = null;
+    let invoiceSortCol = 'date';
+    let invoiceSortDir = 'desc';
 
     // ===== AUTH =====
     window.signIn = async function() {
@@ -1734,6 +1736,21 @@
     };
 
     // ===== INVOICES =====
+    function sortArrow(col) {
+        if (invoiceSortCol !== col) return ' ↕';
+        return invoiceSortDir === 'asc' ? ' ↑' : ' ↓';
+    }
+
+    window.sortInvoicesBy = function(col) {
+        if (invoiceSortCol === col) {
+            invoiceSortDir = invoiceSortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            invoiceSortCol = col;
+            invoiceSortDir = (col === 'amount') ? 'desc' : 'asc';
+        }
+        renderInvoices();
+    };
+
     function renderInvoices() {
         let filtered = [...invoices];
         if (currentFilter) filtered = filtered.filter(i => i.status === currentFilter);
@@ -1744,7 +1761,21 @@
                 (i.clientName || '').toLowerCase().includes(q)
             );
         }
-        filtered.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+        // Sort
+        const dir = invoiceSortDir === 'asc' ? 1 : -1;
+        filtered.sort((a, b) => {
+            let av, bv;
+            switch (invoiceSortCol) {
+                case 'invoice': av = a.invoiceNumber || ''; bv = b.invoiceNumber || ''; return dir * av.localeCompare(bv);
+                case 'client': av = a.clientName || ''; bv = b.clientName || ''; return dir * av.localeCompare(bv);
+                case 'date': av = a.date || ''; bv = b.date || ''; return dir * av.localeCompare(bv);
+                case 'due': av = a.dueDate || ''; bv = b.dueDate || ''; return dir * av.localeCompare(bv);
+                case 'amount': return dir * ((a.total || 0) - (b.total || 0));
+                case 'status': av = a.status || ''; bv = b.status || ''; return dir * av.localeCompare(bv);
+                default: return dir * ((b.date || '').localeCompare(a.date || ''));
+            }
+        });
 
         const el = document.getElementById('invoice-list');
         if (!filtered.length) {
@@ -1752,8 +1783,17 @@
             return;
         }
 
+        const thStyle = 'cursor:pointer; user-select:none;';
         el.innerHTML = `<table class="invoice-table">
-            <thead><tr><th>Invoice</th><th>Client</th><th>Date</th><th>Due</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <thead><tr>
+                <th style="${thStyle}" onclick="sortInvoicesBy('invoice')">Invoice${sortArrow('invoice')}</th>
+                <th style="${thStyle}" onclick="sortInvoicesBy('client')">Client${sortArrow('client')}</th>
+                <th style="${thStyle}" onclick="sortInvoicesBy('date')">Date${sortArrow('date')}</th>
+                <th style="${thStyle}" onclick="sortInvoicesBy('due')">Due${sortArrow('due')}</th>
+                <th style="${thStyle}" onclick="sortInvoicesBy('amount')">Amount${sortArrow('amount')}</th>
+                <th style="${thStyle}" onclick="sortInvoicesBy('status')">Status${sortArrow('status')}</th>
+                <th></th>
+            </tr></thead>
             <tbody>${filtered.map(inv => `<tr>
                 <td><span class="inv-number" onclick="viewInvoice('${inv.id}')">${inv.invoiceNumber || '—'}</span></td>
                 <td>${inv.clientName || '—'}</td>
