@@ -1053,11 +1053,11 @@
             <div class="section-header">
                 <h2>Documents</h2>
             </div>
-            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+            <label class="upload-zone" id="upload-zone" for="file-input" style="display:block">
                 <div class="upload-zone-icon">📎</div>
                 <div class="upload-zone-text">Drag files here or <strong>click to browse</strong></div>
-            </div>
-            <input type="file" id="file-input" multiple style="display:none" onchange="handleFileUpload(this.files)">
+            </label>
+            <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.gif,.txt,.csv" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden" onchange="handleFileUpload(this.files)">
             <div class="filter-bar">
                 <input type="text" class="search-input" placeholder="Search documents..." oninput="filterDocuments(this.value)">
                 <select class="form-select" style="width: auto; min-width: 140px;" onchange="filterDocsByClient(this.value)">
@@ -1511,13 +1511,24 @@
             const expired = daysToExpiry !== null && daysToExpiry < 0;
             const expiryLabel = expired ? `Expired ${Math.abs(daysToExpiry)}d ago` : daysToExpiry !== null ? (daysToExpiry <= 60 ? `${daysToExpiry}d left` : new Date(c.contractEnd).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })) : '—';
 
+            const clientDocs = documents.filter(d => d.clientId === c.id);
+            const contractDoc = clientDocs.find(d => d.category === 'contract') || clientDocs[0];
+
             return `<div class="client-card" onclick="showClientDetail('${c.id}')">
                 <div class="client-card-accent" style="background: ${c.color || '#2563eb'};"></div>
                 <div class="client-card-body">
-                    <div class="client-name">${c.name || ''}</div>
-                    <div class="client-company">${c.company || ''}</div>
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <div class="client-name">${c.name || ''}</div>
+                            <div class="client-company">${c.company || ''}</div>
+                        </div>
+                        ${contractDoc
+                            ? `<a href="${contractDoc.storageUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="View contract: ${contractDoc.fileName}" style="display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;background:var(--accent-subtle);color:var(--accent);font-size:0.75rem;text-decoration:none;white-space:nowrap;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>${clientDocs.length > 1 ? clientDocs.length + ' docs' : 'Contract'}</a>`
+                            : `<span onclick="event.stopPropagation(); uploadDocForClient('${c.id}')" title="Upload contract" style="display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:8px;background:var(--gray-50);color:var(--gray-400);font-size:0.75rem;cursor:pointer;white-space:nowrap;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>Add doc</span>`
+                        }
+                    </div>
                     <div class="client-meta">
-                        <div class="meta-item"><div class="meta-label">Rate</div><div class="meta-value">${c.hourlyRate ? '$' + c.hourlyRate + '/hr' : '—'}</div></div>
+                        <div class="meta-item"><div class="meta-label">Rate</div><div class="meta-value">${c.monthlyRetainer ? '$' + c.monthlyRetainer.toLocaleString() + '/mo' : c.hourlyRate ? '$' + c.hourlyRate + '/hr' : '—'}</div></div>
                         <div class="meta-item"><div class="meta-label">Contract Ends</div><div class="meta-value" style="${expired ? 'color: var(--red);' : expiryWarning ? 'color: var(--amber);' : ''}">${expiryLabel}</div></div>
                         <div class="meta-item"><div class="meta-label">Outstanding</div><div class="meta-value" style="${outstanding > 0 ? 'color: var(--amber);' : ''}">$${outstanding.toLocaleString()}</div></div>
                         <div class="meta-item"><div class="meta-label">Total Paid</div><div class="meta-value" style="color: var(--green);">$${totalPaid.toLocaleString()}</div></div>
@@ -1612,6 +1623,17 @@
                     </td>
                 </tr>`).join('')}</tbody>
             </table>` : '<div class="empty-state" style="padding: 24px;"><div class="empty-state-text">No invoices yet</div></div>'}
+
+            <h3 style="font-family: 'Inter', sans-serif; font-weight: 600; margin-bottom: 16px;">Documents (${clientDocs.length})</h3>
+            ${clientDocs.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;">${clientDocs.map(d => `
+                <a href="${d.storageUrl}" target="_blank" rel="noopener" class="card" style="text-decoration:none;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:500;color:var(--gray-700);word-break:break-all;">${d.fileName}</div>
+                        <div style="font-size:0.7rem;color:var(--gray-400);">${d.category || 'other'} · ${new Date(d.uploadedAt).toLocaleDateString()}</div>
+                    </div>
+                </a>`).join('')}</div>` : ''}
+            <button class="btn btn-outline btn-sm" onclick="uploadDocForClient('${clientId}')" style="margin-bottom:24px;">+ Upload Document</button>
 
             ${c.notes ? `<div class="card" style="margin-bottom: 24px;"><div class="card-title" style="margin-bottom: 8px;">Notes</div><p style="white-space: pre-wrap;">${c.notes}</p></div>` : ''}
         `;
@@ -1963,27 +1985,49 @@
     }
 
     window.handleFileUpload = async function(files) {
+        if (!files || !files.length) return;
+        let uploaded = 0;
         for (const file of files) {
-            const storageRef = ref(storage, `portal_docs/${Date.now()}_${file.name}`);
-            await uploadBytes(storageRef, file);
-            const url = await getDownloadURL(storageRef);
+            try {
+                const storageRef = ref(storage, `portal_docs/${Date.now()}_${file.name}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
 
-            const docData = {
-                fileName: file.name,
-                storageUrl: url,
-                uploadedAt: new Date().toISOString(),
-                clientId: '',
-                category: 'other',
-                tags: []
-            };
+                const docData = {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    fileType: file.type || file.name.split('.').pop(),
+                    storageUrl: url,
+                    uploadedAt: new Date().toISOString(),
+                    clientId: '',
+                    category: detectCategory(file.name),
+                    tags: []
+                };
 
-            const id = `doc-${Date.now()}`;
-            await setDoc(doc(db, 'portal_documents', id), docData);
-            documents.push({ id, ...docData });
+                const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+                await setDoc(doc(db, 'portal_documents', id), docData);
+                documents.push({ id, ...docData });
+                uploaded++;
+            } catch (err) {
+                console.error('Upload failed for', file.name, err);
+                showToast(`Upload failed: ${file.name} — ${err.message}`, 'error');
+            }
         }
-        renderDocuments();
-        showToast(`${files.length} file(s) uploaded`, 'success');
+        // Reset input so same file can be re-uploaded
+        document.getElementById('file-input').value = '';
+        if (uploaded > 0) {
+            renderDocuments();
+            showToast(`${uploaded} file(s) uploaded`, 'success');
+        }
     };
+
+    function detectCategory(filename) {
+        const ext = (filename || '').split('.').pop().toLowerCase();
+        if (['pdf', 'doc', 'docx'].includes(ext)) return 'contract';
+        if (['xls', 'xlsx', 'csv'].includes(ext)) return 'financial';
+        if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) return 'image';
+        return 'other';
+    }
 
     window.filterDocuments = function(q) {
         const grid = document.getElementById('doc-grid');
@@ -2008,6 +2052,51 @@
             if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files);
         });
     }
+
+    // Upload doc directly for a specific client (from client card icon)
+    let pendingUploadClientId = null;
+    const clientFileInput = document.createElement('input');
+    clientFileInput.type = 'file';
+    clientFileInput.accept = '.pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt,.csv';
+    clientFileInput.style.display = 'none';
+    clientFileInput.multiple = true;
+    document.body.appendChild(clientFileInput);
+    clientFileInput.addEventListener('change', async function() {
+        if (!this.files.length || !pendingUploadClientId) return;
+        for (const file of this.files) {
+            try {
+                const storageRef = ref(storage, `portal_docs/${Date.now()}_${file.name}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                const docData = {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    fileType: file.type || file.name.split('.').pop(),
+                    storageUrl: url,
+                    uploadedAt: new Date().toISOString(),
+                    clientId: pendingUploadClientId,
+                    category: detectCategory(file.name),
+                    tags: []
+                };
+                const id = `doc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+                await setDoc(doc(db, 'portal_documents', id), docData);
+                documents.push({ id, ...docData });
+            } catch (err) {
+                console.error('Upload failed:', err);
+                showToast(`Upload failed: ${file.name} — ${err.message}`, 'error');
+            }
+        }
+        this.value = '';
+        pendingUploadClientId = null;
+        renderClients();
+        renderDocuments();
+        showToast('Document uploaded and linked to client', 'success');
+    });
+
+    window.uploadDocForClient = function(clientId) {
+        pendingUploadClientId = clientId;
+        clientFileInput.click();
+    };
 
     // ===== UTILITIES =====
     window.closeModal = function(id) {
