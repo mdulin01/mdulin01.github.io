@@ -1523,8 +1523,8 @@
                         <div class="meta-item"><div class="meta-label">Total Paid</div><div class="meta-value" style="color: var(--green);">$${totalPaid.toLocaleString()}</div></div>
                     </div>
                     <div class="client-footer">
-                        <span class="badge ${c.status === 'active' ? 'badge-green' : 'badge-gray'}">${c.status || 'active'}</span>
-                        <span style="font-size: 0.8rem; color: var(--gray-400);">${c.invoiceFrequency || 'monthly'} · ${c.invoiceTerms || c.terms || 'Net 30'}${c.hourlyRate ? ' · $' + c.hourlyRate + '/hr' : ''}</span>
+                        <span class="badge ${c.status === 'active' ? 'badge-green' : c.status === 'inactive' ? 'badge-amber' : 'badge-gray'}">${c.status || 'active'}</span>
+                        <span style="font-size: 0.8rem; color: var(--gray-400);">${c.invoiceFrequency || 'monthly'} · ${c.invoiceTerms || c.terms || 'Net 30'}${c.hourlyRate ? ' · $' + c.hourlyRate + '/hr' : ''}${c.monthlyRetainer ? ' · $' + c.monthlyRetainer.toLocaleString() + '/mo' : ''}</span>
                     </div>
                 </div>
             </div>`;
@@ -1565,8 +1565,8 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Rate</div>
-                    <div class="stat-value">${c.hourlyRate ? '$' + c.hourlyRate + '/hr' : '—'}</div>
-                    <div style="font-size: 0.75rem; color: var(--gray-400); margin-top: 2px;">${c.minHoursPerWeek ? c.minHoursPerWeek + 'hr/wk min' : ''}${c.maxHoursPerWeek ? 'Up to ' + c.maxHoursPerWeek + 'hr/wk' : ''}</div>
+                    <div class="stat-value">${c.monthlyRetainer ? '$' + c.monthlyRetainer.toLocaleString() + '/mo' : c.hourlyRate ? '$' + c.hourlyRate + '/hr' : '—'}</div>
+                    <div style="font-size: 0.75rem; color: var(--gray-400); margin-top: 2px;">${c.guaranteedHoursPerMonth ? c.guaranteedHoursPerMonth + 'hr/mo guaranteed' : ''}${c.minHoursPerWeek ? c.minHoursPerWeek + 'hr/wk min' : ''}${c.maxHoursPerWeek ? 'Up to ' + c.maxHoursPerWeek + 'hr/wk' : ''}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Contract Period</div>
