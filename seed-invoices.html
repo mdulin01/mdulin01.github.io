@@ -93,7 +93,7 @@
                     avanceId = 'client-avance-care';
                     const clientData = {
                         name: 'Avance Care',
-                        company: 'Avance Care',
+                        company: 'Avance Care, P.A.',
                         email: '',
                         phone: '',
                         address1: '705 University Drive',
@@ -102,11 +102,17 @@
                         state: 'NC',
                         zip: '27707-3489',
                         contractStart: '2024-01-01',
-                        contractEnd: '',
+                        contractEnd: '2025-12-31',
+                        contractTerm: '1 year, auto-renews',
+                        contractNotice: '30 days written notice to non-renew',
+                        hourlyRate: 250,
+                        minHoursPerWeek: 10,
                         invoiceFrequency: 'biweekly',
                         invoiceTerms: 'Net 30',
                         color: '#2563eb',
-                        notes: '$250/hr, 10hr/week min, biweekly invoicing. Population Health / VBC consulting.',
+                        services: 'VBC/ACO consulting, population health, clinical program development, referral optimization, Epic-related training, CPA supervision',
+                        nonSolicitation: '1 year post-term',
+                        notes: '$250/hr, 10hr/week min, biweekly invoicing.\nIndependent contractor — responsible for own taxes.\nPractice provides malpractice insurance.\nServices: VBC, ACO, population health, clinical programs, referral optimization, CPA supervision.\n30 days notice to terminate. 1-year auto-renewing term.',
                         status: 'active',
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
@@ -299,6 +305,50 @@
                     };
                     await setDoc(doc(db, 'portal_invoices', 'inv-1095'), inv1095);
                     log('Created Invoice 1095 — $7,000 (overdue, $1,000 paid, $6,000 remaining)', 'done');
+                }
+
+                // ===== 8. Generations Family Practice client =====
+                log('Checking for Generations Family Practice client...', 'running');
+                let generationsId = null;
+                const genClient = existing.find(c =>
+                    (c.company || '').toLowerCase().includes('generation') ||
+                    (c.company || '').toLowerCase().includes('triad primary')
+                );
+
+                if (genClient) {
+                    generationsId = genClient.id;
+                    log('Found existing Generations Family Practice client: ' + generationsId, 'done');
+                } else {
+                    generationsId = 'client-generations';
+                    const genClientData = {
+                        name: 'Dr. Alex Tse',
+                        company: 'Generations Family Practice, PA (DBA Triad Primary Care)',
+                        email: '',
+                        phone: '',
+                        address1: '1309 Lees Chapel Rd',
+                        address2: '',
+                        city: 'Greensboro',
+                        state: 'NC',
+                        zip: '27455',
+                        contractStart: '2025-01-01',
+                        contractEnd: '2025-12-31',
+                        contractTerm: '1 year, auto-renews',
+                        contractNotice: '30 days notice to non-renew',
+                        hourlyRate: 150,
+                        maxHoursPerWeek: 16,
+                        invoiceFrequency: 'monthly',
+                        invoiceTerms: 'Net 10',
+                        color: '#16a34a',
+                        services: 'In-clinic patient-facing hours, family medicine, CIN/ACO/IPA participation',
+                        nonCompete: '18 months, 10-mile radius from primary office',
+                        nonSolicitation: 'During term + post-term (patients, providers, employees)',
+                        notes: '$150/hr, up to 16hrs/week in-clinic patient-facing.\nLocation: 1309 Lees Chapel Rd, Greensboro, NC 27455.\nMon-Fri 8am-5pm. Monthly invoicing — validated first 5 days, paid within 10 days.\nMust complete charts within 2 days of service.\nContact: Dr. Alex Tse, CMM Medical Director.\nNon-compete: 18 months, 10-mile radius.\n1-year auto-renewing term, 30 days notice.',
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_clients', generationsId), genClientData);
+                    log('Created Generations Family Practice client', 'done');
                 }
 
                 log('All done! You can close this page and check the portal.', 'done');

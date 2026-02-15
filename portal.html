@@ -1142,6 +1142,7 @@
                     <label class="form-label">Payment Terms</label>
                     <select class="form-select" id="client-terms">
                         <option value="Net 30">Net 30</option>
+                        <option value="Net 10">Net 10</option>
                         <option value="Net 15">Net 15</option>
                         <option value="Net 45">Net 45</option>
                         <option value="Due on Receipt">Due on Receipt</option>
@@ -1158,6 +1159,34 @@
                         <option value="#0891b2">Teal</option>
                     </select>
                 </div>
+            </div>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label">Hourly Rate ($)</label>
+                    <input type="number" class="form-input" id="client-hourly-rate" placeholder="250" min="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Min Hours/Week</label>
+                    <input type="number" class="form-input" id="client-min-hours" placeholder="10" min="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Hours/Week</label>
+                    <input type="number" class="form-input" id="client-max-hours" placeholder="16" min="0" step="1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Contract Term</label>
+                    <input type="text" class="form-input" id="client-contract-term" placeholder="1 year, auto-renews">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Termination Notice</label>
+                    <input type="text" class="form-input" id="client-contract-notice" placeholder="30 days written notice">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Services</label>
+                <input type="text" class="form-input" id="client-services" placeholder="Consulting, VBC, clinical programs...">
             </div>
             <div class="form-group">
                 <label class="form-label">Notes</label>
@@ -1415,8 +1444,10 @@
         });
         clients.filter(c => c.contractEnd).forEach(c => {
             const daysUntil = Math.floor((new Date(c.contractEnd) - today) / 86400000);
-            if (daysUntil >= 0 && daysUntil <= 30) {
-                alerts.push({ type: 'warning', icon: '📋', text: `<strong>${c.company || c.name}</strong> contract renews in ${daysUntil} days` });
+            if (daysUntil < 0) {
+                alerts.push({ type: 'urgent', icon: '📋', text: `<strong>${c.company || c.name}</strong> contract expired ${Math.abs(daysUntil)} days ago — needs renewal` });
+            } else if (daysUntil <= 60) {
+                alerts.push({ type: 'warning', icon: '📋', text: `<strong>${c.company || c.name}</strong> contract expires in ${daysUntil} days (${c.contractNotice || '30 days notice required'})` });
             }
         });
         invoices.filter(i => i.status === 'sent').forEach(inv => {
@@ -1474,20 +1505,26 @@
             const totalPaid = clientInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total || 0), 0) + clientInvoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.amountPaid || 0), 0);
             const contractAge = c.contractStart ? Math.floor((new Date() - new Date(c.contractStart)) / 86400000 / 30) : 0;
 
+            // Contract expiry check
+            const daysToExpiry = c.contractEnd ? Math.floor((new Date(c.contractEnd) - new Date()) / 86400000) : null;
+            const expiryWarning = daysToExpiry !== null && daysToExpiry <= 60;
+            const expired = daysToExpiry !== null && daysToExpiry < 0;
+            const expiryLabel = expired ? `Expired ${Math.abs(daysToExpiry)}d ago` : daysToExpiry !== null ? (daysToExpiry <= 60 ? `${daysToExpiry}d left` : new Date(c.contractEnd).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })) : '—';
+
             return `<div class="client-card" onclick="showClientDetail('${c.id}')">
                 <div class="client-card-accent" style="background: ${c.color || '#2563eb'};"></div>
                 <div class="client-card-body">
                     <div class="client-name">${c.name || ''}</div>
                     <div class="client-company">${c.company || ''}</div>
                     <div class="client-meta">
-                        <div class="meta-item"><div class="meta-label">Contract</div><div class="meta-value">${contractAge} mo</div></div>
-                        <div class="meta-item"><div class="meta-label">Terms</div><div class="meta-value">${c.invoiceTerms || c.terms || 'Net 30'}</div></div>
+                        <div class="meta-item"><div class="meta-label">Rate</div><div class="meta-value">${c.hourlyRate ? '$' + c.hourlyRate + '/hr' : '—'}</div></div>
+                        <div class="meta-item"><div class="meta-label">Contract Ends</div><div class="meta-value" style="${expired ? 'color: var(--red);' : expiryWarning ? 'color: var(--amber);' : ''}">${expiryLabel}</div></div>
                         <div class="meta-item"><div class="meta-label">Outstanding</div><div class="meta-value" style="${outstanding > 0 ? 'color: var(--amber);' : ''}">$${outstanding.toLocaleString()}</div></div>
                         <div class="meta-item"><div class="meta-label">Total Paid</div><div class="meta-value" style="color: var(--green);">$${totalPaid.toLocaleString()}</div></div>
                     </div>
                     <div class="client-footer">
                         <span class="badge ${c.status === 'active' ? 'badge-green' : 'badge-gray'}">${c.status || 'active'}</span>
-                        <span style="font-size: 0.8rem; color: var(--gray-400);">${c.invoiceFrequency || 'monthly'} · ${c.email || ''}</span>
+                        <span style="font-size: 0.8rem; color: var(--gray-400);">${c.invoiceFrequency || 'monthly'} · ${c.invoiceTerms || c.terms || 'Net 30'}${c.hourlyRate ? ' · $' + c.hourlyRate + '/hr' : ''}</span>
                     </div>
                 </div>
             </div>`;
@@ -1527,8 +1564,26 @@
                     <div class="stat-value" style="color: var(--green);">$${totalPaid.toLocaleString()}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Contract</div>
-                    <div class="stat-value" style="font-size: 1rem;">${c.contractStart || '—'} → ${c.contractEnd || '—'}</div>
+                    <div class="stat-label">Rate</div>
+                    <div class="stat-value">${c.hourlyRate ? '$' + c.hourlyRate + '/hr' : '—'}</div>
+                    <div style="font-size: 0.75rem; color: var(--gray-400); margin-top: 2px;">${c.minHoursPerWeek ? c.minHoursPerWeek + 'hr/wk min' : ''}${c.maxHoursPerWeek ? 'Up to ' + c.maxHoursPerWeek + 'hr/wk' : ''}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Contract Period</div>
+                    <div class="stat-value" style="font-size: 0.95rem;">${c.contractStart ? new Date(c.contractStart + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '—'} → ${c.contractEnd ? new Date(c.contractEnd + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '—'}</div>
+                    ${c.contractTerm ? `<div style="font-size: 0.75rem; color: var(--gray-400); margin-top: 2px;">${c.contractTerm}</div>` : ''}
+                    ${(() => {
+                        if (!c.contractEnd) return '';
+                        const dLeft = Math.floor((new Date(c.contractEnd) - new Date()) / 86400000);
+                        if (dLeft < 0) return '<div style="font-size:0.75rem; color:var(--red); font-weight:600; margin-top:2px;">Expired ' + Math.abs(dLeft) + ' days ago — needs renewal</div>';
+                        if (dLeft <= 60) return '<div style="font-size:0.75rem; color:var(--amber); font-weight:600; margin-top:2px;">Expires in ' + dLeft + ' days</div>';
+                        return '';
+                    })()}
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Billing</div>
+                    <div class="stat-value" style="font-size: 0.95rem;">${c.invoiceFrequency || 'monthly'} · ${c.invoiceTerms || c.terms || 'Net 30'}</div>
+                    ${c.contractNotice ? `<div style="font-size: 0.75rem; color: var(--gray-400); margin-top: 2px;">${c.contractNotice}</div>` : ''}
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Contact</div>
@@ -1538,6 +1593,10 @@
                     </div>
                 </div>
             </div>
+            ${c.services ? `<div style="background: var(--gray-100); border-radius: 10px; padding: 14px 18px; margin-bottom: 24px;">
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400); margin-bottom: 4px;">Services</div>
+                <div style="font-size: 0.85rem; color: var(--gray-700);">${c.services}</div>
+            </div>` : ''}
 
             <h3 style="font-family: 'Inter', sans-serif; font-weight: 600; margin-bottom: 16px;">Invoices (${clientInvoices.length})</h3>
             ${clientInvoices.length ? `<table class="invoice-table" style="margin-bottom: 32px;">
@@ -1583,11 +1642,17 @@
             document.getElementById('client-invoice-freq').value = c.invoiceFrequency || 'monthly';
             document.getElementById('client-terms').value = c.invoiceTerms || c.terms || 'Net 30';
             document.getElementById('client-color').value = c.color || '#2563eb';
+            document.getElementById('client-hourly-rate').value = c.hourlyRate || '';
+            document.getElementById('client-min-hours').value = c.minHoursPerWeek || '';
+            document.getElementById('client-max-hours').value = c.maxHoursPerWeek || '';
+            document.getElementById('client-contract-term').value = c.contractTerm || '';
+            document.getElementById('client-contract-notice').value = c.contractNotice || '';
+            document.getElementById('client-services').value = c.services || '';
             document.getElementById('client-notes').value = c.notes || '';
         } else {
             document.getElementById('client-modal-title').textContent = 'Add Client';
             document.getElementById('client-edit-id').value = '';
-            ['client-name','client-company','client-email','client-phone','client-address1','client-address2','client-city','client-state','client-zip','client-contract-start','client-contract-end','client-notes'].forEach(id => document.getElementById(id).value = '');
+            ['client-name','client-company','client-email','client-phone','client-address1','client-address2','client-city','client-state','client-zip','client-contract-start','client-contract-end','client-hourly-rate','client-min-hours','client-max-hours','client-contract-term','client-contract-notice','client-services','client-notes'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('client-invoice-freq').value = 'monthly';
             document.getElementById('client-terms').value = 'Net 30';
             document.getElementById('client-color').value = '#2563eb';
@@ -1612,6 +1677,12 @@
             invoiceFrequency: document.getElementById('client-invoice-freq').value,
             invoiceTerms: document.getElementById('client-terms').value,
             color: document.getElementById('client-color').value,
+            hourlyRate: parseFloat(document.getElementById('client-hourly-rate').value) || null,
+            minHoursPerWeek: parseFloat(document.getElementById('client-min-hours').value) || null,
+            maxHoursPerWeek: parseFloat(document.getElementById('client-max-hours').value) || null,
+            contractTerm: document.getElementById('client-contract-term').value,
+            contractNotice: document.getElementById('client-contract-notice').value,
+            services: document.getElementById('client-services').value,
             notes: document.getElementById('client-notes').value,
             status: 'active',
             updatedAt: new Date().toISOString()
