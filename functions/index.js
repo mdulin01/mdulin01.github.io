@@ -49,7 +49,7 @@ exports.sendInvoice = onCall(
     // Send via Resend
     const resend = new Resend(resendApiKey.value());
     const { error } = await resend.emails.send({
-      from: "Michael Dulin <invoices@mikedulinmd.app>",
+      from: "Michael Dulin <invoices@mail.mikedulinmd.app>",
       to: [inv.clientEmail],
       subject,
       html,
