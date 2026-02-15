@@ -1277,6 +1277,7 @@
     import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut as fbSignOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { getFirestore, collection, doc, getDocs, getDoc, setDoc, deleteDoc, onSnapshot, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+    import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js';
 
     // Firebase config (mikedulinmd-cf65b)
     const firebaseConfig = {
@@ -1293,6 +1294,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    const functions = getFunctions(app, 'us-east1');
     const provider = new GoogleAuthProvider();
 
     // Allowed admin email
@@ -1619,7 +1621,8 @@
                     <td>${inv.dueDate || '—'}</td>
                     <td class="inv-amount">$${(inv.total || 0).toLocaleString()}</td>
                     <td>${statusBadge(inv.status)}</td>
-                    <td>
+                    <td style="white-space: nowrap;">
+                        ${inv.clientEmail ? `<button class="btn-icon" data-send-id="${inv.id}" onclick="event.stopPropagation(); sendInvoiceEmail('${inv.id}')" title="Send email">✉</button>` : ''}
                         ${inv.status !== 'paid' ? `<button class="btn btn-sm badge-green" style="cursor:pointer; border:none;" onclick="markPaid('${inv.id}')">Mark Paid</button>` : ''}
                     </td>
                 </tr>`).join('')}</tbody>
@@ -1756,6 +1759,7 @@
                 <td class="inv-amount">$${(inv.total || 0).toLocaleString()}</td>
                 <td>${statusBadge(inv.status)}</td>
                 <td style="white-space: nowrap;">
+                    ${inv.clientEmail ? `<button class="btn-icon" data-send-id="${inv.id}" onclick="event.stopPropagation(); sendInvoiceEmail('${inv.id}')" title="Send email to ${inv.clientEmail}">✉</button>` : ''}
                     ${inv.status !== 'paid' ? `<button class="btn btn-sm badge-green" style="cursor:pointer; border:none;" onclick="event.stopPropagation(); markPaid('${inv.id}')">Paid</button>` : ''}
                     <button class="btn-icon" onclick="event.stopPropagation(); openInvoiceModal(null, '${inv.id}')" title="Edit">✎</button>
                 </td>
@@ -1944,6 +1948,36 @@
         const inv = invoices.find(i => i.id === invoiceId);
         if (!inv) return;
         openInvoiceModal(null, invoiceId);
+    };
+
+    window.sendInvoiceEmail = async function(invoiceId) {
+        const inv = invoices.find(i => i.id === invoiceId);
+        if (!inv) return;
+        if (!inv.clientEmail) {
+            showToast('No email address on file for this client', 'error');
+            return;
+        }
+        if (!confirm(`Send invoice ${inv.invoiceNumber || ''} to ${inv.clientEmail}?`)) return;
+
+        // Find and disable the send button
+        const btn = document.querySelector(`[data-send-id="${invoiceId}"]`);
+        if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+        try {
+            const sendInvoice = httpsCallable(functions, 'sendInvoice');
+            const result = await sendInvoice({ invoiceId });
+            showToast(`Invoice sent to ${result.data.sentTo}`, 'success');
+            // Update local state
+            inv.status = inv.status === 'paid' ? 'paid' : 'sent';
+            inv.sentAt = new Date().toISOString();
+            renderDashboard();
+            renderInvoices();
+        } catch (err) {
+            console.error('Send invoice error:', err);
+            showToast(err.message || 'Failed to send invoice', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '✉'; }
+        }
     };
 
     function generateToken() {
