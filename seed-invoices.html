@@ -281,8 +281,8 @@
                         clientZip: '60601',
                         terms: 'Net 30',
                         invoiceNumber: '1095',
-                        date: '2025-10-20',
-                        dueDate: '2025-11-19',
+                        date: '2025-03-31',
+                        dueDate: '2025-04-30',
                         status: 'overdue',
                         lineItems: [
                             { date: '2025-03-31', activity: 'Services', description: 'Consulting services / CMO', quantity: 1, rate: 7000, amount: 7000 }
@@ -292,9 +292,9 @@
                         payments: [
                             { date: '2026-01-03', amount: 1000, method: 'ACH', note: 'Partial payment' }
                         ],
-                        notes: 'Past due amount for consulting services completed in March 2025. Original balance $7,000. $1,000 partial payment received 01/03/2026. Remaining balance: $6,000.',
+                        notes: 'Consulting services / CMO completed March 2025. Originally due April 30, 2025. Re-invoiced October 20, 2025. $1,000 partial payment received 01/03/2026. Remaining balance: $6,000.',
                         magicToken: generateToken(),
-                        createdAt: '2025-10-20T00:00:00.000Z',
+                        createdAt: '2025-03-31T00:00:00.000Z',
                         updatedAt: new Date().toISOString()
                     };
                     await setDoc(doc(db, 'portal_invoices', 'inv-1095'), inv1095);

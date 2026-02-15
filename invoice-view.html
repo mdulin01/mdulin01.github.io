@@ -344,9 +344,15 @@
         }
 
         function renderInvoice(inv) {
+            // Calculate days overdue
+            let daysOverdue = 0;
+            if (inv.dueDate && (inv.status === 'overdue' || (inv.status === 'sent' && inv.dueDate < new Date().toISOString().split('T')[0]))) {
+                daysOverdue = Math.floor((new Date() - new Date(inv.dueDate + 'T00:00:00')) / 86400000);
+            }
+
             const statusMap = {
                 paid: '<div class="status-banner status-paid">✓ This invoice has been paid</div>',
-                overdue: '<div class="status-banner status-overdue">⚠ This invoice is past due</div>',
+                overdue: `<div class="status-banner status-overdue">⚠ This invoice is ${daysOverdue} days past due — please remit payment immediately</div>`,
                 sent: '<div class="status-banner status-sent">Invoice pending payment</div>',
                 draft: '<div class="status-banner" style="background:#f5f5f5; color:#888; border:1px solid #ddd;">Draft — not yet finalized</div>',
                 viewed: '<div class="status-banner status-sent">Invoice pending payment</div>'
@@ -399,7 +405,7 @@
                                 </div>
                                 <div class="meta-group">
                                     <div class="meta-label">Due Date</div>
-                                    <div class="meta-value" style="${inv.status === 'overdue' ? 'color: var(--red);' : ''}">${inv.dueDate ? new Date(inv.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</div>
+                                    <div class="meta-value" style="${inv.status === 'overdue' ? 'color: var(--red);' : ''}">${inv.dueDate ? new Date(inv.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}${daysOverdue > 0 ? `<br><span style="font-size: 0.8rem; font-weight: 600;">${daysOverdue} days past due</span>` : ''}</div>
                                 </div>
                                 <div class="meta-group">
                                     <div class="meta-label">Terms</div>
@@ -436,6 +442,13 @@
                             ${inv.amountPaid ? `<div class="total-row"><span style="color: var(--green);">Payment Received</span><span style="color: var(--green);">-$${(inv.amountPaid).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>` : ''}
                             <div class="total-row grand"><span>Balance Due</span><span>$${(inv.status === 'paid' ? 0 : (inv.total || 0) - (inv.amountPaid || 0)).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
                         </div>
+
+                        ${inv.status === 'overdue' ? `<div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 20px 24px; margin-top: 24px;">
+                            <h3 style="font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 700; color: var(--red); margin-bottom: 8px;">⚠ Past Due Notice</h3>
+                            <p style="font-size: 0.9rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 8px;">This invoice is <strong>${daysOverdue} days past due</strong> as of ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}. The original due date was ${new Date(inv.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.</p>
+                            ${inv.amountPaid ? `<p style="font-size: 0.9rem; color: var(--gray-700); line-height: 1.6; margin-bottom: 8px;">A partial payment of $${inv.amountPaid.toLocaleString(undefined, {minimumFractionDigits: 2})} has been received. The remaining balance of <strong>$${((inv.total || 0) - (inv.amountPaid || 0)).toLocaleString(undefined, {minimumFractionDigits: 2})}</strong> is due immediately.</p>` : ''}
+                            <p style="font-size: 0.9rem; color: var(--gray-700); line-height: 1.6;">Please arrange payment at your earliest convenience. If payment has already been sent, please disregard this notice and contact us to confirm receipt.</p>
+                        </div>` : ''}
 
                         ${inv.notes ? `<div class="payment-instructions">
                             <h3>Payment Instructions</h3>
