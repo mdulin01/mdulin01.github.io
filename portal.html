@@ -1233,6 +1233,7 @@
                     <select class="form-select" id="invoice-status">
                         <option value="draft">Draft</option>
                         <option value="sent">Sent</option>
+                        <option value="overdue">Overdue</option>
                         <option value="paid">Paid</option>
                     </select>
                 </div>
@@ -1483,21 +1484,26 @@
                     <td>${inv.clientName || '—'}</td>
                     <td>${inv.date || '—'}</td>
                     <td class="inv-amount">$${(inv.total || 0).toLocaleString()}</td>
-                    <td>${statusBadge(inv.status)}</td>
+                    <td>${statusBadge(inv.status, inv.id)}</td>
                 </tr>`).join('')}</tbody>
             </table>
         ` : '<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">No invoices yet</div></div>';
     }
 
-    function statusBadge(status) {
+    function statusBadge(status, invoiceId) {
         const map = {
-            draft: '<span class="badge badge-gray">Draft</span>',
-            sent: '<span class="badge badge-blue">Sent</span>',
-            viewed: '<span class="badge badge-amber">Viewed</span>',
-            paid: '<span class="badge badge-green">Paid</span>',
-            overdue: '<span class="badge badge-red">Overdue</span>'
+            draft: 'badge-gray',
+            sent: 'badge-blue',
+            viewed: 'badge-amber',
+            paid: 'badge-green',
+            overdue: 'badge-red'
         };
-        return map[status] || '<span class="badge badge-gray">' + status + '</span>';
+        const cls = map[status] || 'badge-gray';
+        const label = status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Unknown';
+        if (invoiceId) {
+            return `<span class="badge ${cls}" style="cursor:pointer;" onclick="event.stopPropagation(); cycleInvoiceStatus('${invoiceId}', event)" title="Click to change status">${label}</span>`;
+        }
+        return `<span class="badge ${cls}">${label}</span>`;
     }
 
     // ===== CLIENTS =====
@@ -1625,10 +1631,9 @@
                     <td>${inv.date || '—'}</td>
                     <td>${inv.dueDate || '—'}</td>
                     <td class="inv-amount">$${(inv.total || 0).toLocaleString()}</td>
-                    <td>${statusBadge(inv.status)}</td>
+                    <td>${statusBadge(inv.status, inv.id)}</td>
                     <td style="white-space: nowrap;">
                         ${inv.clientEmail ? `<button class="btn-icon" data-send-id="${inv.id}" onclick="event.stopPropagation(); sendInvoiceEmail('${inv.id}')" title="Send email">✉</button>` : ''}
-                        ${inv.status !== 'paid' ? `<button class="btn btn-sm badge-green" style="cursor:pointer; border:none;" onclick="markPaid('${inv.id}')">Mark Paid</button>` : ''}
                     </td>
                 </tr>`).join('')}</tbody>
             </table>` : '<div class="empty-state" style="padding: 24px;"><div class="empty-state-text">No invoices yet</div></div>'}
@@ -1800,10 +1805,9 @@
                 <td>${inv.date || '—'}</td>
                 <td>${inv.dueDate || '—'}</td>
                 <td class="inv-amount">$${(inv.total || 0).toLocaleString()}</td>
-                <td>${statusBadge(inv.status)}</td>
+                <td>${statusBadge(inv.status, inv.id)}</td>
                 <td style="white-space: nowrap;">
                     ${inv.clientEmail ? `<button class="btn-icon" data-send-id="${inv.id}" onclick="event.stopPropagation(); sendInvoiceEmail('${inv.id}')" title="Send email to ${inv.clientEmail}">✉</button>` : ''}
-                    ${inv.status !== 'paid' ? `<button class="btn btn-sm badge-green" style="cursor:pointer; border:none;" onclick="event.stopPropagation(); markPaid('${inv.id}')">Paid</button>` : ''}
                     <button class="btn-icon" onclick="event.stopPropagation(); openInvoiceModal(null, '${inv.id}')" title="Edit">✎</button>
                 </td>
             </tr>`).join('')}</tbody>
@@ -1975,15 +1979,32 @@
         showToast(editId ? 'Invoice updated' : 'Invoice created', 'success');
     };
 
-    window.markPaid = async function(invoiceId) {
-        await setDoc(doc(db, 'portal_invoices', invoiceId), {
-            status: 'paid',
-            paidAt: new Date().toISOString(),
-            paidMethod: 'ACH',
-            updatedAt: new Date().toISOString()
-        }, { merge: true });
+    const statusOrder = ['draft', 'sent', 'overdue', 'paid'];
 
-        invoices = invoices.map(i => i.id === invoiceId ? { ...i, status: 'paid', paidAt: new Date().toISOString() } : i);
+    window.cycleInvoiceStatus = async function(invoiceId, event) {
+        if (event) event.stopPropagation();
+        const inv = invoices.find(i => i.id === invoiceId);
+        if (!inv) return;
+        const currentIdx = statusOrder.indexOf(inv.status);
+        const nextStatus = statusOrder[(currentIdx + 1) % statusOrder.length];
+
+        const updateData = { status: nextStatus, updatedAt: new Date().toISOString() };
+        if (nextStatus === 'paid') {
+            updateData.paidAt = new Date().toISOString();
+            updateData.paidMethod = 'ACH';
+        }
+
+        await setDoc(doc(db, 'portal_invoices', invoiceId), updateData, { merge: true });
+        Object.assign(inv, updateData);
+        renderAll();
+        if (selectedClientId) showClientDetail(selectedClientId);
+        showToast(`Status → ${nextStatus}`, 'success');
+    };
+
+    window.markPaid = async function(invoiceId) {
+        const updateData = { status: 'paid', paidAt: new Date().toISOString(), paidMethod: 'ACH', updatedAt: new Date().toISOString() };
+        await setDoc(doc(db, 'portal_invoices', invoiceId), updateData, { merge: true });
+        invoices = invoices.map(i => i.id === invoiceId ? { ...i, ...updateData } : i);
         renderAll();
         if (selectedClientId) showClientDetail(selectedClientId);
         showToast('Invoice marked as paid', 'success');
