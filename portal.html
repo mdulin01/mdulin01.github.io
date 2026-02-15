@@ -398,6 +398,12 @@
             border: 1px solid var(--gray-200);
             border-radius: 12px;
             padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card[onclick]:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
         }
 
         .stat-label {
@@ -1038,12 +1044,13 @@
                 <button class="btn btn-primary" onclick="openInvoiceModal()">+ New Invoice</button>
             </div>
             <div class="filter-bar">
-                <input type="text" class="search-input" placeholder="Search invoices..." oninput="filterInvoices(this.value)">
-                <button class="filter-chip active" onclick="filterByStatus(null, this)">All</button>
-                <button class="filter-chip" onclick="filterByStatus('sent', this)">Sent</button>
-                <button class="filter-chip" onclick="filterByStatus('overdue', this)">Overdue</button>
-                <button class="filter-chip" onclick="filterByStatus('paid', this)">Paid</button>
-                <button class="filter-chip" onclick="filterByStatus('draft', this)">Draft</button>
+                <input type="text" class="search-input" placeholder="Search by client, invoice #, amount, date..." oninput="filterInvoices(this.value)">
+                <button class="filter-chip active" data-status="" onclick="filterByStatus(null, this)">All</button>
+                <button class="filter-chip" data-status="outstanding" onclick="filterByStatus('outstanding', this)">Outstanding</button>
+                <button class="filter-chip" data-status="draft" onclick="filterByStatus('draft', this)">Draft</button>
+                <button class="filter-chip" data-status="sent" onclick="filterByStatus('sent', this)">Sent</button>
+                <button class="filter-chip" data-status="overdue" onclick="filterByStatus('overdue', this)">Overdue</button>
+                <button class="filter-chip" data-status="paid" onclick="filterByStatus('paid', this)">Paid</button>
             </div>
             <div id="invoice-list"></div>
         </div>
@@ -1424,21 +1431,21 @@
         const activeClients = clients.filter(c => c.status !== 'ended').length;
 
         document.getElementById('dash-stats').innerHTML = `
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="showView('clients')" title="View clients">
                 <div class="stat-label">Active Clients</div>
                 <div class="stat-value">${activeClients}</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="goToInvoices('outstanding')" title="View outstanding invoices">
                 <div class="stat-label">Outstanding</div>
                 <div class="stat-value">$${totalOutstanding.toLocaleString()}</div>
-                <div class="stat-sub">${invoices.filter(i => i.status === 'sent').length} invoices</div>
+                <div class="stat-sub">${invoices.filter(i => i.status === 'sent' || i.status === 'overdue').length} invoices</div>
             </div>
-            <div class="stat-card" style="${totalOverdue > 0 ? 'border-color: #fca5a5;' : ''}">
+            <div class="stat-card" style="cursor:pointer;${totalOverdue > 0 ? ' border-color: #fca5a5;' : ''}" onclick="goToInvoices('overdue')" title="View overdue invoices">
                 <div class="stat-label">Past Due</div>
                 <div class="stat-value" style="${totalOverdue > 0 ? 'color: var(--red);' : ''}">${totalOverdue > 0 ? '$' + totalOverdue.toLocaleString() : '—'}</div>
                 <div class="stat-sub">${invoices.filter(i => i.status === 'overdue').length} invoices</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="goToInvoices('paid')" title="View paid invoices">
                 <div class="stat-label">Paid YTD</div>
                 <div class="stat-value" style="color: var(--green);">$${totalPaidThisYear.toLocaleString()}</div>
             </div>
@@ -1758,12 +1765,20 @@
 
     function renderInvoices() {
         let filtered = [...invoices];
-        if (currentFilter) filtered = filtered.filter(i => i.status === currentFilter);
+        if (currentFilter === 'outstanding') {
+            filtered = filtered.filter(i => i.status === 'sent' || i.status === 'overdue');
+        } else if (currentFilter) {
+            filtered = filtered.filter(i => i.status === currentFilter);
+        }
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             filtered = filtered.filter(i =>
                 (i.invoiceNumber || '').toLowerCase().includes(q) ||
-                (i.clientName || '').toLowerCase().includes(q)
+                (i.clientName || '').toLowerCase().includes(q) ||
+                (i.status || '').toLowerCase().includes(q) ||
+                (i.date || '').includes(q) ||
+                (i.dueDate || '').includes(q) ||
+                ('$' + (i.total || 0).toLocaleString()).includes(q)
             );
         }
 
@@ -1818,7 +1833,30 @@
     window.filterByStatus = function(status, btn) {
         currentFilter = status;
         document.querySelectorAll('#view-invoices .filter-chip').forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
+        if (btn) {
+            btn.classList.add('active');
+        } else {
+            // Find matching chip
+            document.querySelectorAll('#view-invoices .filter-chip').forEach(c => {
+                const chipStatus = c.getAttribute('data-status') || null;
+                if (chipStatus === status) c.classList.add('active');
+            });
+        }
+        renderInvoices();
+    };
+
+    window.goToInvoices = function(filter) {
+        showView('invoices');
+        if (filter === 'outstanding') {
+            // Outstanding = sent + overdue, use custom filter
+            currentFilter = 'outstanding';
+        } else {
+            currentFilter = filter || null;
+        }
+        // Update chips
+        document.querySelectorAll('#view-invoices .filter-chip').forEach(c => c.classList.remove('active'));
+        const matchChip = document.querySelector(`#view-invoices .filter-chip[data-status="${filter}"]`);
+        if (matchChip) matchChip.classList.add('active');
         renderInvoices();
     };
 
