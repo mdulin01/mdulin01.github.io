@@ -105,7 +105,7 @@
 
         .line-items th {
             text-align: left;
-            padding: 10px 0;
+            padding: 10px 8px;
             font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -114,13 +114,17 @@
         }
 
         .line-items td {
-            padding: 12px 0;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--gray-100);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .line-items td:last-child, .line-items th:last-child {
             text-align: right;
+        }
+
+        .line-items th:first-child, .line-items td:first-child {
+            padding-left: 0;
         }
 
         .totals {
@@ -247,6 +251,18 @@
             .invoice-body { padding: 24px; }
             .invoice-title { font-size: 1.5rem; }
             .invoice-meta { grid-template-columns: 1fr; gap: 16px; }
+            .line-items { font-size: 0.8rem; }
+            .line-items th { font-size: 0.65rem; padding: 8px 4px; }
+            .line-items td { padding: 8px 4px; font-size: 0.8rem; }
+        }
+
+        @media print {
+            body { background: white; }
+            .invoice-page { margin: 0; padding: 0; max-width: none; }
+            .invoice-card { border: none; border-radius: 0; }
+            .invoice-accent { display: none; }
+            .invoice-footer .contact-btn { display: none; }
+            .status-banner { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -336,6 +352,17 @@
                 viewed: '<div class="status-banner status-sent">Invoice pending payment</div>'
             };
 
+            // Build client address block
+            const clientAddr = [];
+            if (inv.clientAddress1) clientAddr.push(inv.clientAddress1);
+            if (inv.clientAddress2) clientAddr.push(inv.clientAddress2);
+            const cityStateZip = [inv.clientCity, inv.clientState].filter(Boolean).join(', ');
+            if (cityStateZip || inv.clientZip) clientAddr.push([cityStateZip, inv.clientZip].filter(Boolean).join(' '));
+
+            // Check if line items have date/activity columns
+            const hasDateCol = (inv.lineItems || []).some(item => item.date);
+            const hasActivityCol = (inv.lineItems || []).some(item => item.activity);
+
             document.getElementById('loading').style.display = 'none';
             document.getElementById('invoice-content').style.display = 'block';
             document.getElementById('invoice-content').innerHTML = `
@@ -349,10 +376,12 @@
                                 <span style="font-size: 1rem; color: var(--gray-400);">${inv.invoiceNumber || ''}</span>
                             </div>
                             <div style="text-align: right; font-size: 0.85rem; color: var(--gray-500);">
-                                <strong style="color: var(--black);">Michael Dulin, MD, PhD</strong><br>
-                                Greensboro & Davidson, NC<br>
+                                <strong style="color: var(--black); font-size: 1rem;">Michael Dulin, MD, PhD</strong><br>
+                                113 N. Church Street #110<br>
+                                Greensboro, NC 27401<br>
                                 mdulin@gmail.com<br>
-                                704-641-2157
+                                704-641-2157<br>
+                                <a href="https://mikedulinmd.com" style="color: var(--accent); text-decoration: none; font-weight: 500;">mikedulinmd.com</a>
                             </div>
                         </div>
 
@@ -360,7 +389,8 @@
                             <div class="meta-group">
                                 <div class="meta-label">Bill To</div>
                                 <div class="meta-value">${inv.clientName || ''}</div>
-                                <div style="font-size: 0.85rem; color: var(--gray-500);">${inv.clientEmail || ''}</div>
+                                ${clientAddr.length ? `<div style="font-size: 0.85rem; color: var(--gray-500); line-height: 1.5;">${clientAddr.join('<br>')}</div>` : ''}
+                                ${inv.clientEmail ? `<div style="font-size: 0.85rem; color: var(--gray-500);">${inv.clientEmail}</div>` : ''}
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                 <div class="meta-group">
@@ -371,12 +401,18 @@
                                     <div class="meta-label">Due Date</div>
                                     <div class="meta-value" style="${inv.status === 'overdue' ? 'color: var(--red);' : ''}">${inv.dueDate ? new Date(inv.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : '—'}</div>
                                 </div>
+                                <div class="meta-group">
+                                    <div class="meta-label">Terms</div>
+                                    <div class="meta-value">${inv.terms || 'Net 30'}</div>
+                                </div>
                             </div>
                         </div>
 
                         <table class="line-items">
                             <thead>
                                 <tr>
+                                    ${hasDateCol ? '<th>Date</th>' : ''}
+                                    ${hasActivityCol ? '<th>Activity</th>' : ''}
                                     <th>Description</th>
                                     <th>Qty</th>
                                     <th>Rate</th>
@@ -385,6 +421,8 @@
                             </thead>
                             <tbody>
                                 ${(inv.lineItems || []).map(item => `<tr>
+                                    ${hasDateCol ? `<td style="white-space: nowrap;">${item.date ? new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}</td>` : ''}
+                                    ${hasActivityCol ? `<td>${item.activity || ''}</td>` : ''}
                                     <td>${item.description || ''}</td>
                                     <td>${item.quantity || 1}</td>
                                     <td>$${(item.rate || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
@@ -395,7 +433,8 @@
 
                         <div class="totals">
                             <div class="total-row"><span style="color: var(--gray-500);">Subtotal</span><span>$${(inv.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
-                            <div class="total-row grand"><span>Total Due</span><span>$${(inv.total || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
+                            ${inv.amountPaid ? `<div class="total-row"><span style="color: var(--green);">Payment Received</span><span style="color: var(--green);">-$${(inv.amountPaid).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>` : ''}
+                            <div class="total-row grand"><span>Balance Due</span><span>$${(inv.status === 'paid' ? 0 : (inv.total || 0) - (inv.amountPaid || 0)).toLocaleString(undefined, {minimumFractionDigits: 2})}</span></div>
                         </div>
 
                         ${inv.notes ? `<div class="payment-instructions">
@@ -409,7 +448,7 @@
                     <p>Questions about this invoice?</p>
                     <a href="mailto:mdulin@gmail.com?subject=Re: ${inv.invoiceNumber || 'Invoice'}" class="contact-btn">✉ Contact Dr. Dulin</a>
                     <p style="margin-top: 16px;">
-                        <a href="https://mikedulinmd.com">mikedulinmd.com</a>
+                        <a href="https://mikedulinmd.com" style="font-weight: 500;">mikedulinmd.com</a>
                     </p>
                 </div>
             `;

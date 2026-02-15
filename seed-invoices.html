@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seed Data — Portal</title>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; max-width: 600px; margin: 60px auto; padding: 24px; color: #333; }
+        h1 { font-size: 1.3rem; margin-bottom: 8px; }
+        .status { padding: 12px 16px; border-radius: 8px; margin: 8px 0; font-size: 0.9rem; }
+        .pending { background: #f5f5f5; color: #888; }
+        .running { background: #eff6ff; color: #2563eb; }
+        .done { background: #f0fdf4; color: #16a34a; }
+        .error { background: #fef2f2; color: #dc2626; }
+        button { padding: 12px 24px; background: #111; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 16px; }
+        button:hover { background: #444; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #log { margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Seed Avance Care Invoices</h1>
+    <p style="color:#888; font-size:0.9rem;">Sign in, then click the button to insert client + invoice records.</p>
+    <button id="sign-in-btn" onclick="doSignIn()">Sign in with Google</button>
+    <button id="seed-btn" onclick="doSeed()" disabled style="display:none;">Insert Invoice Data</button>
+    <div id="log"></div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDocs, collection } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+        const app = initializeApp({
+            apiKey: "AIzaSyB4pbBVj7Dryy3C57V2s6L4N_znGEyuib0",
+            authDomain: "trip-planner-5cc84.firebaseapp.com",
+            projectId: "trip-planner-5cc84",
+            storageBucket: "trip-planner-5cc84.firebasestorage.app",
+            messagingSenderId: "803115812045",
+            appId: "1:803115812045:web:d49aa3df4ee4038c5fd584"
+        });
+
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        function log(msg, cls = 'done') {
+            const el = document.createElement('div');
+            el.className = 'status ' + cls;
+            el.textContent = msg;
+            document.getElementById('log').appendChild(el);
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.email === 'mdulin@gmail.com') {
+                document.getElementById('sign-in-btn').style.display = 'none';
+                document.getElementById('seed-btn').style.display = 'inline-block';
+                document.getElementById('seed-btn').disabled = false;
+                log('Signed in as ' + user.email, 'done');
+            }
+        });
+
+        window.doSignIn = async function() {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (e) {
+                log('Sign-in error: ' + e.message, 'error');
+            }
+        };
+
+        function generateToken() {
+            return Array.from(crypto.getRandomValues(new Uint8Array(24))).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        window.doSeed = async function() {
+            const btn = document.getElementById('seed-btn');
+            btn.disabled = true;
+            btn.textContent = 'Working...';
+
+            try {
+                // ===== 1. Check if Avance Care client exists =====
+                log('Checking for existing Avance Care client...', 'running');
+                const clientSnap = await getDocs(collection(db, 'portal_clients'));
+                const existing = clientSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                let avanceId = null;
+                const avanceClient = existing.find(c =>
+                    (c.company || '').toLowerCase().includes('avance')
+                );
+
+                if (avanceClient) {
+                    avanceId = avanceClient.id;
+                    log('Found existing Avance Care client: ' + avanceId, 'done');
+                } else {
+                    avanceId = 'client-avance-care';
+                    const clientData = {
+                        name: 'Avance Care',
+                        company: 'Avance Care',
+                        email: '',
+                        phone: '',
+                        address1: '705 University Drive',
+                        address2: 'Building 700',
+                        city: 'Durham',
+                        state: 'NC',
+                        zip: '27707-3489',
+                        contractStart: '2024-01-01',
+                        contractEnd: '',
+                        invoiceFrequency: 'biweekly',
+                        invoiceTerms: 'Net 30',
+                        color: '#2563eb',
+                        notes: '$250/hr, 10hr/week min, biweekly invoicing. Population Health / VBC consulting.',
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_clients', avanceId), clientData);
+                    log('Created Avance Care client', 'done');
+                }
+
+                // ===== 2. Check existing invoices to avoid duplicates =====
+                log('Checking for existing invoices...', 'running');
+                const invSnap = await getDocs(collection(db, 'portal_invoices'));
+                const existingInvs = invSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const existingNumbers = existingInvs.map(i => i.invoiceNumber);
+
+                // ===== 3. Invoice 1097 =====
+                if (existingNumbers.includes('1097') || existingNumbers.includes('INV-1097')) {
+                    log('Invoice 1097 already exists — skipping', 'pending');
+                } else {
+                    const inv1097 = {
+                        clientId: avanceId,
+                        clientName: 'Avance Care',
+                        clientEmail: '',
+                        clientAddress1: '705 University Drive',
+                        clientAddress2: 'Building 700',
+                        clientCity: 'Durham',
+                        clientState: 'NC',
+                        clientZip: '27707-3489',
+                        terms: 'Net 30',
+                        invoiceNumber: '1097',
+                        date: '2025-12-03',
+                        dueDate: '2026-01-02',
+                        status: 'paid',
+                        paidAt: '2026-01-02T00:00:00.000Z',
+                        paidMethod: 'ACH',
+                        lineItems: [
+                            { date: '2025-11-03', activity: 'Consulting Services - Population Health', description: 'Services for 11/3 - 11/7', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2025-11-10', activity: 'Consulting Services - Population Health', description: 'Services for 11/10 - 11/14', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2025-11-17', activity: 'Consulting Services - Population Health', description: 'Services for 11/17 - 11/21', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2025-11-24', activity: 'Consulting Services - Population Health', description: 'Services for 11/24 - 11/28', quantity: 10, rate: 250, amount: 2500 }
+                        ],
+                        total: 10000,
+                        notes: '',
+                        magicToken: generateToken(),
+                        createdAt: '2025-12-03T00:00:00.000Z',
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_invoices', 'inv-1097'), inv1097);
+                    log('Created Invoice 1097 — $10,000 (paid)', 'done');
+                }
+
+                // ===== 4. Invoice 1098 =====
+                if (existingNumbers.includes('1098') || existingNumbers.includes('INV-1098')) {
+                    log('Invoice 1098 already exists — skipping', 'pending');
+                } else {
+                    const inv1098 = {
+                        clientId: avanceId,
+                        clientName: 'Avance Care',
+                        clientEmail: '',
+                        clientAddress1: '705 University Drive',
+                        clientAddress2: 'Building 700',
+                        clientCity: 'Durham',
+                        clientState: 'NC',
+                        clientZip: '27707-3489',
+                        terms: 'Net 30',
+                        invoiceNumber: '1098',
+                        date: '2026-01-03',
+                        dueDate: '2026-02-02',
+                        status: 'paid',
+                        paidAt: '2026-02-02T00:00:00.000Z',
+                        paidMethod: 'ACH',
+                        lineItems: [
+                            { date: '2025-12-01', activity: 'Consulting Services', description: 'VBC Support 12/1 - 12/5', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2025-12-08', activity: 'Consulting Services', description: 'VBC Support 12/8-12/12', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2025-12-15', activity: 'Consulting Services', description: 'VBC Support 12/15 - 12/19', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2025-12-22', activity: 'Consulting Services', description: 'VBC Support 12/22 - 12/26', quantity: 10, rate: 250, amount: 2500 }
+                        ],
+                        total: 10000,
+                        notes: '',
+                        magicToken: generateToken(),
+                        createdAt: '2026-01-03T00:00:00.000Z',
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_invoices', 'inv-1098'), inv1098);
+                    log('Created Invoice 1098 — $10,000 (paid)', 'done');
+                }
+
+                // ===== 5. Invoice 1099 =====
+                if (existingNumbers.includes('1099') || existingNumbers.includes('INV-1099')) {
+                    log('Invoice 1099 already exists — skipping', 'pending');
+                } else {
+                    const inv1099 = {
+                        clientId: avanceId,
+                        clientName: 'Avance Care',
+                        clientEmail: '',
+                        clientAddress1: '705 University Drive',
+                        clientAddress2: 'Building 700',
+                        clientCity: 'Durham',
+                        clientState: 'NC',
+                        clientZip: '27707-3489',
+                        terms: 'Net 30',
+                        invoiceNumber: '1099',
+                        date: '2026-01-30',
+                        dueDate: '2026-03-01',
+                        status: 'paid',
+                        paidAt: '2026-03-01T00:00:00.000Z',
+                        paidMethod: 'ACH',
+                        lineItems: [
+                            { date: '2026-01-02', activity: 'Consulting Services', description: 'Services from 12/29/25 - 01/02/26', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2026-01-09', activity: 'Consulting Services', description: 'Services from 01/05/26 - 01/09/26', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2026-01-16', activity: 'Services', description: 'Services from 01/12/26-01/16/26', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2026-01-23', activity: 'Services', description: 'Services from 1/19/26 - 01/23/26', quantity: 10, rate: 250, amount: 2500 },
+                            { date: '2026-01-30', activity: 'Services', description: 'Services from 01/26/26 - 01/30/26', quantity: 10, rate: 250, amount: 2500 }
+                        ],
+                        total: 12500,
+                        notes: '',
+                        magicToken: generateToken(),
+                        createdAt: '2026-01-30T00:00:00.000Z',
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_invoices', 'inv-1099'), inv1099);
+                    log('Created Invoice 1099 — $12,500 (paid)', 'done');
+                }
+
+                // ===== 6. Gray Matter Analytics client =====
+                log('Checking for Gray Matter Analytics client...', 'running');
+                let grayMatterId = null;
+                const grayClient = existing.find(c =>
+                    (c.company || '').toLowerCase().includes('gray matter')
+                );
+
+                if (grayClient) {
+                    grayMatterId = grayClient.id;
+                    log('Found existing Gray Matter Analytics client: ' + grayMatterId, 'done');
+                } else {
+                    grayMatterId = 'client-gray-matter';
+                    const gmClientData = {
+                        name: 'Gray Matter Analytics',
+                        company: 'Gray Matter Analytics',
+                        email: '',
+                        phone: '',
+                        address1: '180 N. Wabash Avenue',
+                        address2: 'Suite 602',
+                        city: 'Chicago',
+                        state: 'IL',
+                        zip: '60601',
+                        contractStart: '',
+                        contractEnd: '',
+                        invoiceFrequency: 'monthly',
+                        invoiceTerms: 'Net 30',
+                        color: '#7c3aed',
+                        notes: 'CMO / Consulting services. Past due balance — $1,000 partial payment received 01/03/2026.',
+                        status: 'active',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_clients', grayMatterId), gmClientData);
+                    log('Created Gray Matter Analytics client', 'done');
+                }
+
+                // ===== 7. Invoice 1095 (Gray Matter — overdue, partial payment) =====
+                if (existingNumbers.includes('1095') || existingNumbers.includes('INV-1095')) {
+                    log('Invoice 1095 already exists — skipping', 'pending');
+                } else {
+                    const inv1095 = {
+                        clientId: grayMatterId,
+                        clientName: 'Gray Matter Analytics',
+                        clientEmail: '',
+                        clientAddress1: '180 N. Wabash Avenue',
+                        clientAddress2: 'Suite 602',
+                        clientCity: 'Chicago',
+                        clientState: 'IL',
+                        clientZip: '60601',
+                        terms: 'Net 30',
+                        invoiceNumber: '1095',
+                        date: '2025-10-20',
+                        dueDate: '2025-11-19',
+                        status: 'overdue',
+                        lineItems: [
+                            { date: '2025-03-31', activity: 'Services', description: 'Consulting services / CMO', quantity: 1, rate: 7000, amount: 7000 }
+                        ],
+                        total: 7000,
+                        amountPaid: 1000,
+                        payments: [
+                            { date: '2026-01-03', amount: 1000, method: 'ACH', note: 'Partial payment' }
+                        ],
+                        notes: 'Past due amount for consulting services completed in March 2025. Original balance $7,000. $1,000 partial payment received 01/03/2026. Remaining balance: $6,000.',
+                        magicToken: generateToken(),
+                        createdAt: '2025-10-20T00:00:00.000Z',
+                        updatedAt: new Date().toISOString()
+                    };
+                    await setDoc(doc(db, 'portal_invoices', 'inv-1095'), inv1095);
+                    log('Created Invoice 1095 — $7,000 (overdue, $1,000 paid, $6,000 remaining)', 'done');
+                }
+
+                log('All done! You can close this page and check the portal.', 'done');
+                btn.textContent = 'Done';
+            } catch (e) {
+                log('Error: ' + e.message, 'error');
+                btn.disabled = false;
+                btn.textContent = 'Retry';
+            }
+        };
+    </script>
+</body>
+</html>

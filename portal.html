@@ -1097,8 +1097,26 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Address</label>
-                <input type="text" class="form-input" id="client-address" placeholder="123 Main St, City, ST 12345">
+                <label class="form-label">Address Line 1</label>
+                <input type="text" class="form-input" id="client-address1" placeholder="123 Main St">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address Line 2</label>
+                <input type="text" class="form-input" id="client-address2" placeholder="Suite 200, Building A, etc.">
+            </div>
+            <div class="form-row-3">
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-input" id="client-city" placeholder="Greensboro">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="client-state" placeholder="NC" maxlength="2" style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Zip</label>
+                    <input type="text" class="form-input" id="client-zip" placeholder="27401" maxlength="10">
+                </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -1114,6 +1132,7 @@
                 <div class="form-group">
                     <label class="form-label">Invoice Frequency</label>
                     <select class="form-select" id="client-invoice-freq">
+                        <option value="biweekly">Biweekly</option>
                         <option value="monthly">Monthly</option>
                         <option value="quarterly">Quarterly</option>
                         <option value="project">Per Project</option>
@@ -1191,18 +1210,22 @@
             </div>
 
             <label class="form-label" style="margin-bottom: 8px;">Line Items</label>
+            <div style="overflow-x: auto;">
             <table class="line-items-table">
                 <thead>
                     <tr>
-                        <th style="width: 50%;">Description</th>
-                        <th style="width: 12%;">Qty</th>
-                        <th style="width: 15%;">Rate</th>
-                        <th style="width: 15%;">Amount</th>
+                        <th style="width: 14%;">Date</th>
+                        <th style="width: 14%;">Activity</th>
+                        <th style="width: 32%;">Description</th>
+                        <th style="width: 8%;">Qty</th>
+                        <th style="width: 12%;">Rate</th>
+                        <th style="width: 12%;">Amount</th>
                         <th style="width: 8%;"></th>
                     </tr>
                 </thead>
                 <tbody id="line-items-body"></tbody>
             </table>
+            </div>
             <button class="btn btn-outline btn-sm" onclick="addLineItem()" style="margin-bottom: 16px;">+ Add Line</button>
 
             <div class="invoice-totals" id="invoice-totals"></div>
@@ -1347,13 +1370,18 @@
         }
     };
 
+    // ===== HELPERS =====
+    function invoiceBalance(inv) {
+        return (inv.total || 0) - (inv.amountPaid || 0);
+    }
+
     // ===== DASHBOARD =====
     function renderDashboard() {
         const today = new Date();
         document.getElementById('dash-date').textContent = today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
-        const totalOutstanding = invoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((s, i) => s + (i.total || 0), 0);
-        const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + (i.total || 0), 0);
+        const totalOutstanding = invoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((s, i) => s + invoiceBalance(i), 0);
+        const totalOverdue = invoices.filter(i => i.status === 'overdue').reduce((s, i) => s + invoiceBalance(i), 0);
         const totalPaidThisYear = invoices.filter(i => i.status === 'paid' && i.date?.startsWith(today.getFullYear())).reduce((s, i) => s + (i.total || 0), 0);
         const activeClients = clients.filter(c => c.status !== 'ended').length;
 
@@ -1382,7 +1410,8 @@
         const alerts = [];
         invoices.filter(i => i.status === 'overdue').forEach(inv => {
             const days = Math.floor((today - new Date(inv.dueDate)) / 86400000);
-            alerts.push({ type: 'urgent', icon: '🚨', text: `<strong>${inv.clientName}</strong> — ${inv.invoiceNumber} is ${days} days past due ($${(inv.total||0).toLocaleString()})` });
+            const bal = invoiceBalance(inv);
+            alerts.push({ type: 'urgent', icon: '🚨', text: `<strong>${inv.clientName}</strong> — ${inv.invoiceNumber} is ${days} days past due ($${bal.toLocaleString()}${inv.amountPaid ? ' remaining' : ''})` });
         });
         clients.filter(c => c.contractEnd).forEach(c => {
             const daysUntil = Math.floor((new Date(c.contractEnd) - today) / 86400000);
@@ -1441,8 +1470,8 @@
         }
         grid.innerHTML = clients.filter(c => c.status !== 'ended').map(c => {
             const clientInvoices = invoices.filter(i => i.clientId === c.id);
-            const outstanding = clientInvoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((s, i) => s + (i.total || 0), 0);
-            const totalPaid = clientInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total || 0), 0);
+            const outstanding = clientInvoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((s, i) => s + invoiceBalance(i), 0);
+            const totalPaid = clientInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total || 0), 0) + clientInvoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.amountPaid || 0), 0);
             const contractAge = c.contractStart ? Math.floor((new Date() - new Date(c.contractStart)) / 86400000 / 30) : 0;
 
             return `<div class="client-card" onclick="showClientDetail('${c.id}')">
@@ -1472,8 +1501,8 @@
 
         const clientInvoices = invoices.filter(i => i.clientId === clientId);
         const clientDocs = documents.filter(d => d.clientId === clientId);
-        const outstanding = clientInvoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((s, i) => s + (i.total || 0), 0);
-        const totalPaid = clientInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total || 0), 0);
+        const outstanding = clientInvoices.filter(i => i.status === 'sent' || i.status === 'overdue').reduce((s, i) => s + invoiceBalance(i), 0);
+        const totalPaid = clientInvoices.filter(i => i.status === 'paid').reduce((s, i) => s + (i.total || 0), 0) + clientInvoices.filter(i => i.status !== 'paid').reduce((s, i) => s + (i.amountPaid || 0), 0);
 
         document.getElementById('client-detail-content').innerHTML = `
             <div class="detail-back" onclick="showView('clients')">← Back to Clients</div>
@@ -1503,7 +1532,10 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Contact</div>
-                    <div class="stat-value" style="font-size: 0.9rem;">${c.email || '—'}<br>${c.phone || ''}</div>
+                    <div class="stat-value" style="font-size: 0.9rem;">
+                        ${c.email || '—'}<br>${c.phone || ''}
+                        ${c.address1 ? `<br><span style="font-weight:400; color:var(--gray-500); font-size:0.8rem;">${c.address1}${c.address2 ? ', ' + c.address2 : ''}<br>${[c.city, c.state].filter(Boolean).join(', ')} ${c.zip || ''}</span>` : ''}
+                    </div>
                 </div>
             </div>
 
@@ -1541,7 +1573,11 @@
             document.getElementById('client-company').value = c.company || '';
             document.getElementById('client-email').value = c.email || '';
             document.getElementById('client-phone').value = c.phone || '';
-            document.getElementById('client-address').value = c.address || '';
+            document.getElementById('client-address1').value = c.address1 || c.address || '';
+            document.getElementById('client-address2').value = c.address2 || '';
+            document.getElementById('client-city').value = c.city || '';
+            document.getElementById('client-state').value = c.state || '';
+            document.getElementById('client-zip').value = c.zip || '';
             document.getElementById('client-contract-start').value = c.contractStart || '';
             document.getElementById('client-contract-end').value = c.contractEnd || '';
             document.getElementById('client-invoice-freq').value = c.invoiceFrequency || 'monthly';
@@ -1551,7 +1587,7 @@
         } else {
             document.getElementById('client-modal-title').textContent = 'Add Client';
             document.getElementById('client-edit-id').value = '';
-            ['client-name','client-company','client-email','client-phone','client-address','client-contract-start','client-contract-end','client-notes'].forEach(id => document.getElementById(id).value = '');
+            ['client-name','client-company','client-email','client-phone','client-address1','client-address2','client-city','client-state','client-zip','client-contract-start','client-contract-end','client-notes'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('client-invoice-freq').value = 'monthly';
             document.getElementById('client-terms').value = 'Net 30';
             document.getElementById('client-color').value = '#2563eb';
@@ -1566,7 +1602,11 @@
             company: document.getElementById('client-company').value,
             email: document.getElementById('client-email').value,
             phone: document.getElementById('client-phone').value,
-            address: document.getElementById('client-address').value,
+            address1: document.getElementById('client-address1').value,
+            address2: document.getElementById('client-address2').value,
+            city: document.getElementById('client-city').value,
+            state: document.getElementById('client-state').value.toUpperCase(),
+            zip: document.getElementById('client-zip').value,
             contractStart: document.getElementById('client-contract-start').value,
             contractEnd: document.getElementById('client-contract-end').value,
             invoiceFrequency: document.getElementById('client-invoice-freq').value,
@@ -1703,8 +1743,10 @@
         const tbody = document.getElementById('line-items-body');
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td><input type="date" value="${item?.date || ''}" style="width:130px;" onchange="updateInvoiceTotals()"></td>
+            <td><input type="text" placeholder="Consulting" value="${item?.activity || ''}" style="width:110px;" onchange="updateInvoiceTotals()"></td>
             <td><input type="text" placeholder="Service description" value="${item?.description || ''}" onchange="updateInvoiceTotals()"></td>
-            <td><input type="number" placeholder="1" value="${item?.quantity || 1}" min="0" step="1" style="width:60px;" onchange="updateInvoiceTotals()"></td>
+            <td><input type="number" placeholder="1" value="${item?.quantity || 1}" min="0" step="0.5" style="width:60px;" onchange="updateInvoiceTotals()"></td>
             <td><input type="number" placeholder="0.00" value="${item?.rate || ''}" min="0" step="0.01" style="width:100px;" onchange="updateInvoiceTotals()"></td>
             <td class="line-total">$${((item?.quantity || 1) * (item?.rate || 0)).toFixed(2)}</td>
             <td><button class="btn-icon" onclick="this.closest('tr').remove(); updateInvoiceTotals();" style="font-size:1rem; color:var(--red);">✕</button></td>
@@ -1717,8 +1759,9 @@
         let subtotal = 0;
         rows.forEach(row => {
             const inputs = row.querySelectorAll('input');
-            const qty = parseFloat(inputs[1]?.value) || 0;
-            const rate = parseFloat(inputs[2]?.value) || 0;
+            // inputs: [0]=date, [1]=activity, [2]=description, [3]=qty, [4]=rate
+            const qty = parseFloat(inputs[3]?.value) || 0;
+            const rate = parseFloat(inputs[4]?.value) || 0;
             const amount = qty * rate;
             row.querySelector('.line-total').textContent = '$' + amount.toFixed(2);
             subtotal += amount;
@@ -1739,11 +1782,14 @@
         const lineItems = [];
         document.querySelectorAll('#line-items-body tr').forEach(row => {
             const inputs = row.querySelectorAll('input');
-            const desc = inputs[0]?.value;
-            const qty = parseFloat(inputs[1]?.value) || 0;
-            const rate = parseFloat(inputs[2]?.value) || 0;
-            if (desc && rate > 0) {
-                lineItems.push({ description: desc, quantity: qty, rate, amount: qty * rate });
+            // inputs: [0]=date, [1]=activity, [2]=description, [3]=qty, [4]=rate
+            const itemDate = inputs[0]?.value || '';
+            const activity = inputs[1]?.value || '';
+            const desc = inputs[2]?.value || '';
+            const qty = parseFloat(inputs[3]?.value) || 0;
+            const rate = parseFloat(inputs[4]?.value) || 0;
+            if ((desc || activity) && rate > 0) {
+                lineItems.push({ date: itemDate, activity, description: desc, quantity: qty, rate, amount: qty * rate });
             }
         });
 
@@ -1753,6 +1799,12 @@
             clientId: clientId,
             clientName: client?.company || client?.name || '',
             clientEmail: client?.email || '',
+            clientAddress1: client?.address1 || '',
+            clientAddress2: client?.address2 || '',
+            clientCity: client?.city || '',
+            clientState: client?.state || '',
+            clientZip: client?.zip || '',
+            terms: client?.invoiceTerms || 'Net 30',
             invoiceNumber: document.getElementById('invoice-number').value,
             date: document.getElementById('invoice-date').value,
             dueDate: document.getElementById('invoice-due-date').value,
