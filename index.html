@@ -5,6 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Michael Dulin, MD, PhD — Healthcare AI Expert</title>
     <meta name="description" content="Physician, researcher, and consultant helping healthcare organizations harness AI to improve care. Robert Wood Johnson Health Policy Fellow. Harvard Business School case study.">
+    
+    <\!-- Open Graph / Social Sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mikedulinmd.app/">
+    <meta property="og:title" content="Michael Dulin, MD, PhD — Healthcare AI Expert">
+    <meta property="og:description" content="Physician, executive, and consultant helping healthcare organizations harness AI, build analytics, and navigate value-based care. Fractional CMO/CCO.">
+    <meta property="og:image" content="https://mikedulinmd.app/headshot-main.jpg">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="800">
+
+    <\!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Michael Dulin, MD, PhD — Healthcare AI Expert">
+    <meta name="twitter:description" content="Physician, executive, and consultant helping healthcare organizations harness AI, build analytics, and navigate value-based care.">
+    <meta name="twitter:image" content="https://mikedulinmd.app/headshot-main.jpg">
+
+    <\!-- Additional SEO -->
+    <link rel="canonical" href="https://mikedulinmd.app/">
+    <meta name="author" content="Michael Dulin, MD, PhD">
+    <meta name="robots" content="index, follow">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -505,6 +526,37 @@
             .featured-banner { flex-direction: column; text-align: center; }
         }
 
+        /* Contact form states */
+        .form-status {
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .form-status.success {
+            display: block;
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .form-status.error {
+            display: block;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+        .form-status.sending {
+            display: block;
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border: 1px solid #bfdbfe;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .fade-in {
             opacity: 0;
             transform: translateY(20px);
@@ -547,7 +599,7 @@
                     <h1>Michael Dulin</h1>
                     <p class="tagline">Physician. Executive. Healthcare AI & Innovation.</p>
                     <p>I'm a family physician, former Chief Clinical Officer, and consultant helping healthcare organizations harness AI, build analytics capabilities, and navigate value-based care. I've spent 25+ years at the intersection of medicine, data science, and policy—including building analytics teams at Atrium Health that became a Harvard Business School case study.</p>
-                    <p>Currently, I practice medicine, serve as a <strong>Fractional CMO/CCO</strong> for healthcare and health tech companies, and teach—including an upcoming course for the National Academy of Medicine on using AI to design your life.</p>
+                    <p>Currently, I practice medicine, serve as a <strong>Fractional CMO/CCO</strong> for healthcare and health tech companies, and teach—including a course for the National Academy of Medicine on using AI to design your life.</p>
 
                     <div class="credentials">
                         <span class="credential"><span class="credential-icon">🎓</span> MD, PhD — UT Houston</span>
@@ -785,7 +837,8 @@
                         <span>Greensboro & Davidson, NC</span>
                     </div>
                 </div>
-                <form class="contact-form" onsubmit="handleContact(event)">
+                <form class="contact-form" id="contactForm" onsubmit="handleContact(event)">
+                    <div class="form-status" id="formStatus"></div>
                     <input type="text" id="name" placeholder="Name" required>
                     <input type="email" id="email" placeholder="Email" required>
                     <select id="inquiry">
@@ -796,7 +849,7 @@
                         <option value="Other">Other</option>
                     </select>
                     <textarea id="message" placeholder="Your message..." required></textarea>
-                    <button type="submit" class="btn">Send Message</button>
+                    <button type="submit" class="btn" id="submitBtn">Send Message</button>
                 </form>
             </div>
         </div>
@@ -805,7 +858,7 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>© 2025 Michael Dulin, MD, PhD · <a href="portal.html">Client Portal</a> · <a href="rentals.html">Rental Properties</a></p>
+            <p>© 2026 Michael Dulin, MD, PhD · <a href="portal.html">Client Portal</a> · <a href="rentals.html">Rental Properties</a></p>
             <p style="margin-top: 8px; font-size: 0.8rem; color: var(--gray-300);">Try the Konami Code ↑↑↓↓←→←→BA</p>
         </div>
     </footer>
@@ -824,19 +877,59 @@
         </div>
     </div>
 
-    <script>
-        function handleContact(e) {
+    <\!-- Firebase SDK for contact form -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const app = initializeApp({
+            apiKey: "AIzaSyC5mOkljbkSMCMhRf-jrJ7TIpkESMTcxHY",
+            authDomain: "mikedulinmd-cf65b.firebaseapp.com",
+            projectId: "mikedulinmd-cf65b",
+            storageBucket: "mikedulinmd-cf65b.firebasestorage.app",
+            messagingSenderId: "714928483011",
+            appId: "1:714928483011:web:dd1b266d77c6042c6f5076"
+        });
+        const db = getFirestore(app);
+
+        window.handleContact = async function(e) {
             e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const statusEl = document.getElementById('formStatus');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('contactForm');
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const inquiry = document.getElementById('inquiry').value;
-            const message = document.getElementById('message').value;
+            const message = document.getElementById('message').value.trim();
 
-            const subject = `${inquiry} Inquiry from ${name}`;
-            const body = `From: ${name}\nEmail: ${email}\nInquiry Type: ${inquiry}\n\n${message}`;
+            // Show sending state
+            statusEl.className = 'form-status sending';
+            statusEl.textContent = 'Sending your message...';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
 
-            window.location.href = `mailto:mdulin@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
+            try {
+                await addDoc(collection(db, "contact_submissions"), {
+                    name, email, inquiry, message,
+                    createdAt: serverTimestamp(),
+                    status: "new"
+                });
+                statusEl.className = 'form-status success';
+                statusEl.textContent = 'Message sent\! I\'ll get back to you soon.';
+                form.reset();
+            } catch (err) {
+                console.error("Contact form error:", err);
+                statusEl.className = 'form-status error';
+                statusEl.textContent = 'Something went wrong. Please email mdulin@gmail.com directly.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
+            }
+        };
+    </script>
+
+    <script>
 
         // Scroll animations
         const observer = new IntersectionObserver((entries) => {

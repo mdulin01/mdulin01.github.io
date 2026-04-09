@@ -352,3 +352,61 @@ function buildInvoiceEmail(inv) {
 </body>
 </html>`;
 }
+
+
+// ─── Contact Form Email Notification ─────────────────────────────────
+
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+
+/**
+ * onContactSubmission — triggered when a new contact form submission is created.
+ * Sends an email notification to Mike via Resend.
+ */
+exports.onContactSubmission = onDocumentCreated(
+  {
+    document: "contact_submissions/{docId}",
+    secrets: [resendApiKey],
+    region: "us-east1",
+  },
+  async (event) => {
+    const snap = event.data;
+    if (\!snap) return;
+
+    const data = snap.data();
+    const { name, email, inquiry, message } = data;
+
+    const resend = new Resend(resendApiKey.value());
+
+    // Email to Mike
+    const { error } = await resend.emails.send({
+      from: "Website Contact <contact@mail.mikedulinmd.app>",
+      to: ["mdulin@gmail.com"],
+      replyTo: email,
+      subject: `New inquiry: ${inquiry} from ${name}`,
+      html: `
+        <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <div style="border-bottom: 2px solid #2563eb; padding-bottom: 16px; margin-bottom: 24px;">
+            <h2 style="margin: 0; color: #111;">New Contact Form Submission</h2>
+          </div>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px 0; color: #888; width: 100px;">Name</td><td style="padding: 8px 0; color: #111; font-weight: 500;">${name}</td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Email</td><td style="padding: 8px 0;"><a href="mailto:${email}" style="color: #2563eb;">${email}</a></td></tr>
+            <tr><td style="padding: 8px 0; color: #888;">Inquiry</td><td style="padding: 8px 0; color: #111;">${inquiry}</td></tr>
+          </table>
+          <div style="margin-top: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+            <p style="margin: 0 0 8px; font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.05em;">Message</p>
+            <p style="margin: 0; color: #444; line-height: 1.6; white-space: pre-wrap;">${message}</p>
+          </div>
+          <p style="margin-top: 20px; font-size: 13px; color: #888;">Reply directly to this email to respond to ${name}.</p>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Failed to send contact notification:", error);
+    } else {
+      // Mark as notified
+      await snap.ref.update({ status: "notified", notifiedAt: new Date().toISOString() });
+    }
+  }
+);
