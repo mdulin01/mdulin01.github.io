@@ -6,7 +6,7 @@
     <title>Michael Dulin, MD, PhD — Healthcare AI Expert</title>
     <meta name="description" content="Physician, researcher, and consultant helping healthcare organizations harness AI to improve care. Robert Wood Johnson Health Policy Fellow. Harvard Business School case study.">
     
-    <\!-- Open Graph / Social Sharing -->
+    <!-- Open Graph / Social Sharing -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://mikedulinmd.app/">
     <meta property="og:title" content="Michael Dulin, MD, PhD — Healthcare AI Expert">
@@ -15,13 +15,13 @@
     <meta property="og:image:width" content="800">
     <meta property="og:image:height" content="800">
 
-    <\!-- Twitter Card -->
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Michael Dulin, MD, PhD — Healthcare AI Expert">
     <meta name="twitter:description" content="Physician, executive, and consultant helping healthcare organizations harness AI, build analytics, and navigate value-based care.">
     <meta name="twitter:image" content="https://mikedulinmd.app/headshot-main.jpg">
 
-    <\!-- Additional SEO -->
+    <!-- Additional SEO -->
     <link rel="canonical" href="https://mikedulinmd.app/">
     <meta name="author" content="Michael Dulin, MD, PhD">
     <meta name="robots" content="index, follow">
@@ -522,7 +522,9 @@
             .recognition-grid { grid-template-columns: 1fr; gap: 24px; }
             .contact-grid { grid-template-columns: 1fr; }
             .timeline-item { grid-template-columns: 1fr; gap: 8px; }
-            .nav-links { display: none; }
+            .nav-links { gap: 1rem; font-size: 0.85rem; }
+            .nav-links li.nav-anchor { display: none; }
+            .nav-name { font-size: 1.05rem; }
             .featured-banner { flex-direction: column; text-align: center; }
         }
 
@@ -575,10 +577,10 @@
         <div class="container-wide">
             <a href="#" class="nav-name">Michael Dulin, MD</a>
             <ul class="nav-links">
-                <li><a href="#work">Services</a></li>
-                <li><a href="#media">Media</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="portal.html" style="color: var(--accent);">Portal →</a></li>
+                <li class="nav-anchor"><a href="#work">Services</a></li>
+                <li class="nav-anchor"><a href="#media">Media</a></li>
+                <li class="nav-anchor"><a href="#contact">Contact</a></li>
+                <li><a href="portal.html" style="color: var(--accent); font-weight: 600;">Portal →</a></li>
             </ul>
         </div>
     </nav>
@@ -687,8 +689,7 @@
         </div>
     </section>
 
-    <!-- Media & Speaking -->
-    <\!-- Testimonials -->
+    <!-- Testimonials -->
     <section id="testimonials" style="padding: 60px 0; border-top: 1px solid var(--gray-200);">
         <div class="container">
             <h2>What People Say</h2>
@@ -804,11 +805,11 @@
                     </div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-date">Apr 2025</div>
+                    <div class="timeline-date">2025</div>
                     <div class="timeline-content">
                         <h4>AI Training Faculty</h4>
                         <div class="org">National Academy of Medicine & RWJF</div>
-                        <p>Teaching health policy fellows to use AI for life design</p>
+                        <p>Taught health policy fellows to use AI for life design</p>
                     </div>
                 </div>
                 <div class="timeline-item">
@@ -816,7 +817,7 @@
                     <div class="timeline-content">
                         <h4>Fractional CMO</h4>
                         <div class="org">Gray Matter Analytics</div>
-                        <p>8+ years as fractional executive — product strategy, client relations, VBC analytics</p>
+                        <p>9+ years as fractional executive — product strategy, client relations, VBC analytics</p>
                     </div>
                 </div>
                 <div class="timeline-item">
@@ -910,7 +911,7 @@
         </div>
     </div>
 
-    <\!-- Firebase SDK for contact form -->
+    <!-- Firebase SDK for contact form -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";

@@ -438,7 +438,9 @@
             .case-study-stats { grid-template-columns: 1fr; gap: 16px; }
             .service-item { grid-template-columns: 1fr; gap: 8px; }
             .pricing-grid { grid-template-columns: 1fr; }
-            .nav-links { display: none; }
+            .nav-links { gap: 1rem; font-size: 0.85rem; }
+            .nav-links li.nav-anchor { display: none; }
+            .nav-name { font-size: 1.05rem; }
         }
 
         .fade-in {
@@ -459,10 +461,10 @@
         <div class="container-wide">
             <a href="index.html" class="nav-name">Michael Dulin, MD</a>
             <ul class="nav-links">
-                <li><a href="index.html#work">Services</a></li>
-                <li><a href="index.html#media">Media</a></li>
-                <li><a href="index.html#contact">Contact</a></li>
-                <li><a href="admin.html" style="color: var(--accent);">Portal →</a></li>
+                <li class="nav-anchor"><a href="index.html#work">Services</a></li>
+                <li class="nav-anchor"><a href="index.html#media">Media</a></li>
+                <li class="nav-anchor"><a href="index.html#contact">Contact</a></li>
+                <li><a href="portal.html" style="color: var(--accent); font-weight: 600;">Portal →</a></li>
             </ul>
         </div>
     </nav>
@@ -624,7 +626,7 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>© 2025 Michael Dulin, MD, PhD · <a href="index.html">Home</a> · <a href="admin.html">Client Portal</a></p>
+            <p>© 2026 Michael Dulin, MD, PhD · <a href="index.html">Home</a> · <a href="portal.html">Client Portal</a></p>
         </div>
     </footer>
 
