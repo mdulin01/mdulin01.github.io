@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  // Domain split: mikedulinmd.app = private portal; michaeldulinmd.com = public site.
+  if (/(^|\.)mikedulinmd\.app$/.test(location.hostname)) { location.replace('/portal.html'); }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Michael Dulin, MD, PhD — Healthcare AI Expert</title>
