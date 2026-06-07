@@ -958,6 +958,7 @@
 
 <!-- ===== APP SHELL ===== -->
 <div id="app-shell">
+    <div id="rupert-banner"></div>
     <!-- Header -->
     <div class="app-header">
         <div class="app-header-inner">
@@ -1349,6 +1350,7 @@
         if (user && user.email === ADMIN_EMAIL) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-shell').style.display = 'block';
+            subscribeRupert();
             document.getElementById('user-name').textContent = user.displayName || user.email;
             loadData();
         } else {
@@ -1356,6 +1358,25 @@
             document.getElementById('app-shell').style.display = 'none';
         }
     });
+
+    // ===== RUPERT BANNER (reads rupert/note, written by Rupert on the mini) =====
+    function rupertRel(iso){try{const s=Math.max(0,(Date.now()-new Date(iso).getTime())/1000);if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}catch(e){return'';}}
+    let _rupertUnsub=null;
+    function subscribeRupert(){
+        if(_rupertUnsub)return;
+        const A='#a78bfa';
+        try{
+            _rupertUnsub=onSnapshot(doc(db,'rupert','note'),(snap)=>{
+                const el=document.getElementById('rupert-banner'); if(!el)return;
+                if(!snap.exists()){el.innerHTML='';return;}
+                const n=snap.data(); const signals=n.signals||[]; const priorities=n.priorities||[];
+                if(!n.text&&!signals.length&&!priorities.length){el.innerHTML='';return;}
+                const sig=signals.map(x=>`<div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px"><span style="width:7px;height:7px;border-radius:50%;background:${A};flex:0 0 auto"></span>${x.href?`<a href="${x.href}" style="color:${A};font-weight:600;text-decoration:none">${x.label} →</a>`:`<span>${x.label}</span>`}</div>`).join('');
+                const prio=priorities.length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px">${priorities.map(p=>`<span style="font-size:11px;font-weight:600;color:#cbd5e1;background:rgba(148,163,184,.14);border:1px solid rgba(148,163,184,.2);border-radius:999px;padding:3px 9px">${p}</span>`).join('')}</div>`:'';
+                el.innerHTML=`<div style="margin:12px auto 0;max-width:1120px;padding:0 16px"><div style="background:linear-gradient(135deg,${A}1a,rgba(15,23,42,.55));border:1px solid ${A}55;border-radius:14px;padding:13px 15px;display:flex;gap:12px;align-items:flex-start;color:#e8edf5"><span style="font-size:24px;line-height:1;flex:0 0 auto">🦚</span><div style="min-width:0;flex:1"><div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${A}">Rupert</div>${n.text?`<p style="font-size:14px;line-height:1.5;margin:2px 0 0;white-space:pre-wrap">${n.text}</p>`:''}${sig}${prio}<div style="font-size:11px;color:#64748b;margin-top:9px">Rupert${n.updatedAt?' · updated '+rupertRel(n.updatedAt):''} · <a href="https://mikeslife.app" target="_blank" style="color:#94a3b8;text-decoration:none">open in Mike’s Life ↗</a></div></div></div></div>`;
+            },()=>{});
+        }catch(e){}
+    }
 
     // ===== DATA LOADING =====
     async function loadData() {
