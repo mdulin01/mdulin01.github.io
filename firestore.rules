@@ -7,17 +7,23 @@ service cloud.firestore {
                     && request.resource.data.name is string
                     && request.resource.data.email is string
                     && request.resource.data.message is string;
-      allow read, update, delete: if request.auth \!= null && request.auth.token.email == 'mdulin@gmail.com';
+      allow read, update, delete: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com';
     }
 
     // Portal collections: admin only
     match /portal_clients/{docId} {
-      allow read, write: if request.auth \!= null && request.auth.token.email == 'mdulin@gmail.com';
+      allow read, write: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com';
     }
     match /portal_invoices/{docId} {
-      allow read: if request.auth \!= null && request.auth.token.email == 'mdulin@gmail.com'
+      allow read: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com'
                   || resource.data.magicToken == request.query.get('token', '');
-      allow write: if request.auth \!= null && request.auth.token.email == 'mdulin@gmail.com';
+      allow write: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com';
+    }
+
+    // Rupert banner note (written by the mini via Admin SDK; owner reads it)
+    match /rupert/{doc} {
+      allow read: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com';
+      allow write: if false;
     }
   }
 }
