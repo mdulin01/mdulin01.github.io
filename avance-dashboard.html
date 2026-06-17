@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Primary Care Provider Performance Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --navy:#2B2C6B; --navy-deep:#232456; --peri:#5C6CB8; --peri-light:#8A97D1;
+    --green:#4CB749; --green-dark:#2F9E45; --green-light:#5BC24E;
+    --ink:#26303A; --muted:#6B7A80; --care-gray:#6D6E71;
+    --bg:#F4F6F8; --card:#FFFFFF; --line:#E4E8EE;
+    --good:#2F9E45; --warn:#D4A017; --bad:#C0392B;
+    --prod:#2B2C6B; --qual:#2F9E45; --rev:#0E8A6E; --sat:#B5651D;
+    --shadow:0 1px 3px rgba(30,40,60,.08),0 1px 2px rgba(30,40,60,.04);
+    --shadow-lg:0 12px 40px rgba(30,40,60,.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .logo-mark{width:38px;height:30px;flex:none}
+  .wordmark{font-size:22px;font-weight:300;letter-spacing:.2px;color:var(--care-gray)}
+  .wordmark b{font-weight:700;color:#4A5BA8}
+  .topbar .meta{text-align:right;font-size:12px;color:var(--muted)}
+  .topbar .meta .title{font-size:15px;font-weight:700;color:var(--ink)}
+
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 55%,var(--peri));padding:15px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}
+  .ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.8;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);color:var(--ink);font-weight:600;min-width:230px}
+  .who{margin-left:auto;text-align:right}
+  .who .nm{font-size:18px;font-weight:700}
+  .who .sub{font-size:12px;opacity:.85}
+
+  /* domain summary chips */
+  .domains-head{max-width:1520px;margin:18px auto 2px;padding:0 26px;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)}
+  .domains-head span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
+  .domains{max-width:1520px;margin:8px auto 0;padding:0 26px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .dchip{position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:13px 15px 12px;cursor:pointer;border-top:4px solid var(--line);transition:transform .12s,box-shadow .12s}
+  .dchip:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .dchip:hover .dgo{color:var(--navy)}
+  .dchip.active{box-shadow:0 0 0 2px var(--navy) inset,var(--shadow-lg);transform:translateY(-2px)}
+  .dchip.active .dgo{color:var(--navy)}
+  .dchip.active::after{content:"";position:absolute;left:50%;bottom:-8px;width:15px;height:15px;background:#fff;border-right:2px solid var(--navy);border-bottom:2px solid var(--navy);transform:translateX(-50%) rotate(45deg);z-index:1}
+  .drow{display:flex;align-items:center;gap:8px}
+  .dicon{width:25px;height:25px;border-radius:7px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex:none}
+  .dchip .dl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:800;color:var(--muted)}
+  .dchip .dv{font-size:23px;font-weight:800;margin-top:7px;line-height:1}
+  .dchip .ds{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .dgo{margin-top:9px;padding-top:8px;border-top:1px dashed var(--line);font-size:10.5px;font-weight:800;letter-spacing:.3px;color:var(--peri);text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+
+  .wrap{padding:18px 26px 70px;max-width:1520px;margin:0 auto}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:20px 2px 12px;display:flex;align-items:center;gap:8px}
+  .sec .note{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri);font-size:11px}
+
+  .topstrip{display:grid;grid-template-columns:260px 1fr;gap:16px;margin-bottom:6px}
+  .gauge-card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px;text-align:center;position:relative}
+  .gauge-wrap{position:relative;height:150px}
+  .gauge-wrap canvas{position:absolute;inset:0}
+  .gauge-center{position:absolute;left:0;right:0;top:92px;text-align:center;z-index:2}
+  .gauge-center .pct{font-size:36px;font-weight:800;line-height:1;letter-spacing:-.5px}
+  .gauge-center .lbl{font-size:10.5px;color:var(--muted);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+  .gauge-card .cap{font-size:12px;color:var(--muted);margin-top:8px}
+  .gauge-card .cap b{color:var(--ink)}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .kpi .accent{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .kpi .lbl{font-size:11.5px;color:var(--muted);font-weight:600;padding-right:14px}
+  .kpi .num{font-size:25px;font-weight:800;line-height:1.1;margin-top:5px}
+  .kpi .sub{font-size:11px;color:var(--muted);margin-top:4px}
+  .kpi .bench{font-size:10.5px;margin-top:6px;display:flex;align-items:center;gap:5px}
+  .kpi .bench .bchip{font-weight:800;padding:1px 6px;border-radius:5px}
+  .kpi .bench .bt{color:var(--muted)}
+  .kpi .drillicon{position:absolute;right:9px;top:10px;font-size:11px;color:#C2CAD6}
+  .kpi:hover .drillicon{color:var(--navy)}
+
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}
+  .card .hint{font-size:11px;color:var(--muted);margin-bottom:10px}
+  .chart-box{position:relative;height:220px}
+
+  .tabhide{display:none}
+
+  /* scorecard */
+  table.tbl{width:100%;border-collapse:collapse}
+  .tbl thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+  .tbl thead th.num,.tbl tbody td.num{text-align:right}
+  .tbl tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px;white-space:nowrap}
+  .tbl tbody tr:hover{background:#FAFBFD;cursor:pointer}
+  .tbl tbody tr.sel{background:#EEF1FB}
+  .nmcell{font-weight:700}.nmcell small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .cellpill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:12px}
+
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,25,45,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+  .modal-overlay[hidden]{display:none}
+  .modal{background:#fff;border-radius:16px;max-width:760px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden;animation:pop .15s ease}
+  @keyframes pop{from{transform:translateY(8px);opacity:.6}to{transform:none;opacity:1}}
+  .modal header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+  .modal header .mt{font-size:17px;font-weight:800;color:var(--navy)}
+  .modal header .ms{font-size:12px;color:var(--muted);margin-top:3px}
+  .modal .x{border:none;background:#F0F2F6;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;color:var(--muted);flex:none}
+  .modal .x:hover{background:#E4E7EE;color:var(--ink)}
+  .modal-body{padding:18px 22px 22px}
+  .mchips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .mchip{border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:120px}
+  .mchip .ml{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+  .mchip .mv{font-size:19px;font-weight:800;margin-top:2px}
+  .mnote{font-size:12.5px;color:#41505a;background:#F6F8FB;border-left:3px solid var(--peri);padding:9px 12px;border-radius:8px;margin-bottom:14px;line-height:1.5}
+  .mtbl{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12.5px}
+  .mtbl th{text-align:left;background:#F4F6FA;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .mtbl th.num,.mtbl td.num{text-align:right}
+  .mtbl td{padding:8px 10px;border-bottom:1px solid #EEF1F5}
+  .mtbl tr:last-child td{border-bottom:none}
+  .tagp{display:inline-block;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px}
+  .actions{background:#F2FAF3;border:1px solid #D6EFD2;border-radius:10px;padding:12px 14px}
+  .actions h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--green-dark);margin-bottom:6px}
+  .actions ul{margin:0;padding-left:18px}
+  .actions li{font-size:12.5px;margin:3px 0;line-height:1.45}
+
+  /* buttons */
+  .ghostbtn{font-size:13px;font-weight:600;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+  .ghostbtn:hover{background:rgba(255,255,255,.22)}
+  .primbtn{font-size:13px;font-weight:700;padding:9px 16px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer}
+  .primbtn:hover{background:var(--navy-deep)}
+  #benchReset.ghostbtn{border-color:var(--line);background:#fff;color:var(--muted)}
+  #benchReset.ghostbtn:hover{background:#F4F6FA;color:var(--ink)}
+
+  /* AI bar */
+  .aibar-wrap{max-width:1520px;margin:16px auto 0;padding:0 26px}
+  .aibar{background:linear-gradient(120deg,#fff, #F3F5FC);border:1px solid #D9DEF2;border-left:4px solid var(--peri);border-radius:14px;box-shadow:var(--shadow);padding:14px 18px}
+  .ai-top{display:flex;align-items:flex-start;gap:12px}
+  .ai-badge{flex:none;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(120deg,var(--navy),var(--peri));padding:5px 11px;border-radius:20px;letter-spacing:.3px}
+  .ai-insight{font-size:13.5px;line-height:1.5;color:var(--ink)}
+  .ai-insight b{color:var(--navy)}
+  .ai-insight .ai-link{color:var(--peri);font-weight:700;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .ai-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+  .ai-chip{font-size:12px;font-weight:600;padding:6px 11px;border-radius:18px;border:1px solid #CBD2EC;background:#fff;color:var(--navy);cursor:pointer}
+  .ai-chip:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .ai-ask{display:flex;gap:8px;margin-top:11px}
+  .ai-ask input{flex:1;font-size:13px;padding:9px 12px;border:1px solid #CBD2EC;border-radius:9px}
+  .ai-ask button{font-size:13px;font-weight:700;padding:9px 18px;border:none;border-radius:9px;background:var(--peri);color:#fff;cursor:pointer}
+  .ai-ask button:hover{background:var(--navy)}
+  .ai-resp{margin-top:12px;background:#fff;border:1px solid #E2E7F5;border-radius:10px;padding:13px 15px;font-size:13px;line-height:1.55;animation:pop .15s ease}
+  .ai-resp[hidden]{display:none}
+  .ai-resp h5{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--peri);margin-bottom:6px}
+  .ai-resp ul{margin:6px 0 0;padding-left:18px}
+  .ai-resp li{margin:3px 0}
+  .ai-resp .draft{background:#F6F8FB;border:1px dashed #C7D0E8;border-radius:8px;padding:10px 12px;margin-top:8px;font-size:12.5px;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;color:#33414e}
+  .ai-disc{font-size:10.5px;color:var(--muted);margin-top:9px;font-style:italic}
+
+  /* benchmark editor */
+  .bench-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-bottom:16px}
+  .bench-grid .bf{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12.5px}
+  .bench-grid .bf label{color:var(--ink)}
+  .bench-grid .bf input{width:78px;text-align:right;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}
+  .bench-em{border-top:1px solid var(--line);padding-top:14px}
+  .bench-em-title{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .bench-em-row{display:flex;gap:10px;flex-wrap:wrap}
+  .bench-em-row .ef{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+  .bench-em-row .ef input{width:62px;text-align:right;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}
+  .bench-em-sum{font-size:12px;margin-top:8px;font-weight:700}
+  .bench-actions{display:flex;justify-content:space-between;margin-top:18px}
+  .footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
+  .legend-inline{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:8px}
+  .legend-inline i{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.g3,.g2{grid-template-columns:1fr}.topstrip{grid-template-columns:1fr}.domains{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<div id="login-screen" style="position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;background:linear-gradient(120deg,#232456,#2B2C6B 55%,#5C6CB8);padding:20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <div style="background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.35);max-width:430px;width:100%;padding:32px 32px 26px;text-align:center">
+    <svg width="54" height="43" viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" aria-label="Avance Care" style="margin-bottom:6px">
+      <polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/>
+    </svg>
+    <div style="font-size:21px;font-weight:300;color:#6D6E71;letter-spacing:.2px"><b style="font-weight:700;color:#4A5BA8">Avance</b>Care</div>
+    <div style="font-size:16px;font-weight:800;color:#2B2C6B;margin-top:10px">Provider Performance Dashboard</div>
+    <div style="font-size:12.5px;color:#6B7A80;margin:8px 0 18px;line-height:1.5">Restricted to authorized Avance Care leadership. Enter your email to receive a one-time sign-in link.</div>
+    <input id="loginEmail" type="email" autocomplete="email" placeholder="you@avancecare.com" style="width:100%;padding:12px 13px;border:1px solid #CBD2EC;border-radius:9px;font-size:14px;margin-bottom:10px;outline:none">
+    <button id="loginBtn" style="width:100%;padding:12px;border:none;border-radius:9px;background:#2B2C6B;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Email me a sign-in link</button>
+    <div id="loginMsg" style="font-size:12.5px;margin-top:13px;min-height:18px;line-height:1.45"></div>
+    <div style="font-size:10.5px;color:#9aa6ad;margin-top:16px;line-height:1.5">Access limited to authorized users. Illustrative / synthetic data &mdash; no patient information.</div>
+  </div>
+</div>
+<div id="appShell" style="display:none">
+
+<div class="topbar">
+  <div class="brand">
+    <svg class="logo-mark" viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" aria-label="Avance Care">
+      <polygon points="34,14 56,90 8,90" fill="#5FBE57"/>
+      <polygon points="64,8 98,90 38,90" fill="#4A5BA8"/>
+    </svg>
+    <div class="wordmark"><b>Avance</b>Care</div>
+  </div>
+  <div class="meta">
+    <div class="title">Primary Care Provider Performance Dashboard</div>
+    <div>Prepared for Dr. Amanda Steventon, CMO · Draft v2 · Illustrative data</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="ctrl"><label>Region</label>
+    <select id="selRegion">
+      <option value="all">All Regions</option>
+      <option value="Charlotte">Charlotte</option>
+      <option value="Triangle">Triangle (Raleigh–Durham)</option>
+    </select>
+  </div>
+  <div class="ctrl"><label>Clinic</label><select id="selClinic"></select></div>
+  <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
+  <div class="ctrl"><label>Reporting Period</label>
+    <select id="selPeriod">
+      <option value="mtd">This Month (MTD)</option>
+      <option value="last">Last Month</option>
+      <option value="qtd">Quarter to Date</option>
+      <option value="ytd">Year to Date</option>
+    </select>
+  </div>
+  <div class="ctrl"><label>&nbsp;</label><button id="benchBtn" class="ghostbtn">⚙ Edit Benchmarks</button></div>
+  <div class="who"><div class="nm" id="whoName">Network — All Providers</div><div class="sub" id="whoSub"></div></div>
+</div>
+
+<!-- Avance AI bar -->
+<div class="aibar-wrap"><div class="aibar">
+  <div class="ai-top">
+    <span class="ai-badge">✦ Avance AI</span>
+    <div class="ai-insight" id="aiInsight">Analyzing this view…</div>
+  </div>
+  <div class="ai-chips" id="aiChips"></div>
+  <div class="ai-ask">
+    <input id="aiInput" type="text" placeholder="Ask Avance AI about this view — e.g. “What should I focus on this week?”">
+    <button id="aiSend">Ask</button>
+  </div>
+  <div class="ai-resp" id="aiResp" hidden></div>
+</div></div>
+
+<!-- domain summary / tab switcher -->
+<div class="domains-head">Performance Areas <span>— select an area to open its dashboard below</span></div>
+<div class="domains" id="domains"></div>
+
+<div class="wrap">
+
+  <!-- PRODUCTIVITY -->
+  <section data-tab="productivity">
+    <div class="sec">Productivity <span class="note">— volume, access &amp; throughput · click any metric to drill in</span></div>
+    <div class="topstrip">
+      <div class="gauge-card">
+        <div class="gauge-wrap"><canvas id="gauge"></canvas><div class="gauge-center"><div class="pct" id="gPct">—</div><div class="lbl">of visit goal</div></div></div>
+        <div class="cap" id="gCap"></div>
+      </div>
+      <div class="kpis" id="kProd"></div>
+    </div>
+    <div class="grid" style="margin-top:16px"><div class="card"><h3>Completed Visit Volume — last 8 weeks</h3><div class="hint">Weekly completed visits vs. weekly goal line</div><div class="chart-box"><canvas id="cVolume"></canvas></div></div></div>
+  </section>
+
+  <!-- QUALITY -->
+  <section data-tab="quality" class="tabhide">
+    <div class="sec">Quality &amp; Compliance <span class="note">— care gaps, transitions, risk &amp; controlled-substance oversight</span></div>
+    <div class="kpis" id="kQual"></div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card"><h3>Open Care Gaps by Measure</h3><div class="hint">Closed vs. open against eligible panel · click a bar for the outreach list</div><div class="chart-box" style="height:300px"><canvas id="cGaps"></canvas></div></div>
+      <div class="card"><h3>Outbound Referrals by Priority</h3><div class="hint">Routine / Urgent / STAT · click to see pending referrals</div><div class="chart-box" style="height:300px"><canvas id="cRef"></canvas></div><div class="legend-inline" id="refMeta"></div></div>
+    </div>
+  </section>
+
+  <!-- REVENUE -->
+  <section data-tab="revenue" class="tabhide">
+    <div class="sec">Revenue &amp; Coding <span class="note">— charge capture, E&amp;M coding vs. benchmark, billable programs, payer mix</span></div>
+    <div class="kpis" id="kRev"></div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card"><h3>E&amp;M Level Distribution vs. Benchmark</h3><div class="hint">Established-patient office visits (99211–99215) vs. family-medicine benchmark · click to drill</div><div class="chart-box" style="height:250px"><canvas id="cEM"></canvas></div></div>
+      <div class="card"><h3>Payer Mix</h3><div class="hint">Share of completed visits by payer</div><div class="chart-box" style="height:250px"><canvas id="cPayer"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- SATISFACTION -->
+  <section data-tab="satisfaction" class="tabhide">
+    <div class="sec">Patient Satisfaction &amp; Experience <span class="note">— overall, domain sub-scores &amp; likelihood to recommend</span></div>
+    <div class="kpis" id="kSat"></div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card"><h3>Experience Sub-scores vs. Benchmark</h3><div class="hint">Mean rating (1–5) by survey domain · click a metric card to drill</div><div class="chart-box" style="height:250px"><canvas id="cSat"></canvas></div></div>
+      <div class="card"><h3>Net Promoter & Top-Box Trend — last 6 months</h3><div class="hint">% top-box (4–5) and NPS</div><div class="chart-box" style="height:250px"><canvas id="cSatTrend"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- SCORECARD (always visible) -->
+  <div class="sec">Provider Scorecard <span class="note">— click a row to drill into that provider · click headers to sort</span></div>
+  <div class="card" style="padding:0;overflow:hidden"><table class="tbl" id="scoreTbl"><thead><tr id="scoreHead"></tr></thead><tbody id="scoreBody"></tbody></table></div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+<!-- benchmark editor modal -->
+<div class="modal-overlay" id="benchModal" hidden>
+  <div class="modal" style="max-width:680px">
+    <header><div><div class="mt">Edit Benchmarks &amp; Targets</div><div class="ms">Set your contract / organizational targets — saved on this device and applied across all views.</div></div><button class="x" id="benchClose" aria-label="Close">&times;</button></header>
+    <div class="modal-body">
+      <div id="benchForm" class="bench-grid"></div>
+      <div class="bench-em"><div class="bench-em-title">E&amp;M benchmark distribution (must total 100%)</div><div id="benchEM" class="bench-em-row"></div><div class="bench-em-sum" id="benchEMsum"></div></div>
+      <div class="bench-actions">
+        <button id="benchReset" class="ghostbtn">Reset to defaults</button>
+        <button id="benchSave" class="primbtn">Save benchmarks</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- drill modal -->
+<div class="modal-overlay" id="modal" hidden>
+  <div class="modal">
+    <header><div><div class="mt" id="mTitle"></div><div class="ms" id="mSub"></div></div><button class="x" id="mClose" aria-label="Close">&times;</button></header>
+    <div class="modal-body">
+      <div class="mchips" id="mChips"></div>
+      <div class="mnote" id="mNote" style="display:none"></div>
+      <div id="mTable"></div>
+      <div class="actions" id="mActions" style="display:none"><h4>Recommended actions</h4><ul id="mActionsList"></ul></div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /appShell -->
+<script>
+/* ============================================================
+   ILLUSTRATIVE SYNTHETIC DATA — fictitious providers.
+   Base = a typical FULL recent month. Period factors scale counts.
+   Replace DATA + BENCH with live Epic / Cogito feeds + your targets.
+   ============================================================ */
+const GAP_MEASURES=["Annual Wellness Visit","Diabetes A1c <9%","BP Control <140/90","Breast CA Screening","Colorectal Screening","Depression Screening","Influenza Immunization"];
+
+const PROVIDERS=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",panel:1880,goal:360,
+  visits:374,newPts:40,noShow:5.1,proc:52,openCharts:9,openOver7d:0,
+  csRx:28,csPending:1,uds:96,csa:99,
+  awvDone:34,awvDue:24,toc:88,ed:9,raf:91,ccm:46,cosign:99,capture:97.5,openCharges:14,tele:11,rooming:7.8,
+  em:[1,5,28,52,14], payer:{Commercial:40,Medicare:22,BCBS:22,Medicaid:11,"Self-Pay":5},
+  ref:{routine:42,urgent:7,stat:1},refPending:2,
+  gaps:{"Annual Wellness Visit":[24,205],"Diabetes A1c <9%":[8,90],"BP Control <140/90":[14,158],"Breast CA Screening":[16,138],"Colorectal Screening":[22,176],"Depression Screening":[6,198],"Influenza Immunization":[40,180]},
+  sat:4.8,satTop:94},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",panel:2010,goal:380,
+  visits:408,newPts:47,noShow:6.0,proc:61,openCharts:14,openOver7d:1,
+  csRx:39,csPending:4,uds:90,csa:95,
+  awvDone:39,awvDue:41,toc:80,ed:14,raf:86,ccm:52,cosign:94,capture:95,openCharges:22,tele:9,rooming:9.1,
+  em:[0,2,16,60,22], payer:{Commercial:44,Medicare:18,BCBS:23,Medicaid:10,"Self-Pay":5},
+  ref:{routine:51,urgent:10,stat:2},refPending:6,
+  gaps:{"Annual Wellness Visit":[41,215],"Diabetes A1c <9%":[13,98],"BP Control <140/90":[22,165],"Breast CA Screening":[26,150],"Colorectal Screening":[35,188],"Depression Screening":[12,205],"Influenza Immunization":[55,195]},
+  sat:4.6,satTop:89},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",panel:1760,goal:350,
+  visits:318,newPts:33,noShow:11.4,proc:44,openCharts:11,openOver7d:2,
+  csRx:22,csPending:2,uds:93,csa:97,
+  awvDone:28,awvDue:52,toc:74,ed:17,raf:83,ccm:38,cosign:97,capture:94,openCharges:19,tele:14,rooming:10.4,
+  em:[2,7,30,50,11], payer:{Commercial:35,Medicare:26,BCBS:19,Medicaid:15,"Self-Pay":5},
+  ref:{routine:38,urgent:8,stat:1},refPending:4,
+  gaps:{"Annual Wellness Visit":[52,198],"Diabetes A1c <9%":[19,92],"BP Control <140/90":[31,150],"Breast CA Screening":[34,132],"Colorectal Screening":[44,170],"Depression Screening":[18,190],"Influenza Immunization":[60,178]},
+  sat:4.4,satTop:84},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",panel:1920,goal:360,
+  visits:356,newPts:35,noShow:6.8,proc:49,openCharts:13,openOver7d:1,
+  csRx:58,csPending:11,uds:78,csa:88,
+  awvDone:31,awvDue:33,toc:79,ed:12,raf:88,ccm:41,cosign:90,capture:93,openCharges:24,tele:8,rooming:8.6,
+  em:[1,5,26,55,13], payer:{Commercial:37,Medicare:25,BCBS:20,Medicaid:13,"Self-Pay":5},
+  ref:{routine:45,urgent:9,stat:2},refPending:5,
+  gaps:{"Annual Wellness Visit":[33,200],"Diabetes A1c <9%":[14,95],"BP Control <140/90":[20,160],"Breast CA Screening":[23,140],"Colorectal Screening":[30,180],"Depression Screening":[11,196],"Influenza Immunization":[44,185]},
+  sat:4.5,satTop:87},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",panel:1690,goal:345,
+  visits:351,newPts:38,noShow:4.6,proc:47,openCharts:7,openOver7d:0,
+  csRx:19,csPending:0,uds:98,csa:100,
+  awvDone:37,awvDue:15,toc:91,ed:7,raf:93,ccm:49,cosign:100,capture:98,openCharges:7,tele:12,rooming:6.9,
+  em:[1,6,32,50,11], payer:{Commercial:39,Medicare:23,BCBS:21,Medicaid:12,"Self-Pay":5},
+  ref:{routine:40,urgent:6,stat:1},refPending:1,
+  gaps:{"Annual Wellness Visit":[15,196],"Diabetes A1c <9%":[5,88],"BP Control <140/90":[9,152],"Breast CA Screening":[11,134],"Colorectal Screening":[14,168],"Depression Screening":[4,188],"Influenza Immunization":[30,176]},
+  sat:4.8,satTop:95},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",panel:1950,goal:360,
+  visits:369,newPts:36,noShow:7.2,proc:55,openCharts:31,openOver7d:14,
+  csRx:31,csPending:5,uds:91,csa:96,
+  awvDone:33,awvDue:37,toc:82,ed:13,raf:87,ccm:44,cosign:96,capture:92,openCharges:31,tele:10,rooming:9.5,
+  em:[1,4,24,57,14], payer:{Commercial:38,Medicare:24,BCBS:21,Medicaid:12,"Self-Pay":5},
+  ref:{routine:47,urgent:9,stat:2},refPending:8,
+  gaps:{"Annual Wellness Visit":[37,208],"Diabetes A1c <9%":[12,96],"BP Control <140/90":[21,162],"Breast CA Screening":[25,144],"Colorectal Screening":[33,184],"Depression Screening":[10,200],"Influenza Immunization":[50,188]},
+  sat:4.5,satTop:86},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",panel:1820,goal:350,
+  visits:358,newPts:39,noShow:5.6,proc:50,openCharts:8,openOver7d:0,
+  csRx:24,csPending:1,uds:95,csa:98,
+  awvDone:35,awvDue:22,toc:87,ed:8,raf:92,ccm:47,cosign:98,capture:97,openCharges:11,tele:13,rooming:7.5,
+  em:[1,5,30,51,13], payer:{Commercial:41,Medicare:23,BCBS:20,Medicaid:11,"Self-Pay":5},
+  ref:{routine:41,urgent:7,stat:1},refPending:2,
+  gaps:{"Annual Wellness Visit":[22,200],"Diabetes A1c <9%":[7,89],"BP Control <140/90":[13,156],"Breast CA Screening":[15,136],"Colorectal Screening":[20,174],"Depression Screening":[6,196],"Influenza Immunization":[38,178]},
+  sat:4.7,satTop:92},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",panel:1760,goal:350,
+  visits:360,newPts:37,noShow:5.3,proc:48,openCharts:6,openOver7d:0,
+  csRx:23,csPending:0,uds:97,csa:99,
+  awvDone:36,awvDue:18,toc:89,ed:8,raf:92,ccm:48,cosign:99,capture:98,openCharges:8,tele:12,rooming:7.2,
+  em:[1,5,31,50,13], payer:{Commercial:38,Medicare:25,BCBS:21,Medicaid:11,"Self-Pay":5},
+  ref:{routine:39,urgent:6,stat:1},refPending:1,
+  gaps:{"Annual Wellness Visit":[16,194],"Diabetes A1c <9%":[6,87],"BP Control <140/90":[10,150],"Breast CA Screening":[12,132],"Colorectal Screening":[15,166],"Depression Screening":[5,186],"Influenza Immunization":[32,174]},
+  sat:4.8,satTop:94},
+];
+
+/* Benchmarks / targets — illustrative family-medicine references; edit to your contract targets */
+const BENCH={
+  pctGoal:100, newPtPct:11, noShow:7, openOver7d:0, rooming:8, tele:13, ccmPerPanel:0,
+  awvCloseTarget:80, toc:85, raf:90, cosign:98, capture:97, gapClosure:80,
+  sat:4.7, topbox:90, nps:60,
+  em:[1,8,40,43,8],                // benchmark established E&M distribution
+  emAvg:3.49,                       // weighted avg level of benchmark
+  revPerLevelStep:38                // illustrative $ per E&M level step (under/over-coding estimate)
+};
+const PERIODS={mtd:{f:0.57,lbl:"This Month (MTD, through Jun 17)"},last:{f:1.0,lbl:"Last Month (May)"},qtd:{f:2.57,lbl:"Quarter to Date (Q2)"},ytd:{f:5.57,lbl:"Year to Date"}};
+
+/* ---------- aggregation ---------- */
+function aggregate(list){
+  const sum=k=>list.reduce((a,p)=>a+p[k],0);
+  const wavg=(k,w)=>list.reduce((a,p)=>a+p[k]*p[w],0)/Math.max(1,sum(w));
+  const visits=sum("visits");
+  const em=[0,1,2,3,4].map(i=>list.reduce((a,p)=>a+p.em[i]*p.visits,0)/Math.max(1,visits));
+  const payer={}; Object.keys(list[0].payer).forEach(k=>payer[k]=list.reduce((a,p)=>a+p.payer[k]*p.visits,0)/Math.max(1,visits));
+  const ref={routine:s2("ref","routine"),urgent:s2("ref","urgent"),stat:s2("ref","stat")};
+  function s2(o,k){return list.reduce((a,p)=>a+p[o][k],0);}
+  const gaps={}; GAP_MEASURES.forEach(m=>gaps[m]=[list.reduce((a,p)=>a+p.gaps[m][0],0),list.reduce((a,p)=>a+p.gaps[m][1],0)]);
+  return {id:"all",name:"Network — All Providers",clinic:list.length+" providers",panel:sum("panel"),goal:sum("goal"),
+    visits,newPts:sum("newPts"),noShow:wavg("noShow","visits"),proc:sum("proc"),openCharts:sum("openCharts"),openOver7d:sum("openOver7d"),
+    csRx:sum("csRx"),csPending:sum("csPending"),uds:wavg("uds","csRx"),csa:wavg("csa","csRx"),
+    awvDone:sum("awvDone"),awvDue:sum("awvDue"),toc:wavg("toc","visits"),ed:sum("ed"),raf:wavg("raf","panel"),
+    ccm:sum("ccm"),cosign:wavg("cosign","visits"),capture:wavg("capture","visits"),openCharges:sum("openCharges"),
+    tele:wavg("tele","visits"),rooming:wavg("rooming","visits"),
+    em,payer,ref,refPending:sum("refPending"),gaps,sat:wavg("sat","visits"),satTop:wavg("satTop","visits")};
+}
+
+/* ---------- helpers ---------- */
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",green:"#4CB749",greenD:"#2F9E45",greenL:"#5BC24E",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+function tone(v,goodHigh,t1,t2){if(goodHigh){if(v>=t1)return C.greenD;if(v>=t2)return C.amber;return C.red;}else{if(v<=t1)return C.greenD;if(v<=t2)return C.amber;return C.red;}}
+const round=n=>Math.round(n);
+const fmt=n=>round(n).toLocaleString();
+const r1=n=>Math.round(n*10)/10;
+function hexA(hex,a){const n=hex.replace('#','');return `rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function rng(seed){let a=seed>>>0;return ()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const FIRSTS=["J","M","A","S","R","D","K","L","P","T","C","B","E","N","G","H"],LASTS=["Carter","Lopez","Nguyen","Patel","Johnson","Reed","Khan","Brooks","Diaz","Foster","Walsh","Owens","Pierce","Ramos","Cole","Bennett","Shah","Murphy","Grant","Tan","Park","Flores"];
+function person(r){return FIRSTS[(r()*FIRSTS.length)|0]+". "+LASTS[(r()*LASTS.length)|0];}
+function dateBack(r,maxDays){const d=new Date(2026,5,17);d.setDate(d.getDate()-((r()*maxDays)|0));return (d.getMonth()+1)+"/"+d.getDate();}
+function dateBackMonths(r,maxM){const d=new Date(2026,5,17);d.setMonth(d.getMonth()-1-((r()*maxM)|0));return (d.getMonth()+1)+"/"+d.getFullYear();}
+function satDomains(d){
+  return {communication:Math.min(5,r1(d.sat+0.1)),access:r1(d.sat-(d.noShow>8?0.5:0.25)),staff:Math.min(5,r1(d.sat+0.05)),recommend:r1(d.sat),nps:round(d.satTop-28)};
+}
+
+/* ---------- state ---------- */
+let provId="all", period="mtd", region="all", clinic="all", activeTab="productivity", charts={};
+function activeProviders(){return PROVIDERS.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic));}
+function baseMetrics(){
+  if(provId!=="all"){return PROVIDERS.find(p=>p.id===provId);}
+  const list=activeProviders(), agg=aggregate(list.length?list:PROVIDERS);
+  agg.id="all"; agg.clinic=list.length+" provider"+(list.length!==1?"s":"");
+  agg.name = clinic!=="all" ? clinic+" — All Providers"
+           : region!=="all" ? region+" Region — All Providers"
+           : "Network — All Providers";
+  return agg;
+}
+function scaled(){
+  const b=baseMetrics(), f=PERIODS[period].f;
+  return {...b,_f:f,
+    visitsC:round(b.visits*f),goalC:round(b.goal*f),newPtsC:round(b.newPts*f),procC:round(b.proc*f),
+    csRxC:round(b.csRx*f),csPendC:round(b.csPending*f),refC:{routine:round(b.ref.routine*f),urgent:round(b.ref.urgent*f),stat:round(b.ref.stat*f)},
+    refPendC:round(b.refPending*f),awvDoneC:round(b.awvDone*f),ccmC:round(b.ccm*f),edC:round(b.ed*f),
+    pctGoal:b.goal?(b.visits/b.goal*100):0};
+}
+
+/* ============================================================ CARD + BENCH RENDER ============================================================ */
+// b = {dir:1 good-high / -1 good-low, target, fmt}
+function benchLine(value,target,goodHigh,suffix){
+  const meets = goodHigh? value>=target : value<=target;
+  const near = goodHigh? value>=target*0.95 : value<=target*1.07;
+  const col = meets?C.greenD:(near?C.amber:C.red);
+  const delta = value-target;
+  const arrow = (delta>=0?"+":"")+ (Math.abs(delta)>=10?round(delta):r1(delta));
+  return `<div class="bench"><span class="bchip" style="background:${hexA(col,.15)};color:${col}">${meets?'✓ meets':(near?'near':'below')} target</span><span class="bt">target ${target}${suffix||''} · Δ ${arrow}${suffix||''}</span></div>`;
+}
+function card(o){ // o:{lbl,num,sub,accent,bench,drill}
+  return `<div class="kpi" data-drill="${o.drill||''}">
+    <span class="drillicon">⤢</span>
+    <div class="accent" style="background:${o.accent}"></div>
+    <div class="lbl">${o.lbl}</div>
+    <div class="num" style="color:${o.accent}">${o.num}</div>
+    <div class="sub">${o.sub||''}</div>
+    ${o.bench||''}
+  </div>`;
+}
+
+function renderProductivity(d){
+  const openColor=(provId==="all")?tone(d.openCharts,false,40,90):tone(d.openCharts,false,10,20);
+  const nsCol=tone(d.noShow,false,7,9);
+  const cards=[
+    {lbl:"Completed Visits",num:fmt(d.visitsC),sub:`${round(d.pctGoal)}% to goal`,accent:C.navy,bench:benchLine(round(d.pctGoal),BENCH.pctGoal,true,"%"),drill:"volume"},
+    {lbl:"New Patients",num:fmt(d.newPtsC),sub:`${(d.newPtsC/Math.max(1,d.visitsC)*100).toFixed(0)}% of volume`,accent:C.peri,bench:benchLine(r1(d.newPtsC/Math.max(1,d.visitsC)*100),BENCH.newPtPct,true,"%"),drill:"newpts"},
+    {lbl:"No-Show Rate",num:d.noShow.toFixed(1)+"%",sub:nsCol===C.red?"above target":"on target",accent:nsCol,bench:benchLine(r1(d.noShow),BENCH.noShow,false,"%"),drill:"noshow"},
+    {lbl:"Procedures",num:fmt(d.procC),sub:"in-office procedures",accent:C.green,drill:"procedures"},
+    {lbl:"Open Charts",num:fmt(d.openCharts),sub:`${d.openOver7d} open &gt;7 days`,accent:openColor,bench:benchLine(d.openOver7d,BENCH.openOver7d,false,""),drill:"opencharts"},
+    {lbl:"Avg Rooming Time",num:d.rooming.toFixed(1)+" min",sub:"check-in → rooming",accent:tone(d.rooming,false,8,10),bench:benchLine(r1(d.rooming),BENCH.rooming,false," min"),drill:"rooming"},
+    {lbl:"Telehealth Share",num:Math.round(d.tele)+"%",sub:"of completed visits",accent:C.peri,bench:benchLine(round(d.tele),BENCH.tele,true,"%"),drill:"telehealth"},
+    {lbl:"Attributed Panel",num:fmt(d.panel),sub:"active patients",accent:C.navy,drill:"panel"},
+  ];
+  document.getElementById("kProd").innerHTML=cards.map(card).join("");
+}
+
+function renderQuality(d){
+  const cards=[
+    {lbl:"Annual Wellness Visits",num:fmt(d.awvDoneC),sub:`${fmt(d.awvDue)} patients due`,accent:C.green,drill:"awv"},
+    {lbl:"TOC Follow-up Rate",num:Math.round(d.toc)+"%",sub:`${fmt(d.edC)} ED visits this period`,accent:tone(d.toc,true,85,75),bench:benchLine(round(d.toc),BENCH.toc,true,"%"),drill:"toc"},
+    {lbl:"HCC / RAF Recapture",num:Math.round(d.raf)+"%",sub:"risk recapture",accent:tone(d.raf,true,90,85),bench:benchLine(round(d.raf),BENCH.raf,true,"%"),drill:"hcc"},
+    {lbl:"Care-Gap Closure",num:gapClosureAll(d)+"%",sub:"across 7 measures",accent:tone(gapClosureAll(d),true,80,70),bench:benchLine(gapClosureAll(d),BENCH.gapClosure,true,"%"),drill:"gaps"},
+    {lbl:"APP Chart Cosign",num:Math.round(d.cosign)+"%",sub:"cosigned within SLA",accent:tone(d.cosign,true,98,95),bench:benchLine(round(d.cosign),BENCH.cosign,true,"%"),drill:"cosign"},
+    {lbl:"Controlled-Substance Oversight",num:fmt(d.csRxC),sub:`${d.csPendC} pending review`,accent:(d.csPendC>5||d.uds<85)?C.red:C.amber,bench:`<div class="bench"><span class="bt">UDS ${Math.round(d.uds)}% · CSA ${Math.round(d.csa)}% on file</span></div>`,drill:"controlled"},
+  ];
+  document.getElementById("kQual").innerHTML=cards.map(card).join("");
+}
+function gapClosureAll(d){let o=0,e=0;GAP_MEASURES.forEach(m=>{o+=d.gaps[m][0];e+=d.gaps[m][1];});return round((e-o)/e*100);}
+
+function renderRevenue(d){
+  const provL45=d.em[3]+d.em[4], benchL45=BENCH.em[3]+BENCH.em[4];
+  const avg=emAvg(d.em);
+  const cards=[
+    {lbl:"Charge Capture Rate",num:r1(d.capture)+"%",sub:`${fmt(d.openCharges)} open charges`,accent:tone(d.capture,true,97,94),bench:benchLine(r1(d.capture),BENCH.capture,true,"%"),drill:"capture"},
+    {lbl:"E&M Coding Index",num:avg.toFixed(2),sub:`avg level · bench ${BENCH.emAvg.toFixed(2)}`,accent:tone(avg,true,BENCH.emAvg-0.05,BENCH.emAvg-0.2),bench:benchLine(avg,BENCH.emAvg,true,""),drill:"coding"},
+    {lbl:"L4+L5 Share",num:Math.round(provL45)+"%",sub:`benchmark ${benchL45}%`,accent:tone(provL45,true,benchL45-3,benchL45-8),bench:benchLine(round(provL45),benchL45,true,"%"),drill:"coding"},
+    {lbl:"CCM Billable Hours",num:fmt(d.ccmC),sub:"chronic care mgmt time",accent:C.rev?C.green:C.green,drill:"ccm"},
+    {lbl:"Controlled-Substance Rx",num:fmt(d.csRxC),sub:`UDS ${Math.round(d.uds)}% · CSA ${Math.round(d.csa)}%`,accent:C.peri,drill:"controlled"},
+    {lbl:"Referrals (Outbound)",num:fmt(d.refC.routine+d.refC.urgent+d.refC.stat),sub:`${d.refPendC} pending &gt;7 days`,accent:d.refPendC>5?C.red:C.peri,drill:"referrals"},
+  ];
+  document.getElementById("kRev").innerHTML=cards.map(card).join("");
+}
+function emAvg(em){return em.reduce((a,v,i)=>a+(i+1)*v/100,0);}
+
+function renderSat(d){
+  const sd=satDomains(d);
+  const cards=[
+    {lbl:"Overall Satisfaction",num:d.sat.toFixed(1)+" / 5",sub:`${Math.round(d.satTop)}% top-box`,accent:tone(d.sat,true,4.7,4.5),bench:benchLine(d.sat,BENCH.sat,true,""),drill:"sat"},
+    {lbl:"Likelihood to Recommend (NPS)",num:sd.nps,sub:"net promoter score",accent:tone(sd.nps,true,60,45),bench:benchLine(sd.nps,BENCH.nps,true,""),drill:"sat"},
+    {lbl:"Provider Communication",num:sd.communication.toFixed(1),sub:"survey domain",accent:tone(sd.communication,true,4.7,4.4),bench:benchLine(sd.communication,BENCH.sat,true,""),drill:"sat"},
+    {lbl:"Access / Wait Time",num:sd.access.toFixed(1),sub:"survey domain",accent:tone(sd.access,true,4.5,4.2),bench:benchLine(sd.access,4.5,true,""),drill:"sat"},
+  ];
+  document.getElementById("kSat").innerHTML=cards.map(card).join("");
+}
+
+/* ============================================================ CHARTS ============================================================ */
+function gaugeColor(p){return p>=100?C.greenD:p>=90?C.amber:C.red;}
+function renderGauge(d){
+  const pct=Math.round(d.pctGoal),col=gaugeColor(pct),shown=Math.min(pct,100);
+  document.getElementById("gPct").textContent=pct+"%";document.getElementById("gPct").style.color=col;
+  document.getElementById("gCap").innerHTML=`<b>${fmt(d.visitsC)}</b> of <b>${fmt(d.goalC)}</b> visit goal`;
+  charts.gauge&&charts.gauge.destroy();
+  charts.gauge=new Chart(document.getElementById("gauge"),{type:"doughnut",
+    data:{datasets:[{data:[shown,100-shown],backgroundColor:[col,"#EAEDF2"],borderWidth:0,circumference:180,rotation:270,borderRadius:[6,0]}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"74%",plugins:{legend:{display:false},tooltip:{enabled:false}}}});
+}
+/* per-provider weekly-volume archetypes so trends actually differ */
+const SHAPES={
+  ellison:[0.97,0.99,1.00,1.00,1.02,1.03,1.03,1.06], // steady, gentle rise
+  okafor:[1.10,0.90,1.13,0.93,1.16,0.87,1.08,1.14],  // high volume, volatile
+  nair:[0.93,0.84,0.79,0.86,0.94,1.00,1.05,1.08],    // access dip then recovery
+  reyes:[1.10,1.06,1.02,0.99,0.96,0.94,0.92,0.88],   // declining
+  chen:[1.00,1.02,0.99,1.03,1.00,1.02,1.03,1.04],    // steady high
+  hughes:[1.06,0.90,1.12,0.84,1.13,0.89,1.00,0.95],  // volatile / backlog weeks
+  dulin:[0.88,0.92,0.96,1.00,1.03,1.06,1.09,1.14],   // ramping up
+  steventon:[1.00,1.00,1.01,1.00,1.01,1.02,1.00,1.02]// very steady
+};
+function provWeekly(p){const base=p.visits/4.345,sh=SHAPES[p.id]||[1,1,1,1,1,1,1,1],r=rng(hash(p.id+"wk"));return sh.map(m=>round(base*m*(0.98+r()*0.04)));}
+function weeklyVisits(d){
+  if(d.id==="all"){const ps=activeProviders();return [0,1,2,3,4,5,6,7].map(i=>ps.reduce((a,p)=>a+provWeekly(p)[i],0));}
+  const p=PROVIDERS.find(x=>x.id===d.id);return p?provWeekly(p):[0,0,0,0,0,0,0,0];
+}
+function renderVolume(d){
+  const data=weeklyVisits(d),goalWk=round(d.goal/4.345);
+  const labels=["W-7","W-6","W-5","W-4","W-3","W-2","W-1","This wk"];
+  charts.vol&&charts.vol.destroy();
+  charts.vol=new Chart(document.getElementById("cVolume"),{type:"line",
+    data:{labels,datasets:[{label:"Completed visits",data,borderColor:C.navy,backgroundColor:hexA(C.navy,.10),fill:true,tension:.35,borderWidth:2,pointRadius:3,pointBackgroundColor:C.navy},
+      {label:"Weekly goal",data:labels.map(()=>goalWk),borderColor:C.green,borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}]},
+    options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{ticks:{precision:0}}}}});
+}
+function renderGaps(d){
+  const labels=GAP_MEASURES,closed=labels.map(m=>d.gaps[m][1]-d.gaps[m][0]),open=labels.map(m=>d.gaps[m][0]);
+  charts.gap&&charts.gap.destroy();
+  charts.gap=new Chart(document.getElementById("cGaps"),{type:"bar",
+    data:{labels,datasets:[{label:"Closed",data:closed,backgroundColor:C.green,borderRadius:3,stack:"s"},{label:"Open gap",data:open,backgroundColor:C.red,borderRadius:3,stack:"s"}]},
+    options:{indexAxis:"y",onClick:(e,el)=>{if(el.length)openDrill("gap:"+labels[el[0].index]);},
+      plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{afterbody:items=>{const i=items[0].dataIndex,e=d.gaps[labels[i]][1],o=d.gaps[labels[i]][0];return "Closure: "+round((e-o)/e*100)+"%  ·  click bar for outreach list";}}}},
+      scales:{x:{stacked:true,beginAtZero:true},y:{stacked:true,ticks:{font:{size:10.5}}}}}});
+}
+function renderRef(d){
+  charts.ref&&charts.ref.destroy();
+  charts.ref=new Chart(document.getElementById("cRef"),{type:"doughnut",
+    data:{labels:["Routine","Urgent","STAT"],datasets:[{data:[d.refC.routine,d.refC.urgent,d.refC.stat],backgroundColor:[C.peri,C.amber,C.red],borderColor:"#fff",borderWidth:2}]},
+    options:{cutout:"55%",onClick:()=>openDrill("referrals"),plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
+  const total=d.refC.routine+d.refC.urgent+d.refC.stat;
+  document.getElementById("refMeta").innerHTML=`<span><i style="background:${C.peri}"></i>Total ${fmt(total)} referrals</span><span><i style="background:${d.refPendC>5?C.red:C.green}"></i>${d.refPendC} pending &gt;7 days</span><span><i style="background:${C.red}"></i>${d.refC.stat} STAT</span>`;
+}
+function renderEM(d){
+  const labels=["L1","L2","L3","L4","L5"];
+  charts.em&&charts.em.destroy();
+  charts.em=new Chart(document.getElementById("cEM"),{type:"bar",
+    data:{labels,datasets:[
+      {label:"This provider",data:d.em.map(x=>+x.toFixed(1)),backgroundColor:C.navy,borderRadius:5},
+      {label:"FM benchmark",data:BENCH.em,backgroundColor:hexA(C.amber,.55),borderRadius:5}]},
+    options:{onClick:()=>openDrill("coding"),plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+": "+c.parsed.y+"%"}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+"%"}}}}});
+}
+function renderPayer(d){
+  const keys=Object.keys(d.payer),cols=[C.navy,C.peri,C.green,C.periL,C.gray];
+  charts.pay&&charts.pay.destroy();
+  charts.pay=new Chart(document.getElementById("cPayer"),{type:"doughnut",
+    data:{labels:keys,datasets:[{data:keys.map(k=>+d.payer[k].toFixed(0)),backgroundColor:cols,borderColor:"#fff",borderWidth:2}]},
+    options:{cutout:"58%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+": "+c.parsed+"%"}}}}});
+}
+/* per-provider satisfaction trajectory (offsets from current top-box, Jan…Jun, Jun=0) */
+const SAT_TREND={
+  ellison:[-3,-2,-2,-1,-1,0], okafor:[-1,1,-2,0,-1,0], nair:[6,5,4,3,1,0], reyes:[-2,1,-3,2,-1,0],
+  chen:[-4,-3,-2,-1,-1,0], hughes:[2,-2,3,-3,1,0], dulin:[-5,-4,-3,-2,-1,0], steventon:[-1,-1,0,0,0,0]
+};
+function satTrend(d){const base=Math.round(d.satTop),n0=satDomains(d).nps,off=SAT_TREND[d.id]||[-2,-1,-1,-1,0,0];
+  return {top:off.map(o=>Math.max(60,Math.min(99,base+o))),nps:off.map(o=>Math.max(10,Math.min(90,n0+Math.round(o*1.5))))};}
+/* per-provider no-show pattern by weekday (Mon…Fri weight, ~centered on 1) */
+const NOSHOW_DOW={
+  ellison:[1.1,0.9,0.85,1.0,1.15], okafor:[1.2,1.0,0.9,0.95,1.15], nair:[1.5,1.0,0.8,0.9,1.5], reyes:[1.1,1.0,0.95,1.0,1.2],
+  chen:[0.95,1.0,1.0,1.0,1.05], hughes:[1.25,0.9,1.1,0.85,1.25], dulin:[1.0,0.95,0.95,1.0,1.1], steventon:[0.95,1.0,1.0,1.0,1.05]
+};
+function renderSatCharts(d){
+  const sd=satDomains(d);
+  const labels=["Communication","Access/Wait","Staff Courtesy","Recommend"];
+  const vals=[sd.communication,sd.access,sd.staff,sd.recommend];
+  const bcols=vals.map(v=>tone(v,true,4.7,4.4));
+  charts.sat&&charts.sat.destroy();
+  charts.sat=new Chart(document.getElementById("cSat"),{type:"bar",
+    data:{labels,datasets:[{label:"Score",data:vals,backgroundColor:bcols,borderRadius:5},{label:"Benchmark 4.7",data:labels.map(()=>BENCH.sat),type:"line",borderColor:C.amber,borderDash:[5,4],borderWidth:2,pointRadius:0}]},
+    options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{min:3.8,max:5,ticks:{stepSize:0.2}}}}});
+  // trend (per-provider trajectory)
+  const tr=satTrend(d),top=tr.top,nps=tr.nps;
+  charts.satTrend&&charts.satTrend.destroy();
+  charts.satTrend=new Chart(document.getElementById("cSatTrend"),{
+    data:{labels:["Jan","Feb","Mar","Apr","May","Jun"],datasets:[
+      {type:"line",label:"% top-box",data:top,borderColor:C.green,backgroundColor:hexA(C.green,.1),fill:true,tension:.35,yAxisID:"y",pointRadius:2},
+      {type:"line",label:"NPS",data:nps,borderColor:C.navy,borderWidth:2,tension:.35,yAxisID:"y1",pointRadius:2}]},
+    options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{position:"left",min:60,max:100,title:{display:true,text:"% top-box"}},y1:{position:"right",min:0,max:100,grid:{drawOnChartArea:false},title:{display:true,text:"NPS"}}}}});
+}
+
+/* ============================================================ DRILL-DOWN ============================================================ */
+function pill(txt,col){return `<span class="tagp" style="background:${hexA(col,.15)};color:${col}">${txt}</span>`;}
+function tableHTML(cols,rows){
+  return `<table class="mtbl"><thead><tr>${cols.map(c=>`<th class="${c.num?'num':''}">${c.h}</th>`).join("")}</tr></thead><tbody>${
+    rows.map(r=>`<tr>${cols.map(c=>`<td class="${c.num?'num':''}">${r[c.k]}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+}
+const DOW=["Mon","Tue","Wed","Thu","Fri"];
+
+function buildDrill(key,d){
+  const prov = provId==="all"?null:PROVIDERS.find(p=>p.id===provId);
+  const who = prov?prov.name:"Network";
+  const seed = hash((provId)+key);
+  const r = rng(seed);
+  const sampleNote = prov?null:"Network view — patient-level rows below are an illustrative sample. Select a single provider for that provider's worklist.";
+
+  // gap:<measure>
+  if(key.startsWith("gap:")){
+    const m=key.slice(4),g=d.gaps[m],open=g[0],elig=g[1],closure=round((elig-open)/elig*100);
+    const n=Math.min(open,12);const rows=[];
+    for(let i=0;i<n;i++){const last=dateBackMonths(r,18);rows.push({pt:person(r),age:50+((r()*30)|0),last:last,act:pill("Outreach",C.peri)});}
+    return {title:m+" — open gaps",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"Open gaps",v:open,c:C.red},{l:"Eligible",v:elig,c:C.navy},{l:"Closure",v:closure+"%",c:tone(closure,true,80,70)}],
+      note:sampleNote,
+      cols:[{h:"Patient",k:"pt"},{h:"Age",k:"age",num:1},{h:"Last completed",k:"last"},{h:"Next step",k:"act"}],rows,
+      actions:["Generate outreach list and assign to clinic nurse for scheduling","Add pre-visit planning order to next scheduled appointment","Use bulk MyChart outreach for patients with portal access","Re-run after 30 days to confirm gap closure"]};
+  }
+
+  switch(key){
+   case "noshow":{
+    const prof=NOSHOW_DOW[provId]||[1.25,1.0,0.9,0.95,1.3], dayS=d.visits/4.345/5;
+    const rows=DOW.map((dw,i)=>{const sched=round(dayS*(0.92+r()*0.16));const ns=Math.max(0,round(sched*(d.noShow/100)*prof[i]));return {d:dw,s:sched,n:ns,rate:(ns/Math.max(1,sched)*100).toFixed(1)+"%"};});
+    return {title:"No-show rate — breakdown",sub:who+" · target ≤"+BENCH.noShow+"%",
+      chips:[{l:"No-show rate",v:d.noShow.toFixed(1)+"%",c:tone(d.noShow,false,7,9)},{l:"Target",v:BENCH.noShow+"%",c:C.navy},{l:"Est. lost visits / mo",v:round(d.visits*d.noShow/100),c:C.red}],
+      note:"Highest no-show concentration tends to fall on Mondays and late-week afternoon slots.",
+      cols:[{h:"Day",k:"d"},{h:"Scheduled",k:"s",num:1},{h:"No-shows",k:"n",num:1},{h:"Rate",k:"rate",num:1}],rows,
+      actions:["Enable 48-hour + 2-hour automated reminders (call/text/MyChart)","Add same-day waitlist to backfill no-show slots","Flag patients with ≥2 no-shows in 6 months for personal outreach","Consider light overbooking on highest-risk slots"]};
+   }
+   case "opencharts":{
+    const n=Math.min(d.openCharts,12),rows=[];
+    for(let i=0;i<n;i++){const days=(i<d.openOver7d)?8+((r()*20)|0):1+((r()*6)|0);rows.push({dos:dateBack(r,30),pt:person(r),type:r()>0.5?"Office visit":(r()>0.5?"Telehealth":"Procedure"),days:days,st:pill(days>7?"Overdue":"Open",days>7?C.red:C.amber)});}
+    rows.sort((a,b)=>b.days-a.days);
+    return {title:"Open / unclosed charts",sub:who+" · target close ≤72 hrs",
+      chips:[{l:"Open charts",v:d.openCharts,c:tone(d.openCharts,false,(provId==='all'?40:10),(provId==='all'?90:20))},{l:"Open >7 days",v:d.openOver7d,c:tone(d.openOver7d,false,0,3)},{l:"Target",v:"0 over 7d",c:C.navy}],
+      note:sampleNote,
+      cols:[{h:"Date of service",k:"dos"},{h:"Patient",k:"pt"},{h:"Visit type",k:"type"},{h:"Days open",k:"days",num:1},{h:"Status",k:"st"}],rows,
+      actions:["Close all charts open >7 days today","Batch-sign pended results and route co-sign items","Schedule a daily 30-minute chart-closure block","Escalate charts >14 days to the provider's APM"]};
+   }
+   case "awv":{
+    const n=Math.min(d.awvDue,12),rows=[];
+    for(let i=0;i<n;i++){rows.push({pt:person(r),age:65+((r()*22)|0),last:r()>0.3?dateBackMonths(r,24):"none on file",plan:pill(r()>0.5?"Schedule":"Outreach",C.peri)});}
+    return {title:"Annual Wellness Visits — patients due",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"AWV completed",v:fmt(d.awvDoneC),c:C.greenD},{l:"Patients due",v:fmt(d.awvDue),c:C.amber},{l:"Est. revenue if closed",v:"$"+fmt(d.awvDue*120),c:C.green}],
+      note:"AWVs anchor risk recapture and care-gap closure — every completed AWV typically closes multiple quality measures.",
+      cols:[{h:"Patient",k:"pt"},{h:"Age",k:"age",num:1},{h:"Last AWV",k:"last"},{h:"Next step",k:"plan"}],rows,
+      actions:["Nurse-led outreach to schedule AWV + pre-visit labs","Pair AWV scheduling with open care gaps for the same patient","Block dedicated AWV slots weekly","Confirm IPPE vs. subsequent AWV coding for accuracy"]};
+   }
+   case "coding":{
+    const avg=emAvg(d.em),benchAvg=BENCH.emAvg,provL45=d.em[3]+d.em[4],benchL45=BENCH.em[3]+BENCH.em[4];
+    const deltaPts=provL45-benchL45;
+    const rows=["L1 (99211)","L2 (99212)","L3 (99213)","L4 (99214)","L5 (99215)"].map((lbl,i)=>{const dlt=+(d.em[i]-BENCH.em[i]).toFixed(1);return {lvl:lbl,you:d.em[i].toFixed(1)+"%",bm:BENCH.em[i]+"%",delta:pill((dlt>=0?"+":"")+dlt+"%",Math.abs(dlt)<3?C.gray:(dlt<0&&i>=3?C.red:(dlt>0&&i>=3?C.amber:C.gray)))};});
+    let note,opp=0;
+    if(deltaPts<-2){opp=round((-deltaPts/100)*d.visits*PERIODS[period].f*BENCH.revPerLevelStep);note=`Potential <b>under-coding</b>: L4+L5 share is ${Math.abs(deltaPts).toFixed(0)} pts below benchmark. Estimated capture opportunity ≈ <b>$${fmt(opp)}</b> this period if documentation supports higher levels.`;}
+    else if(deltaPts>8){note=`L4+L5 share is ${deltaPts.toFixed(0)} pts <b>above</b> benchmark — ensure documentation supports level selection (audit-readiness review recommended).`;}
+    else{note="E&M distribution is broadly in line with the family-medicine benchmark.";}
+    return {title:"E&M coding vs. benchmark",sub:who+" · established-patient office visits",
+      chips:[{l:"Coding index",v:avg.toFixed(2),c:tone(avg,true,benchAvg-0.05,benchAvg-0.2)},{l:"Benchmark",v:benchAvg.toFixed(2),c:C.navy},{l:"L4+L5 vs bench",v:(deltaPts>=0?"+":"")+deltaPts.toFixed(0)+" pts",c:Math.abs(deltaPts)<3?C.greenD:(deltaPts<0?C.red:C.amber)}],
+      note,
+      cols:[{h:"E&M level",k:"lvl"},{h:"This provider",k:"you",num:1},{h:"Benchmark",k:"bm",num:1},{h:"Δ",k:"delta",num:1}],rows,
+      actions:["Run a focused documentation review on L3 visits that may meet L4 by MDM/time","Share specialty benchmark with providers in 1:1 coding feedback","Targeted education on 2021 E&M MDM/time guidelines","Re-measure monthly and track movement toward benchmark"]};
+   }
+   case "capture":{
+    const n=Math.min(d.openCharges,12),svcs=["EKG (93000)","Spirometry (94010)","Nebulizer (94640)","Joint inj. (20610)","Skin biopsy (11102)","Vaccine admin (90471)","Venipuncture (36415)"];
+    const rows=[];for(let i=0;i<n;i++){const $=20+((r()*180)|0);rows.push({dos:dateBack(r,21),pt:person(r),svc:svcs[(r()*svcs.length)|0],est:"$"+$,st:pill(r()>0.5?"Order, no charge":"Charge not dropped",C.amber)});}
+    const estTotal=rows.reduce((a,x)=>a+ +x.est.slice(1),0);
+    return {title:"Charge capture — open charges",sub:who+" · target ≥"+BENCH.capture+"%",
+      chips:[{l:"Capture rate",v:r1(d.capture)+"%",c:tone(d.capture,true,97,94)},{l:"Open charges",v:fmt(d.openCharges),c:C.amber},{l:"Est. at risk",v:"$"+fmt(estTotal*(d.openCharges/Math.max(1,n))),c:C.red}],
+      note:sampleNote||"These encounters have a placed order or performed service without a dropped charge — the gap between orders, charges and the resulting claim.",
+      cols:[{h:"Date",k:"dos"},{h:"Patient",k:"pt"},{h:"Service",k:"svc"},{h:"Est. $",k:"est",num:1},{h:"Status",k:"st"}],rows,
+      actions:["Work the open-charge worklist before month-end close","Reconcile in-office ancillary orders (EKG, spirometry) to charges daily","Add a charge-capture review step to OM/APM huddles","Root-cause recurring service lines that leak charges"]};
+   }
+   case "controlled":{
+    const n=Math.min(d.csRx,12),meds=["Oxycodone","Hydrocodone/APAP","Alprazolam","Lorazepam","Adderall","Tramadol","Clonazepam","Buprenorphine"];const rows=[];
+    for(let i=0;i<n;i++){const uds=r()>0.18,csa=r()>0.12,sp=r()>(d.csPending/Math.max(1,d.csRx));rows.push({pt:person(r),med:meds[(r()*meds.length)|0],uds:uds?pill("current",C.greenD):pill("overdue",C.red),csa:csa?pill("on file",C.greenD):pill("missing",C.red),sp:sp?pill("done",C.greenD):pill("pending",C.amber)});}
+    return {title:"Controlled-substance oversight",sub:who+" · APP/SP review · UDS / CSA",
+      chips:[{l:"Patients on CS",v:fmt(d.csRxC),c:C.navy},{l:"Pending SP review",v:d.csPendC,c:tone(d.csPendC,false,3,5)},{l:"UDS current",v:Math.round(d.uds)+"%",c:tone(d.uds,true,90,80)},{l:"CSA on file",v:Math.round(d.csa)+"%",c:tone(d.csa,true,95,88)}],
+      note:sampleNote||"Patients prescribed controlled substances who have or have not had supervising-physician review, UDS, and a controlled-substance agreement (CSA) on file.",
+      cols:[{h:"Patient",k:"pt"},{h:"Medication",k:"med"},{h:"UDS",k:"uds"},{h:"CSA",k:"csa"},{h:"SP review",k:"sp"}],rows,
+      actions:["Clear pending supervising-physician reviews this week","Order UDS for patients overdue per policy","Obtain/refresh controlled-substance agreements that are missing","Check NC CSRS (PDMP) before next refill"]};
+   }
+   case "referrals":{
+    const total=d.refC.routine+d.refC.urgent+d.refC.stat,specs=["Cardiology","Orthopedics","GI","Dermatology","Endocrine","Neurology","Pulmonology","ENT","Ophthalmology"];const n=Math.min(d.refPendC+5,12),rows=[];
+    for(let i=0;i<n;i++){const pr=i<2?"STAT":(i<5?"Urgent":"Routine");const days=pr==="Routine"?5+((r()*20)|0):1+((r()*9)|0);rows.push({pt:person(r),spec:specs[(r()*specs.length)|0],pri:pill(pr,pr==="STAT"?C.red:(pr==="Urgent"?C.amber:C.peri)),days:days});}
+    rows.sort((a,b)=>b.days-a.days);
+    return {title:"Outbound referrals — pending",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"Total referrals",v:fmt(total),c:C.navy},{l:"Pending >7 days",v:d.refPendC,c:tone(d.refPendC,false,3,5)},{l:"STAT",v:d.refC.stat,c:C.red}],
+      note:"Track routine / urgent / STAT and specialty mix; ensure STAT and urgent referrals are scheduled within policy windows.",
+      cols:[{h:"Patient",k:"pt"},{h:"Specialty",k:"spec"},{h:"Priority",k:"pri"},{h:"Days pending",k:"days",num:1}],rows,
+      actions:["Confirm all STAT referrals are scheduled within 24–48 hours","Work referrals pending >7 days with referral coordinator","Close the loop on completed referrals (consult notes received)","Monitor leakage — keep in-network where clinically appropriate"]};
+   }
+   case "toc":{
+    const n=Math.min(d.ed+2,12),ev=["ED visit","Inpatient discharge","Observation","SNF discharge"];const rows=[];
+    for(let i=0;i<n;i++){const since=1+((r()*16)|0);rows.push({pt:person(r),ev:ev[(r()*ev.length)|0],dt:dateBack(r,18),since:since,win:since<=14?pill("TCM open",C.greenD):pill("window missed",C.red)});}
+    rows.sort((a,b)=>a.since-b.since);
+    return {title:"Transitions of care — follow-up needed",sub:who+" · target ≥"+BENCH.toc+"% within 14 days",
+      chips:[{l:"TOC follow-up rate",v:Math.round(d.toc)+"%",c:tone(d.toc,true,85,75)},{l:"ED visits",v:fmt(d.edC),c:C.amber},{l:"Target",v:"≥"+BENCH.toc+"%",c:C.navy}],
+      note:"Post-discharge / post-ED follow-up within 14 days supports TCM billing (99495/99496) and reduces readmissions.",
+      cols:[{h:"Patient",k:"pt"},{h:"Event",k:"ev"},{h:"Event date",k:"dt"},{h:"Days since",k:"since",num:1},{h:"TCM window",k:"win"}],rows,
+      actions:["Call discharged/ED patients within 2 business days","Schedule TCM visit inside the 7/14-day windows","Reconcile medications at the follow-up visit","Capture 99495/99496 where criteria are met"]};
+   }
+   case "hcc":{
+    const conds=["Diabetes w/ complication","CHF","COPD","CKD stage 3+","Vascular disease","Major depression","Morbid obesity (BMI 40+)","Atrial fibrillation"];const n=10,rows=[];
+    for(let i=0;i<n;i++){rows.push({pt:person(r),hcc:conds[(r()*conds.length)|0],ev:r()>0.5?"Rx + prior dx":(r()>0.5?"Labs suggestive":"Prior-year HCC"),last:dateBackMonths(r,16),act:pill("Recapture",C.peri)});}
+    return {title:"HCC / RAF — suspected & open conditions",sub:who+" · target recapture ≥"+BENCH.raf+"%",
+      chips:[{l:"RAF recapture",v:Math.round(d.raf)+"%",c:tone(d.raf,true,90,85)},{l:"Target",v:"≥"+BENCH.raf+"%",c:C.navy},{l:"Open suspects",v:n+"+",c:C.amber}],
+      note:"Conditions documented previously or suggested by labs/medications that have not been recaptured this year — address at the next visit (ideally the AWV).",
+      cols:[{h:"Patient",k:"pt"},{h:"Suspected HCC",k:"hcc"},{h:"Evidence",k:"ev"},{h:"Last coded",k:"last"},{h:"Action",k:"act"}],rows,
+      actions:["Add suspected HCCs to pre-visit planning for AWVs","Document and code active chronic conditions to the highest specificity","Review prior-year HCCs not yet recaptured","Order confirmatory labs where evidence is suggestive"]};
+   }
+   case "cosign":{
+    const n=10,rows=[];for(let i=0;i<n;i++){const done=r()>(1-(d.cosign/100))*3;const days=1+((r()*6)|0);rows.push({app:person(r)+", PA",dos:dateBack(r,12),sp:person(r)+", MD",days:days,st:done?pill("cosigned",C.greenD):pill("pending",C.amber)});}
+    return {title:"APP chart cosign auditing",sub:who+" · target ≥"+BENCH.cosign+"% within SLA",
+      chips:[{l:"Cosign rate",v:Math.round(d.cosign)+"%",c:tone(d.cosign,true,98,95)},{l:"Target",v:"≥"+BENCH.cosign+"%",c:C.navy}],
+      note:"Audits whether APP (advanced practice provider) visits are cosigned by the collaborating physician within the required window.",
+      cols:[{h:"APP",k:"app"},{h:"Date of service",k:"dos"},{h:"Supervising MD",k:"sp"},{h:"Days",k:"days",num:1},{h:"Status",k:"st"}],rows,
+      actions:["Clear pending cosignatures before the SLA window closes","Route cosign In Basket items daily to supervising physicians","Track cosign turnaround by collaborating-physician pair","Escalate repeat late cosigns to medical leadership"]};
+   }
+   case "ccm":{
+    const enrolled=round(d.panel*0.06),rows=[
+      {m:"Patients enrolled in CCM",v:fmt(enrolled)},
+      {m:"Billable CCM hours (period)",v:fmt(d.ccmC)},
+      {m:"Avg minutes / enrolled patient",v:round(d.ccm*60/Math.max(1,enrolled))+" min"},
+      {m:"Patients <20 min (not yet billable)",v:fmt(round(enrolled*0.22))},
+      {m:"Est. CCM revenue (period)",v:"$"+fmt(round(d.ccmC*62))}];
+    return {title:"Chronic Care Management — billable time",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"CCM hours",v:fmt(d.ccmC),c:C.green},{l:"Enrolled",v:fmt(enrolled),c:C.navy},{l:"Est. revenue",v:"$"+fmt(round(d.ccmC*62)),c:C.greenD}],
+      note:"Monitors billable CCM time clinic nurses spend so the program stays above the minimum needed to be profitable.",
+      cols:[{h:"Measure",k:"m"},{h:"Value",k:"v",num:1}],rows,
+      actions:["Outreach to enrolled patients under 20 minutes to reach billable threshold","Confirm CCM consent and care plans are documented","Pair CCM with AWV scheduling","Review monthly CCM yield vs. nurse time invested"]};
+   }
+   case "volume":{
+    const series=weeklyVisits(d),g=round(d.goal/4.345);
+    const rows=series.map((v,i)=>({w:i===7?"This week":"Week -"+(7-i),v:v,g:g,d:pill((v>=g?"+":"")+(v-g),v>=g?C.greenD:C.red)}));
+    return {title:"Completed visit volume — weekly",sub:who+" · goal "+round(d.goal/4.345)+" / week",
+      chips:[{l:"Completed (period)",v:fmt(d.visitsC),c:C.navy},{l:"% to goal",v:round(d.pctGoal)+"%",c:gaugeColor(round(d.pctGoal))},{l:"Goal (period)",v:fmt(d.goalC),c:C.navy}],
+      cols:[{h:"Week",k:"w"},{h:"Completed",k:"v",num:1},{h:"Goal",k:"g",num:1},{h:"Δ",k:"d",num:1}],rows,
+      actions:["Open additional slots in weeks trending below goal","Reduce no-shows to recover lost capacity","Balance template across the week","Review panel access vs. demand"]};
+   }
+   case "newpts":{
+    const tot=d.newPtsC,src=[["Self / web scheduling",.42],["Provider referral",.24],["Transfer of care",.18],["Insurance directory",.10],["Other",.06]];
+    const rows=src.map(s=>({s:s[0],n:round(tot*s[1]),p:Math.round(s[1]*100)+"%"}));
+    return {title:"New patients — acquisition",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"New patients",v:fmt(tot),c:C.peri},{l:"% of volume",v:(tot/Math.max(1,d.visitsC)*100).toFixed(0)+"%",c:C.navy},{l:"Benchmark",v:BENCH.newPtPct+"%",c:C.navy}],
+      cols:[{h:"Source",k:"s"},{h:"Patients",k:"n",num:1},{h:"Share",k:"p",num:1}],rows,
+      actions:["Protect new-patient slots in the template","Ensure same-day / next-day availability for acquisition","Tighten new-patient intake & onboarding","Track conversion from first call to completed visit"]};
+   }
+   case "procedures":{
+    const tot=d.procC,ps=[["EKG (93000)",.26],["Joint injection (20610)",.16],["Skin biopsy (11102)",.13],["Spirometry (94010)",.12],["Lesion removal (17110)",.1],["Laceration repair (12001)",.08],["Other",.15]];
+    const rows=ps.map(p=>({s:p[0],n:round(tot*p[1])}));
+    return {title:"In-office procedures",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"Procedures",v:fmt(tot),c:C.green},{l:"Per 100 visits",v:(tot/Math.max(1,d.visitsC)*100).toFixed(0),c:C.navy}],
+      note:"Keeping appropriate procedures in primary care improves access and captures revenue — confirm each is charged (see Charge Capture).",
+      cols:[{h:"Procedure",k:"s"},{h:"Count",k:"n",num:1}],rows,
+      actions:["Reconcile every procedure to a dropped charge","Expand in-office procedure offerings where demand exists","Verify supplies/consents for high-volume procedures"]};
+   }
+   case "rooming":{
+    const rows=[];for(let i=0;i<5;i++){const t=r1(d.rooming*(0.8+r()*0.5));rows.push({ma:"MA "+person(r),roomed:20+((r()*30)|0),avg:t+" min",st:pill(t<=8?"on target":"slow",t<=8?C.greenD:C.amber)});}
+    return {title:"Rooming / cycle time",sub:who+" · target ≤"+BENCH.rooming+" min (check-in → rooming)",
+      chips:[{l:"Avg rooming time",v:d.rooming.toFixed(1)+" min",c:tone(d.rooming,false,8,10)},{l:"Target",v:"≤"+BENCH.rooming+" min",c:C.navy}],
+      note:"Tracks which MA roomed the patient and the time from check-in to start-rooming — a driver of access and patient experience.",
+      cols:[{h:"Medical assistant",k:"ma"},{h:"Patients roomed",k:"roomed",num:1},{h:"Avg time",k:"avg",num:1},{h:"Status",k:"st"}],rows,
+      actions:["Coach MAs above the target rooming time","Standardize the rooming workflow and pre-visit prep","Balance MA-to-provider assignments at peak hours"]};
+   }
+   case "telehealth":{
+    const tot=d.visitsC,teleN=round(tot*d.tele/100),rows=[
+      {t:"In-office",n:fmt(tot-teleN),p:(100-d.tele).toFixed(0)+"%"},
+      {t:"Telehealth (video)",n:fmt(round(teleN*0.7)),p:Math.round(d.tele*0.7)+"%"},
+      {t:"Telehealth (phone/audio)",n:fmt(round(teleN*0.3)),p:Math.round(d.tele*0.3)+"%"}];
+    return {title:"Telehealth vs. in-office mix",sub:who+" · benchmark ~"+BENCH.tele+"%",
+      chips:[{l:"Telehealth share",v:Math.round(d.tele)+"%",c:C.peri},{l:"Benchmark",v:BENCH.tele+"%",c:C.navy}],
+      note:"Telehealth vs. in-office volumes (also tracked alongside no-show rate and payer mix per the analytics request).",
+      cols:[{h:"Modality",k:"t"},{h:"Visits",k:"n",num:1},{h:"Share",k:"p",num:1}],rows,
+      actions:["Use telehealth to backfill no-show gaps and improve access","Confirm payer coverage & correct telehealth modifiers","Target chronic-care follow-ups suitable for virtual visits"]};
+   }
+   case "panel":{
+    const tot=d.panel,bands=[["0–17",.16],["18–39",.24],["40–64",.34],["65+",.26]];
+    const rows=bands.map(b=>({a:b[0],n:fmt(round(tot*b[1])),p:Math.round(b[1]*100)+"%"}));
+    return {title:"Attributed panel",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"Panel size",v:fmt(tot),c:C.navy},{l:"Medicare share",v:Math.round(d.payer.Medicare)+"%",c:C.peri}],
+      note:"Attribution rosters (with myPanel metrics & HCC tools) underpin value-based contract performance.",
+      cols:[{h:"Age band",k:"a"},{h:"Patients",k:"n",num:1},{h:"Share",k:"p",num:1}],rows,
+      actions:["Reconcile attribution rosters against each VBC contract","Prioritize AWVs and HCC recapture for the 65+ band","Identify unseen attributed patients for outreach"]};
+   }
+   case "sat":{
+    const sd=satDomains(d);
+    const rows=[["Provider communication",sd.communication],["Access / wait time",sd.access],["Staff courtesy",sd.staff],["Likelihood to recommend",sd.recommend]].map(x=>{const dlt=+(x[1]-BENCH.sat).toFixed(1);return {dm:x[0],sc:x[1].toFixed(1),bm:BENCH.sat.toFixed(1),d:pill((dlt>=0?"+":"")+dlt,dlt>=0?C.greenD:C.red)};});
+    return {title:"Patient experience — domain detail",sub:who+" · "+PERIODS[period].lbl,
+      chips:[{l:"Overall",v:d.sat.toFixed(1)+"/5",c:tone(d.sat,true,4.7,4.5)},{l:"Top-box",v:Math.round(d.satTop)+"%",c:tone(d.satTop,true,90,85)},{l:"NPS",v:sd.nps,c:tone(sd.nps,true,60,45)}],
+      note:"Access/wait time is the most common detractor driver and correlates with the no-show and rooming-time metrics on the Productivity tab.",
+      cols:[{h:"Survey domain",k:"dm"},{h:"Score",k:"sc",num:1},{h:"Benchmark",k:"bm",num:1},{h:"Δ",k:"d",num:1}],rows,
+      actions:["Review verbatim comments for the lowest-scoring domain","Tighten access (same-day availability, reduce wait/rooming time)","Share top-box trends with the care team monthly","Recognize providers/teams sustaining NPS ≥ benchmark"]};
+   }
+  }
+  return {title:"Detail",sub:who,chips:[],cols:[{h:"Info",k:"i"}],rows:[{i:"No detail configured."}],actions:[]};
+}
+
+function openDrill(key){
+  if(!key) return;
+  const d=scaled();
+  const o=buildDrill(key,d);
+  document.getElementById("mTitle").textContent=o.title;
+  document.getElementById("mSub").textContent=o.sub||"";
+  document.getElementById("mChips").innerHTML=(o.chips||[]).map(c=>`<div class="mchip"><div class="ml">${c.l}</div><div class="mv" style="color:${c.c||C.ink}">${c.v}</div></div>`).join("");
+  const note=document.getElementById("mNote");
+  if(o.note){note.style.display="block";note.innerHTML=o.note;}else{note.style.display="none";}
+  document.getElementById("mTable").innerHTML=(o.rows&&o.rows.length)?tableHTML(o.cols,o.rows):"";
+  const act=document.getElementById("mActions");
+  if(o.actions&&o.actions.length){act.style.display="block";document.getElementById("mActionsList").innerHTML=o.actions.map(a=>`<li>${a}</li>`).join("");}else{act.style.display="none";}
+  document.getElementById("modal").hidden=false;
+}
+function closeModal(){document.getElementById("modal").hidden=true;}
+
+/* ============================================================ SCORECARD ============================================================ */
+const SCOLS=[{k:"name",label:"Provider"},{k:"pctGoal",label:"% Goal",num:1},{k:"visits",label:"Visits",num:1},{k:"noShow",label:"No-Show%",num:1},{k:"openCharts",label:"Open Charts",num:1},{k:"gapClose",label:"Gap Closure",num:1},{k:"raf",label:"RAF%",num:1},{k:"capture",label:"Capture%",num:1},{k:"sat",label:"Satisfaction",num:1}];
+let sortK="pctGoal",sortDir=-1;
+function provRow(p){const f=PERIODS[period].f,e=GAP_MEASURES.reduce((a,m)=>a+p.gaps[m][1],0),o=GAP_MEASURES.reduce((a,m)=>a+p.gaps[m][0],0);
+  return {id:p.id,name:p.name,clinic:p.clinic,pctGoal:p.visits/p.goal*100,visits:round(p.visits*f),noShow:p.noShow,openCharts:p.openCharts,gapClose:(e-o)/e*100,raf:p.raf,capture:p.capture,sat:p.sat};}
+function renderScore(){
+  const head=document.getElementById("scoreHead");
+  head.innerHTML=SCOLS.map(c=>`<th class="${c.num?'num':''}" data-k="${c.k}">${c.label}${sortK===c.k?(sortDir>0?' ▲':' ▼'):''}</th>`).join("");
+  head.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(sortK===k)sortDir*=-1;else{sortK=k;sortDir=(k==="name")?1:-1;}renderScore();});
+  let rows=activeProviders().map(provRow);
+  rows.sort((a,b)=>{let av=a[sortK],bv=b[sortK];if(typeof av==="string")return av.localeCompare(bv)*sortDir;return(av-bv)*sortDir;});
+  const pillc=(v,c)=>`<span class="cellpill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
+  document.getElementById("scoreBody").innerHTML=rows.map(r=>`<tr data-id="${r.id}" class="${provId===r.id?'sel':''}">
+    <td class="nmcell">${r.name}<small>${r.clinic}</small></td>
+    <td class="num">${pillc(Math.round(r.pctGoal)+'%',gaugeColor(Math.round(r.pctGoal)))}</td>
+    <td class="num">${fmt(r.visits)}</td>
+    <td class="num">${pillc(r.noShow.toFixed(1)+'%',tone(r.noShow,false,7,9))}</td>
+    <td class="num">${pillc(r.openCharts,tone(r.openCharts,false,10,20))}</td>
+    <td class="num">${pillc(Math.round(r.gapClose)+'%',tone(r.gapClose,true,80,70))}</td>
+    <td class="num">${pillc(Math.round(r.raf)+'%',tone(r.raf,true,90,85))}</td>
+    <td class="num">${pillc(r1(r.capture)+'%',tone(r.capture,true,97,94))}</td>
+    <td class="num">${pillc(r.sat.toFixed(1),tone(r.sat,true,4.7,4.5))}</td></tr>`).join("");
+  document.getElementById("scoreBody").querySelectorAll("tr").forEach(tr=>tr.onclick=()=>{provId=tr.dataset.id;document.getElementById("selProvider").value=provId;renderAll();});
+}
+
+/* ============================================================ DOMAINS + ORCH ============================================================ */
+function renderDomains(d){
+  const sd=satDomains(d);
+  const gc=gapClosureAll(d);
+  const items=[
+    {tab:"productivity",l:"Productivity",ic:"↗",v:Math.round(d.pctGoal)+"%",s:"of visit goal · "+d.noShow.toFixed(1)+"% no-show",col:"var(--prod)",c:gaugeColor(Math.round(d.pctGoal))},
+    {tab:"quality",l:"Quality",ic:"✓",v:gc+"%",s:"care-gap closure · RAF "+Math.round(d.raf)+"%",col:"var(--qual)",c:tone(gc,true,80,70)},
+    {tab:"revenue",l:"Revenue",ic:"$",v:r1(d.capture)+"%",s:"charge capture · E&M "+emAvg(d.em).toFixed(2),col:"var(--rev)",c:tone(d.capture,true,97,94)},
+    {tab:"satisfaction",l:"Patient Satisfaction",ic:"★",v:d.sat.toFixed(1),s:Math.round(d.satTop)+"% top-box · NPS "+sd.nps,col:"var(--sat)",c:tone(d.sat,true,4.7,4.5)},
+  ];
+  document.getElementById("domains").innerHTML=items.map(it=>{const on=activeTab===it.tab;return `
+    <div class="dchip ${on?'active':''}" data-tab="${it.tab}" style="border-top-color:${it.col}">
+      <div class="drow"><span class="dicon" style="background:${it.col}">${it.ic}</span><div class="dl">${it.l}</div></div>
+      <div class="dv" style="color:${it.c}">${it.v}</div><div class="ds">${it.s}</div>
+      <div class="dgo" style="${on?'color:var(--navy)':''}"><span>${on?'Viewing':'Open dashboard'}</span><span>${on?'▾':'▸'}</span></div>
+    </div>`;}).join("");
+  document.getElementById("domains").querySelectorAll(".dchip").forEach(el=>el.onclick=()=>setTab(el.dataset.tab));
+}
+function setTab(tab){
+  activeTab=tab;
+  document.querySelectorAll("section[data-tab]").forEach(s=>s.classList.toggle("tabhide",s.dataset.tab!==tab));
+  document.querySelectorAll("#domains .dchip").forEach(el=>el.classList.toggle("active",el.dataset.tab===tab));
+  renderActiveCharts();
+}
+function renderActiveCharts(){
+  const d=scaled();
+  if(activeTab==="productivity"){renderGauge(d);renderVolume(d);}
+  else if(activeTab==="quality"){renderGaps(d);renderRef(d);}
+  else if(activeTab==="revenue"){renderEM(d);renderPayer(d);}
+  else if(activeTab==="satisfaction"){renderSatCharts(d);}
+}
+function renderHeader(d){
+  document.getElementById("whoName").textContent=d.name;
+  document.getElementById("whoSub").textContent= provId==="all"
+    ? `${PROVIDERS.length} providers · ${fmt(d.panel)} attributed patients · ${PERIODS[period].lbl}`
+    : `${d.clinic} · panel ${fmt(d.panel)} · ${PERIODS[period].lbl}`;
+}
+function renderAll(){
+  const d=scaled();
+  renderHeader(d); renderDomains(d);
+  renderProductivity(d); renderQuality(d); renderRevenue(d); renderSat(d);
+  renderActiveCharts(); renderScore(); renderAI(d);
+  // attach drill handlers to all kpi cards
+  document.querySelectorAll(".kpi[data-drill]").forEach(el=>el.onclick=()=>openDrill(el.dataset.drill));
+}
+function clinicsInRegion(){const ps=region==="all"?PROVIDERS:PROVIDERS.filter(p=>p.region===region);return [...new Set(ps.map(p=>p.clinic))].sort();}
+function buildClinicSelect(){
+  const cs=document.getElementById("selClinic");
+  cs.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinicsInRegion().map(c=>`<option value="${c}">${c}</option>`).join("");
+  cs.value=clinic;
+}
+function buildProviderSelect(){
+  const sp=document.getElementById("selProvider"),list=activeProviders();
+  const allLbl = clinic!=="all" ? clinic+" — All" : region!=="all" ? region+" — All Providers" : "Network — All Providers";
+  sp.innerHTML=`<option value="all">${allLbl}</option>`+list.map(p=>`<option value="${p.id}">${p.name} — ${p.clinic}</option>`).join("");
+  sp.value=provId;
+}
+function initControls(){
+  buildClinicSelect(); buildProviderSelect();
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;renderAll();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinicSelect();buildProviderSelect();renderAll();};
+  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProviderSelect();renderAll();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;renderAll();};
+  document.getElementById("mClose").onclick=closeModal;
+  document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
+  document.getElementById("benchBtn").onclick=openBench;
+  document.getElementById("benchClose").onclick=closeBench;
+  document.getElementById("benchModal").onclick=e=>{if(e.target.id==="benchModal")closeBench();};
+  document.getElementById("benchSave").onclick=saveBench;
+  document.getElementById("benchReset").onclick=resetBench;
+  document.getElementById("aiSend").onclick=()=>askAI(document.getElementById("aiInput").value);
+  document.getElementById("aiInput").addEventListener("keydown",e=>{if(e.key==="Enter")askAI(e.target.value);});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closeBench();}});
+}
+
+/* ============================================================ BENCHMARK EDITOR ============================================================ */
+const DEFAULT_BENCH=JSON.parse(JSON.stringify(BENCH));
+const BFIELDS=[
+ {k:"pctGoal",l:"Visit goal attainment (≥ %)"},{k:"newPtPct",l:"New-patient share (≥ %)"},
+ {k:"noShow",l:"No-show rate (≤ %)"},{k:"openOver7d",l:"Charts open >7 days (≤)"},
+ {k:"rooming",l:"Rooming time (≤ min)"},{k:"tele",l:"Telehealth share (≥ %)"},
+ {k:"toc",l:"TOC follow-up (≥ %)"},{k:"raf",l:"RAF recapture (≥ %)"},
+ {k:"cosign",l:"APP chart cosign (≥ %)"},{k:"capture",l:"Charge capture (≥ %)"},
+ {k:"gapClosure",l:"Care-gap closure (≥ %)"},{k:"sat",l:"Satisfaction (≥ /5)"},
+ {k:"topbox",l:"Top-box (≥ %)"},{k:"nps",l:"NPS (≥)"},
+];
+function loadBench(){try{const s=JSON.parse(localStorage.getItem("avance_bench")||"null");if(s){Object.assign(BENCH,s);BENCH.em=s.em||BENCH.em;BENCH.emAvg=emAvg(BENCH.em);}}catch(e){}}
+function openBench(){
+  document.getElementById("benchForm").innerHTML=BFIELDS.map(f=>`<div class="bf"><label>${f.l}</label><input type="number" step="0.1" data-bk="${f.k}" value="${BENCH[f.k]}"></div>`).join("");
+  document.getElementById("benchEM").innerHTML=["L1","L2","L3","L4","L5"].map((l,i)=>`<div class="ef">${l}<input type="number" step="1" data-em="${i}" value="${BENCH.em[i]}"></div>`).join("");
+  updateEMsum();
+  document.getElementById("benchEM").oninput=updateEMsum;
+  document.getElementById("benchModal").hidden=false;
+}
+function updateEMsum(){
+  const vals=[...document.querySelectorAll("#benchEM input")].map(i=>+i.value||0);const sum=vals.reduce((a,b)=>a+b,0);
+  const el=document.getElementById("benchEMsum");el.textContent="Total: "+sum+"%   (avg level "+vals.reduce((a,v,i)=>a+(i+1)*v/100,0).toFixed(2)+")";
+  el.style.color=sum===100?"var(--good)":"var(--bad)";
+}
+function closeBench(){document.getElementById("benchModal").hidden=true;}
+function saveBench(){
+  document.querySelectorAll("#benchForm input").forEach(i=>{const v=parseFloat(i.value);if(!isNaN(v))BENCH[i.dataset.bk]=v;});
+  const em=[...document.querySelectorAll("#benchEM input")].map(i=>+i.value||0);
+  if(Math.abs(em.reduce((a,b)=>a+b,0)-100)<0.5){BENCH.em=em;}
+  BENCH.emAvg=emAvg(BENCH.em);
+  try{localStorage.setItem("avance_bench",JSON.stringify(BENCH));}catch(e){}
+  closeBench();renderAll();
+}
+function resetBench(){Object.assign(BENCH,JSON.parse(JSON.stringify(DEFAULT_BENCH)));try{localStorage.removeItem("avance_bench");}catch(e){}openBench();renderAll();}
+
+/* ============================================================ AVANCE AI (illustrative assistant) ============================================================ */
+function flags(d){
+  const out=[];
+  if(d.pctGoal<90) out.push({sev:2,dom:"Productivity",txt:`visit volume at ${Math.round(d.pctGoal)}% of goal`,key:"volume"});
+  if(d.noShow>BENCH.noShow) out.push({sev:d.noShow>9?2:1,dom:"Productivity",txt:`no-show rate ${d.noShow.toFixed(1)}% (target ≤${BENCH.noShow}%)`,key:"noshow"});
+  if(d.openOver7d>5) out.push({sev:2,dom:"Productivity",txt:`${d.openOver7d} charts open >7 days`,key:"opencharts"});
+  if(d.csPending>5||d.uds<85) out.push({sev:2,dom:"Quality",txt:`controlled-substance oversight (${d.csPendC||d.csPending} reviews pending, UDS ${Math.round(d.uds)}%)`,key:"controlled"});
+  if(gapClosureAll(d)<BENCH.gapClosure) out.push({sev:1,dom:"Quality",txt:`care-gap closure ${gapClosureAll(d)}% (target ≥${BENCH.gapClosure}%)`,key:"gaps"});
+  if(d.raf<BENCH.raf) out.push({sev:1,dom:"Quality",txt:`RAF recapture ${Math.round(d.raf)}% below ${BENCH.raf}%`,key:"hcc"});
+  if(d.toc<BENCH.toc) out.push({sev:1,dom:"Quality",txt:`TOC follow-up ${Math.round(d.toc)}% below ${BENCH.toc}%`,key:"toc"});
+  if(d.capture<BENCH.capture) out.push({sev:1,dom:"Revenue",txt:`charge capture ${r1(d.capture)}% (${d.openCharges} open charges)`,key:"capture"});
+  const provL45=d.em[3]+d.em[4],benchL45=BENCH.em[3]+BENCH.em[4];
+  if(provL45-benchL45<-3) out.push({sev:1,dom:"Revenue",txt:`E&M L4+L5 share ${Math.round(provL45)}% below benchmark ${benchL45}% (possible under-coding)`,key:"coding"});
+  else if(provL45-benchL45>8) out.push({sev:1,dom:"Revenue",txt:`E&M L4+L5 share ${Math.round(provL45)}% above benchmark (audit-readiness review)`,key:"coding"});
+  if(d.sat<BENCH.sat) out.push({sev:1,dom:"Satisfaction",txt:`satisfaction ${d.sat.toFixed(1)} below ${BENCH.sat}`,key:"sat"});
+  return out.sort((a,b)=>b.sev-a.sev);
+}
+function opportunities(d){
+  const o=[];
+  o.push({label:"Close AWVs due",val:fmt(d.awvDue),$:d.awvDue*120,key:"awv"});
+  o.push({label:"Recover open charges",val:fmt(d.openCharges),$:d.openCharges*70,key:"capture"});
+  const provL45=d.em[3]+d.em[4],benchL45=BENCH.em[3]+BENCH.em[4];
+  if(provL45-benchL45<-2) o.push({label:"Coding to benchmark",val:Math.abs(Math.round(provL45-benchL45))+" pts",$:round((benchL45-provL45)/100*d.visits*PERIODS[period].f*BENCH.revPerLevelStep),key:"coding"});
+  return o.sort((a,b)=>b.$-a.$);
+}
+function topOutliers(){
+  const list=activeProviders();if(provId!=="all"||list.length<2)return null;
+  const byNoShow=[...list].sort((a,b)=>b.noShow-a.noShow)[0];
+  const byOpen=[...list].sort((a,b)=>b.openOver7d-a.openOver7d)[0];
+  const byCs=[...list].sort((a,b)=>b.csPending-a.csPending)[0];
+  return {byNoShow,byOpen,byCs};
+}
+function renderAI(d){
+  const fl=flags(d), opp=opportunities(d);
+  const scope = provId==="all"?(region==="all"?"the network":region+" region"):d.name;
+  let txt=`Across <b>${provId==="all"?activeProviders().length+" providers":d.clinic}</b>, ${scope} is at <b>${Math.round(d.pctGoal)}%</b> of visit goal. `;
+  if(fl.length){
+    const top=fl.slice(0,2).map(f=>`${f.txt} <span class="ai-link" data-aikey="${f.key}">[review]</span>`).join("; and ");
+    txt+=`Top watch-out${fl.length>1?'s':''}: ${top}. `;
+  } else { txt+=`All tracked metrics are at or above target. `; }
+  if(opp.length){const b=opp[0];txt+=`Biggest lever: <b>${b.label}</b> (${b.val}${b.$?` ≈ $${fmt(b.$)}`:''}) <span class="ai-link" data-aikey="${b.key}">[open]</span>.`;}
+  const ai=document.getElementById("aiInsight");ai.innerHTML=txt;
+  ai.querySelectorAll(".ai-link").forEach(l=>l.onclick=()=>openDrill(l.dataset.aikey));
+  const chips=["What should I focus on this week?","Where is my biggest revenue opportunity?","Draft a note to my care team","How do I improve patient satisfaction?"];
+  const cc=document.getElementById("aiChips");cc.innerHTML=chips.map(c=>`<span class="ai-chip">${c}</span>`).join("");
+  cc.querySelectorAll(".ai-chip").forEach(el=>el.onclick=()=>{document.getElementById("aiInput").value=el.textContent;askAI(el.textContent);});
+}
+function askAI(q){
+  if(!q||!q.trim())return;
+  const d=scaled(),ql=q.toLowerCase(),fl=flags(d),opp=opportunities(d);
+  const who=provId==="all"?(region==="all"?"the network":region+" region"):d.name;
+  let html="";
+  const actBlock=(items)=>`<ul>${items.map(i=>`<li>${i}</li>`).join("")}</ul>`;
+  if(/(focus|priorit|week|today|important|first)/.test(ql)){
+    const top=fl.slice(0,3);
+    html=`<h5>Focus this week — ${who}</h5>`+(top.length?`Ranked by impact:`+actBlock(top.map(f=>`<b>${f.dom}:</b> ${f.txt} — <span class="ai-link" data-aikey="${f.key}">open worklist</span>`)):`Everything is on target — keep closing AWVs (${fmt(d.awvDue)} due) and sustain momentum.`);
+  } else if(/(revenue|money|charge|coding|capture|rvu|bill|financ)/.test(ql)){
+    html=`<h5>Revenue opportunities — ${who}</h5>`+actBlock(opp.map(o=>`<b>${o.label}:</b> ${o.val}${o.$?` ≈ <b>$${fmt(o.$)}</b> this period`:''} — <span class="ai-link" data-aikey="${o.key}">open</span>`))+`<div class="ai-disc">Dollar estimates use illustrative rates set in the data block.</div>`;
+  } else if(/(quality|gap|care|hcc|raf|screen|awv)/.test(ql)){
+    html=`<h5>Quality picture — ${who}</h5>Care-gap closure is <b>${gapClosureAll(d)}%</b> (target ≥${BENCH.gapClosure}%); RAF recapture <b>${Math.round(d.raf)}%</b>; TOC follow-up <b>${Math.round(d.toc)}%</b>.`+actBlock([`<b>${fmt(d.awvDue)}</b> AWVs due — <span class="ai-link" data-aikey="awv">outreach list</span>`,`Open care gaps by measure — <span class="ai-link" data-aikey="gaps">view</span>`,`Suspected HCCs to recapture — <span class="ai-link" data-aikey="hcc">view</span>`]);
+  } else if(/(no.?show|access|schedul|wait)/.test(ql)){
+    html=`<h5>Access & no-shows — ${who}</h5>No-show rate is <b>${d.noShow.toFixed(1)}%</b> (target ≤${BENCH.noShow}%), ~${round(d.visits*d.noShow/100)} lost visits/month. Avg rooming time ${d.rooming.toFixed(1)} min.`+actBlock([`Day-of-week no-show breakdown — <span class="ai-link" data-aikey="noshow">open</span>`,`Backfill no-shows from a same-day waitlist`,`Automated 48h + 2h reminders`]);
+  } else if(/(satisf|experience|nps|patient.*happy|recommend)/.test(ql)){
+    const sd=satDomains(d);
+    html=`<h5>Patient experience — ${who}</h5>Overall <b>${d.sat.toFixed(1)}/5</b>, ${Math.round(d.satTop)}% top-box, NPS <b>${sd.nps}</b>. Lowest domain: <b>Access/Wait (${sd.access.toFixed(1)})</b>.`+actBlock([`Tighten access & rooming time (correlates with no-shows)`,`Review verbatim comments for the lowest domain — <span class="ai-link" data-aikey="sat">open</span>`,`Share top-box trend with the care team monthly`]);
+  } else if(/(message|email|draft|team|note|memo|huddle|communicat)/.test(ql)){
+    const top=fl.slice(0,3);
+    const draft=`Team — quick ${PERIODS[period].lbl} check-in for ${who}.\n\n`+
+      `We're at ${Math.round(d.pctGoal)}% of our visit goal (${fmt(d.visitsC)} completed). Three priorities:\n`+
+      (top.length?top.map((f,i)=>`${i+1}. ${f.dom}: ${f.txt.replace(/<[^>]+>/g,'')}.`).join("\n"):`1. Sustain performance — all metrics on target.`)+"\n"+
+      `Quick wins this week: outreach to the ${fmt(d.awvDue)} patients due for an AWV, and clear ${d.openCharges} open charges before close.\n\nThanks for the great work.`;
+    html=`<h5>Draft note to your care team</h5>This is an example of turning the dashboard into action — Avance AI drafted this from the current view:<div class="draft">${draft}</div>`+actBlock([`Copy into Secure Chat / email`,`Assign the AWV and open-charge items to the clinic nurse & OM`]);
+  } else {
+    html=`<h5>Summary — ${who}</h5>${Math.round(d.pctGoal)}% to goal · no-show ${d.noShow.toFixed(1)}% · care-gap closure ${gapClosureAll(d)}% · charge capture ${r1(d.capture)}% · satisfaction ${d.sat.toFixed(1)}/5.`+(fl.length?actBlock(fl.slice(0,3).map(f=>`${f.dom}: ${f.txt} — <span class="ai-link" data-aikey="${f.key}">open</span>`)):"");
+  }
+  const resp=document.getElementById("aiResp");resp.hidden=false;resp.innerHTML=html+`<div class="ai-disc">Avance AI is an illustrative assistant in this mockup — wire to your approved LLM + Epic/Cogito data to make it live.</div>`;
+  resp.querySelectorAll(".ai-link").forEach(l=>l.onclick=()=>openDrill(l.dataset.aikey));
+}
+document.getElementById("footer").innerHTML=
+  "Illustrative synthetic data with fictitious providers, organized into four domains — Productivity, Quality &amp; Compliance, Revenue &amp; Coding, and Patient Satisfaction. "+
+  "Every metric shows a benchmark/target and is clickable for actionable drill-down detail and recommended actions. Benchmarks (E&M distribution, no-show, charge capture, RAF, TOC, satisfaction, etc.) are illustrative family-medicine references — replace with Avance Care contract targets. "+
+  "Metrics are derived from the June 2026 analytics request backlog. Replace the DATA &amp; BENCH blocks with live Epic / Cogito feeds. Draft v2 for CMO review.";
+
+let _started=false;
+window.startDashboard=function(){if(_started)return;_started=true;loadBench();initControls();renderAll();};
+</script>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  const firebaseConfig={apiKey:"AIzaSyC5mOkljbkSMCMhRf-jrJ7TIpkESMTcxHY",authDomain:"mikedulinmd-cf65b.firebaseapp.com",projectId:"mikedulinmd-cf65b",storageBucket:"mikedulinmd-cf65b.firebasestorage.app",messagingSenderId:"714928483011",appId:"1:714928483011:web:dd1b266d77c6042c6f5076",measurementId:"G-TCW130CK2R"};
+  const app=initializeApp(firebaseConfig); const auth=getAuth(app);
+  const ALLOW=['mdulin@gmail.com','asteventon@avancecare.com'];
+  const URL='https://mikedulinmd.app/avance-dashboard.html';
+  const acs={url:URL,handleCodeInApp:true};
+  const $=id=>document.getElementById(id);
+  function msg(t,c){const e=$('loginMsg');if(e){e.textContent=t;e.style.color=c||'#6B7A80';}}
+  if(isSignInWithEmailLink(auth, window.location.href)){
+    let email=window.localStorage.getItem('avanceEmailForSignIn');
+    if(!email){email=window.prompt('Please confirm your email to finish signing in');}
+    if(email){signInWithEmailLink(auth, email, window.location.href).then(()=>{window.localStorage.removeItem('avanceEmailForSignIn');history.replaceState(null,'',URL);}).catch(()=>msg('That sign-in link is invalid or expired — request a new one.','#C0392B'));}
+  }
+  function wire(){
+    const btn=$('loginBtn'); if(!btn) return;
+    btn.onclick=()=>{
+      const email=(($('loginEmail').value)||'').trim().toLowerCase();
+      if(!ALLOW.includes(email)){msg('That email is not authorized for this dashboard.','#C0392B');return;}
+      msg('Sending link…');
+      sendSignInLinkToEmail(auth, email, acs).then(()=>{window.localStorage.setItem('avanceEmailForSignIn', email);msg('Check your inbox — a one-time sign-in link was sent to '+email+'.','#2F9E45');}).catch(e=>msg('Could not send link: '+e.message,'#C0392B'));
+    };
+    $('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')btn.click();});
+  }
+  wire();
+  onAuthStateChanged(auth, user=>{
+    if(user && ALLOW.includes((user.email||'').toLowerCase())){
+      $('login-screen').style.display='none';
+      $('appShell').style.display='block';
+      if(window.startDashboard) window.startDashboard();
+    } else {
+      if(user){ signOut(auth); msg('Access denied for '+user.email+'. This dashboard is restricted.','#C0392B'); }
+      $('login-screen').style.display='flex';
+      $('appShell').style.display='none';
+    }
+  });
+</script>
+
+</body>
+</html>
