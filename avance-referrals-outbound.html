@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Outbound Referrals &amp; Leakage</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:200px}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:6px 2px 12px}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:24px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:250px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Outbound Referrals &amp; Leakage</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div class="sec">Referral Flow &amp; Continuity</div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card"><h3>Referrals by Specialty</h3><div class="h">Outbound volume by specialty</div><div class="cb"><canvas id="cSpec"></canvas></div></div>
+      <div class="card"><h3>By Priority</h3><div class="h">Routine / Urgent / STAT — STAT &amp; urgent need fast scheduling</div><div class="cb"><canvas id="cPri"></canvas></div></div>
+    </div>
+    <div class="sec">Pending Referral Worklist <span style="font-weight:600;text-transform:none;color:var(--peri)">— open referrals, oldest first; close the loop on consult notes</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Patient</th><th>Specialty</th><th>Priority</th><th>Network</th><th class="num">Days pending</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+const DATA={Charlotte:{sent:262,pendOver7:31,statPct:3,closedLoop:71,inNetwork:64,daysToAppt:9.2},Triangle:{sent:388,pendOver7:39,statPct:3,closedLoop:76,inNetwork:69,daysToAppt:8.1}};
+const SPECS=[["Cardiology",.17],["Orthopedics",.15],["Gastroenterology",.12],["Dermatology",.11],["Endocrinology",.10],["Neurology",.09],["Pulmonology",.08],["ENT",.07],["Ophthalmology",.06],["Other",.05]];
+const PRI=[["Routine",.82,C.peri],["Urgent",.15,C.amber],["STAT",.03,C.red]];
+let region="all",period="mtd",charts={};
+const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function agg(){const rs=region==="all"?Object.values(DATA):[DATA[region]];const sent=rs.reduce((a,r)=>a+r.sent,0);const w=k=>rs.reduce((a,r)=>a+r[k]*r.sent,0)/Math.max(1,sent);return {sent,pendOver7:rs.reduce((a,r)=>a+r.pendOver7,0),statPct:w("statPct"),closedLoop:w("closedLoop"),inNetwork:w("inNetwork"),daysToAppt:w("daysToAppt")};}
+function render(){
+  const d=agg(),f=PERIODS[period].f,sent=round(d.sent*f),pend=round(d.pendOver7*f),stat=round(sent*d.statPct/100);
+  document.getElementById("who").textContent=(region==="all"?"Network — All Regions":region+" Region");
+  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  const cards=[
+    {l:"Referrals Sent",n:fmt(sent),s:"outbound this period",ac:C.navy},
+    {l:"Pending &gt;7 days",n:fmt(pend),s:"need follow-up",ac:tone(pend,false,sent*0.06,sent*0.12)},
+    {l:"STAT Referrals",n:fmt(stat),s:"schedule ≤48h",ac:C.red},
+    {l:"Closed-Loop Rate",n:Math.round(d.closedLoop)+"%",s:"consult note received · target ≥80%",ac:tone(d.closedLoop,true,80,70)},
+    {l:"In-Network",n:Math.round(d.inNetwork)+"%",s:"vs. leakage out",ac:tone(d.inNetwork,true,70,60)},
+    {l:"Avg Days to Appt",n:d.daysToAppt.toFixed(1),s:"target ≤7 days",ac:tone(d.daysToAppt,false,7,10)},
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  charts.sp&&charts.sp.destroy();
+  charts.sp=new Chart(document.getElementById("cSpec"),{type:"bar",data:{labels:SPECS.map(s=>s[0]),datasets:[{data:SPECS.map(s=>round(sent*s[1])),backgroundColor:C.teal,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  charts.pr&&charts.pr.destroy();
+  charts.pr=new Chart(document.getElementById("cPri"),{type:"doughnut",data:{labels:PRI.map(p=>p[0]),datasets:[{data:PRI.map(p=>round(sent*p[1])),backgroundColor:PRI.map(p=>p[2]),borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
+  const FIRST=["J","M","A","S","R","D","K","L","P","T","C","B"],LAST=["Carter","Lopez","Nguyen","Patel","Johnson","Reed","Khan","Brooks","Diaz","Foster","Owens","Ramos"];
+  let seed=region.length*11+3;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  const n=Math.min(pend+4,12),rows=[];for(let i=0;i<n;i++){const pr=i<1?["STAT",C.red]:i<3?["Urgent",C.amber]:["Routine",C.peri];const days=pr[0]==="Routine"?6+((rnd()*22)|0):1+((rnd()*9)|0);const innet=rnd()>0.35;rows.push({pt:FIRST[(rnd()*12)|0]+". "+LAST[(rnd()*12)|0],spec:SPECS[(rnd()*8)|0][0],pr,days,innet});}
+  rows.sort((a,b)=>b.days-a.days);
+  document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.spec}</td><td><span class="pill" style="background:${hexA(r.pr[1],.14)};color:${r.pr[1]}">${r.pr[0]}</span></td><td>${r.innet?'<span class="pill" style="background:'+hexA(C.greenD,.14)+';color:'+C.greenD+'">In-network</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Out</span>'}</td><td class="num">${r.days}</td><td>${r.days>7?'<span class="pill" style="background:'+hexA(C.red,.14)+';color:'+C.red+'">Awaiting note</span>':'<span class="pill" style="background:'+hexA(C.peri,.14)+';color:'+C.peri+'">Scheduled</span>'}</td></tr>`).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic outbound-referral data. Closing the loop (receiving consult notes) and keeping referrals in-network are the key value-based levers. Targets are placeholders — replace with Avance Care policy.";
+}
+window.startDashboard=function(){
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>

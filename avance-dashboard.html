@@ -1090,44 +1090,7 @@ let _started=false;
 window.startDashboard=function(){if(_started)return;_started=true;loadBench();initControls();renderAll();};
 </script>
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-  const firebaseConfig={apiKey:"AIzaSyC5mOkljbkSMCMhRf-jrJ7TIpkESMTcxHY",authDomain:"mikedulinmd-cf65b.firebaseapp.com",projectId:"mikedulinmd-cf65b",storageBucket:"mikedulinmd-cf65b.firebasestorage.app",messagingSenderId:"714928483011",appId:"1:714928483011:web:dd1b266d77c6042c6f5076",measurementId:"G-TCW130CK2R"};
-  const app=initializeApp(firebaseConfig); const auth=getAuth(app);
-  const ALLOW=['mdulin@gmail.com','asteventon@avancecare.com'];
-  const URL='https://mikedulinmd.app/avance-dashboard.html';
-  const acs={url:URL,handleCodeInApp:true};
-  const $=id=>document.getElementById(id);
-  function msg(t,c){const e=$('loginMsg');if(e){e.textContent=t;e.style.color=c||'#6B7A80';}}
-  if(isSignInWithEmailLink(auth, window.location.href)){
-    let email=window.localStorage.getItem('avanceEmailForSignIn');
-    if(!email){email=window.prompt('Please confirm your email to finish signing in');}
-    if(email){signInWithEmailLink(auth, email, window.location.href).then(()=>{window.localStorage.removeItem('avanceEmailForSignIn');history.replaceState(null,'',URL);}).catch(()=>msg('That sign-in link is invalid or expired — request a new one.','#C0392B'));}
-  }
-  function wire(){
-    const btn=$('loginBtn'); if(!btn) return;
-    btn.onclick=()=>{
-      const email=(($('loginEmail').value)||'').trim().toLowerCase();
-      if(!ALLOW.includes(email)){msg('That email is not authorized for this dashboard.','#C0392B');return;}
-      msg('Sending link…');
-      sendSignInLinkToEmail(auth, email, acs).then(()=>{window.localStorage.setItem('avanceEmailForSignIn', email);msg('Check your inbox — a one-time sign-in link was sent to '+email+'.','#2F9E45');}).catch(e=>msg('Could not send link: '+e.message,'#C0392B'));
-    };
-    $('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')btn.click();});
-  }
-  wire();
-  onAuthStateChanged(auth, user=>{
-    if(user && ALLOW.includes((user.email||'').toLowerCase())){
-      $('login-screen').style.display='none';
-      $('appShell').style.display='block';
-      if(window.startDashboard) window.startDashboard();
-    } else {
-      if(user){ signOut(auth); msg('Access denied for '+user.email+'. This dashboard is restricted.','#C0392B'); }
-      $('login-screen').style.display='flex';
-      $('appShell').style.display='none';
-    }
-  });
-</script>
+<script type="module" src="/avance-auth.js"></script>
 
 </body>
 </html>
