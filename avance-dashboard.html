@@ -259,7 +259,10 @@
       </div>
       <div class="kpis" id="kProd"></div>
     </div>
-    <div class="grid" style="margin-top:16px"><div class="card"><h3>Completed Visit Volume — last 8 weeks</h3><div class="hint">Weekly completed visits vs. weekly goal line</div><div class="chart-box"><canvas id="cVolume"></canvas></div></div></div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card"><h3>Completed Visit Volume — last 8 weeks</h3><div class="hint">Weekly completed visits vs. weekly goal line</div><div class="chart-box"><canvas id="cVolume"></canvas></div></div>
+      <div class="card"><h3>Open Charts by Age</h3><div class="hint">Target: closed within 72 hrs · none over 7 days · click to drill</div><div class="chart-box"><canvas id="cOpen"></canvas></div></div>
+    </div>
   </section>
 
   <!-- QUALITY -->
@@ -582,6 +585,13 @@ function renderVolume(d){
     data:{labels,datasets:[{label:"Completed visits",data,borderColor:C.navy,backgroundColor:hexA(C.navy,.10),fill:true,tension:.35,borderWidth:2,pointRadius:3,pointBackgroundColor:C.navy},
       {label:"Weekly goal",data:labels.map(()=>goalWk),borderColor:C.green,borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}]},
     options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{ticks:{precision:0}}}}});
+}
+function renderOpenCharts(d){
+  const over7=d.openOver7d||0, remaining=Math.max(0,d.openCharts-over7), mid=Math.round(remaining*0.35), recent=Math.max(0,remaining-mid);
+  charts.open&&charts.open.destroy();
+  charts.open=new Chart(document.getElementById("cOpen"),{type:"bar",
+    data:{labels:["≤72 hrs","3–7 days",">7 days"],datasets:[{data:[recent,mid,over7],backgroundColor:[C.green,C.amber,C.red],borderRadius:5}]},
+    options:{onClick:()=>openDrill("opencharts"),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+" charts"}}},scales:{y:{beginAtZero:true,ticks:{precision:0}}}}});
 }
 function renderGaps(d){
   const labels=GAP_MEASURES,closed=labels.map(m=>d.gaps[m][1]-d.gaps[m][0]),open=labels.map(m=>d.gaps[m][0]);
@@ -919,7 +929,7 @@ function setTab(tab){
 }
 function renderActiveCharts(){
   const d=scaled();
-  if(activeTab==="productivity"){renderGauge(d);renderVolume(d);}
+  if(activeTab==="productivity"){renderGauge(d);renderVolume(d);renderOpenCharts(d);}
   else if(activeTab==="quality"){renderGaps(d);renderRef(d);}
   else if(activeTab==="revenue"){renderEM(d);renderPayer(d);}
   else if(activeTab==="satisfaction"){renderSatCharts(d);}
