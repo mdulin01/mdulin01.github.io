@@ -43,6 +43,7 @@
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
+    <div id="aiBar"></div>
     <div class="sec">Intake Performance</div>
     <div class="kpis" id="kpis"></div>
     <div class="grid">
@@ -105,6 +106,15 @@ function render(){
   document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.src}</td><td>${r.reason}</td><td>${r.prov}</td><td>${r.recd}</td><td class="num">${r.days}</td><td><span class="pill" style="background:${hexA(r.st[1],.14)};color:${r.st[1]}">${r.st[0]}</span></td></tr>`).join("");
   document.getElementById("foot").innerHTML="Illustrative / synthetic inbound-referral data, drillable Region → Clinic → Provider. Targets are placeholders — replace with Avance Care intake SLAs.";
 }
+window.AVANCE_AI={
+ insight:function(){var d=agg(),f=PERIODS[period].f,recv=Math.round(d.recv*f),pend=Math.round(recv*0.31);var scope=document.getElementById('who').textContent;var t='<b>'+scope+'</b>: <b>'+recv+'</b> inbound referrals this period. '+Math.round(d.sched)+'% scheduled (target \u226585%), '+Math.round(d.conv)+'% 30-day conversion. ';if(d.sched<85){t+='Scheduling is below target. ';}t+='About <b>'+pend+'</b> referrals are unworked \u2014 clearing them is the biggest lever on conversion.';return t;},
+ chips:['What should the intake team focus on?','Why is conversion below target?','Where are referrals coming from?'],
+ answer:function(q){var d=agg(),f=PERIODS[period].f,recv=Math.round(d.recv*f),pend=Math.round(recv*0.31),ql=q.toLowerCase();
+  if(/focus|priorit|work|pending|today|week/.test(ql))return '<h5>Focus</h5>Clear the ~'+pend+' unworked referrals first \u2014 they drive both scheduling % ('+Math.round(d.sched)+'%, target \u226585%) and 30-day conversion ('+Math.round(d.conv)+'%). Prioritize the oldest-waiting and ED/discharge referrals.';
+  if(/conver/.test(ql))return '<h5>Conversion</h5>30-day conversion is '+Math.round(d.conv)+'% (target \u226575%). The main drags are time-to-schedule ('+d.days.toFixed(1)+' days) and unworked referrals \u2014 faster outreach lifts conversion.';
+  if(/source|coming|where|leak/.test(ql))return '<h5>Sources</h5>Largest inbound sources are community PCPs (~34%) and ED/hospital discharge (~22%). ED/discharge referrals are the most time-sensitive to work.';
+  return '<h5>Summary</h5>'+recv+' received \u00b7 '+Math.round(d.sched)+'% scheduled \u00b7 '+Math.round(d.seen)+'% seen \u00b7 '+d.days.toFixed(1)+' days to schedule \u00b7 '+Math.round(d.conv)+'% conversion.';}
+};
 window.startDashboard=function(){
   buildClinic();buildProvider();
   document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
@@ -112,8 +122,10 @@ window.startDashboard=function(){
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();
+  if(window.renderAvanceAI)window.renderAvanceAI();
 };
 </script>
+<script src="/avance-ai.js"></script>
 <script type="module" src="/avance-auth.js"></script>
 </body>
 </html>

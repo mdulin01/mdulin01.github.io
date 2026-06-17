@@ -924,7 +924,7 @@ function renderDomains(d){
 function setTab(tab){
   activeTab=tab;
   document.querySelectorAll("section[data-tab]").forEach(s=>s.classList.toggle("tabhide",s.dataset.tab!==tab));
-  document.querySelectorAll("#domains .dchip").forEach(el=>el.classList.toggle("active",el.dataset.tab===tab));
+  renderDomains(scaled());
   renderActiveCharts();
 }
 function renderActiveCharts(){

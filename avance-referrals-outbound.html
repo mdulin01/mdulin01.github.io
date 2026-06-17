@@ -43,6 +43,7 @@
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
+    <div id="aiBar"></div>
     <div class="sec">Referral Flow &amp; Continuity</div>
     <div class="kpis" id="kpis"></div>
     <div class="grid">
@@ -103,6 +104,15 @@ function render(){
   document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.prov}</td><td>${r.spec}</td><td><span class="pill" style="background:${hexA(r.pr[1],.14)};color:${r.pr[1]}">${r.pr[0]}</span></td><td>${r.innet?'<span class="pill" style="background:'+hexA(C.greenD,.14)+';color:'+C.greenD+'">In-network</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Out</span>'}</td><td class="num">${r.days}</td><td>${r.days>7?'<span class="pill" style="background:'+hexA(C.red,.14)+';color:'+C.red+'">Awaiting note</span>':'<span class="pill" style="background:'+hexA(C.peri,.14)+';color:'+C.peri+'">Scheduled</span>'}</td></tr>`).join("");
   document.getElementById("foot").innerHTML="Illustrative / synthetic outbound-referral data, drillable Region → Clinic → Provider. Closing the loop and keeping referrals in-network are the key value-based levers. Targets are placeholders.";
 }
+window.AVANCE_AI={
+ insight:function(){var d=agg(),f=PERIODS[period].f,sent=Math.round(d.sent*f),pend=Math.round(d.pend7*f),stat=Math.round(sent*d.statPct/100);var scope=document.getElementById('who').textContent;return '<b>'+scope+'</b>: <b>'+sent+'</b> referrals sent. Closed-loop '+Math.round(d.closed)+'% (target \u226580%), in-network '+Math.round(d.innet)+'%, '+pend+' pending >7 days, '+stat+' STAT. Biggest lever: close the loop on the '+pend+' pending and keep referrals in-network.';},
+ chips:['What is my biggest leakage risk?','Which referrals need follow-up?','How do I improve closed-loop rate?'],
+ answer:function(q){var d=agg(),f=PERIODS[period].f,sent=Math.round(d.sent*f),pend=Math.round(d.pend7*f),ql=q.toLowerCase();
+  if(/leak|network|out/.test(ql))return '<h5>Leakage</h5>In-network is '+Math.round(d.innet)+'% (target \u226570%). Out-of-network referrals are lost continuity and shared-savings leakage \u2014 keep referrals in-network where clinically appropriate.';
+  if(/follow|pending|loop|note/.test(ql))return '<h5>Follow-up</h5>'+pend+' referrals are pending >7 days and '+Math.round(d.closed)+'% have a consult note back. Work the pending list and chase missing consult notes.';
+  if(/closed.?loop|improve|rate/.test(ql))return '<h5>Closed-loop</h5>Closed-loop is '+Math.round(d.closed)+'% (target \u226580%). Assign a coordinator to confirm appointments and retrieve consult notes \u2014 STAT/urgent first.';
+  return '<h5>Summary</h5>'+sent+' sent \u00b7 closed-loop '+Math.round(d.closed)+'% \u00b7 in-network '+Math.round(d.innet)+'% \u00b7 '+pend+' pending >7d \u00b7 '+d.days.toFixed(1)+' days to appt.';}
+};
 window.startDashboard=function(){
   buildClinic();buildProvider();
   document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
@@ -110,8 +120,10 @@ window.startDashboard=function(){
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();
+  if(window.renderAvanceAI)window.renderAvanceAI();
 };
 </script>
+<script src="/avance-ai.js"></script>
 <script type="module" src="/avance-auth.js"></script>
 </body>
 </html>

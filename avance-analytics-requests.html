@@ -156,6 +156,7 @@
 
 <div class="wrap">
 
+  <div id="aiBar"></div>
   <!-- KPI summary -->
   <div class="section-title">Portfolio at a Glance · click a card to filter</div>
   <div class="kpis" id="kpis"></div>
@@ -486,9 +487,19 @@ function renderFooter(){
 }
 
 /* ---------- init ---------- */
+window.AVANCE_AI={
+ insight:function(){var total=ROWS.length,un=ROWS.filter(function(r){return r.owner==='Unassigned';}).length,crit=ROWS.filter(function(r){return r.pr==='Critical';}).length,prog=ROWS.filter(function(r){return r.status==='In Progress';}).length,critUn=ROWS.filter(function(r){return r.pr==='Critical'&&r.owner==='Unassigned';}).length;return '<b>'+total+'</b> reporting requests \u00b7 <b>'+crit+'</b> critical, <b>'+prog+'</b> in progress, <b>'+un+'</b> unassigned. Top watch-out: <b>'+critUn+'</b> critical item'+(critUn!==1?'s':'')+' with no owner. Biggest lever: assign owners to the '+un+' unscoped requests so they start moving.';},
+ chips:['What needs an owner?','What is stalled or aging?','How is analyst workload distributed?'],
+ answer:function(q){var ql=q.toLowerCase(),un=ROWS.filter(function(r){return r.owner==='Unassigned';});
+  if(/owner|assign|unassigned/.test(ql))return '<h5>Needs an owner</h5>'+un.length+' requests are unassigned, including '+un.filter(function(r){return r.pr==='Critical'||r.pr==='High';}).length+' Critical/High. Start with the 2 Critical: Controlled Substance Report and RCM Charge Capture.';
+  if(/stall|aging|overdue|hold|old/.test(ql)){var ag=ROWS.filter(function(r){return r.aging;});return '<h5>Stalled / aging</h5>'+ag.length+' items are flagged aging or on hold: '+ag.map(function(r){return r.cat;}).join(', ')+'. These need a nudge or a decision.';}
+  if(/workload|analyst|distribut|capacity/.test(ql)){var by={};ROWS.forEach(function(r){by[r.owner]=(by[r.owner]||0)+1;});var named=Object.keys(by).filter(function(k){return k!=='Unassigned';}).map(function(k){return k+': '+by[k];});return '<h5>Analyst workload</h5>'+named.join(' \u00b7 ')+' \u00b7 Unassigned: '+(by['Unassigned']||0)+'.';}
+  return '<h5>Summary</h5>'+ROWS.length+' requests \u00b7 '+ROWS.filter(function(r){return r.status==='Completed';}).length+' completed \u00b7 '+ROWS.filter(function(r){return r.status==='In Progress';}).length+' in progress \u00b7 '+ROWS.filter(function(r){return r.owner==='Unassigned';}).length+' unassigned.';}
+};
 let _started=false;
-window.startDashboard=function(){if(_started)return;_started=true;renderKPIs();renderCharts();renderResource();initControls();renderFooter();render();};
+window.startDashboard=function(){if(_started)return;_started=true;renderKPIs();renderCharts();renderResource();initControls();renderFooter();render();if(window.renderAvanceAI)window.renderAvanceAI();};
 </script>
+<script src="/avance-ai.js"></script>
 <script type="module" src="/avance-auth.js"></script>
 </body>
 </html>

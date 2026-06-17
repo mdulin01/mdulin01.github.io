@@ -30,6 +30,7 @@ main { max-width:1500px; margin:0 auto; padding:22px 32px 70px; } .notice { bord
 <header><div class="header-grid"><div><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><svg width="34" height="27" viewBox="0 0 120 96" style="flex:none"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#8A97D1"/></svg><span style="font-size:20px;font-weight:300;color:#cbd5e1"><b style="font-weight:800;color:#fff">Avance</b>Care</span></div><h1>Referral Clinical Review</h1><div class="subtitle">Adds your completed clinical reviews as a calibration layer for deciding when urgent/STAT is appropriate, questionable, or really an access-workflow problem.</div><div><span class="pill">Current queue: questionable urgent/STAT referrals</span><span class="pill">Calibration: completed clinical reviews</span><span class="pill">Saved locally in browser</span></div></div><div><a href="/avance/" style="text-decoration:none;margin-right:6px"><button class="light" type="button">‹ All dashboards</button></a><button class="light" onclick="window.print()">Print</button> <button onclick="exportCSV()">Export Review CSV</button> <button class="secondary" onclick="exportJSON()">Export JSON</button></div></div></header>
 <main>
 <div class="notice"><strong>How this fits:</strong> the clinical review PDF is best used as a calibration/gold-standard layer. I did not force-merge it into the current MTD queue because the current referral register does not include patient names and the completed-review referral IDs mostly come from a different historical pull. Instead, this version uses the reviews to sharpen the questions, rules, and documentation prompts.</div>
+<div id="aiBar" style="margin-bottom:18px"></div>
 <div class="kpis" id="kpis"></div>
 <div class="layout">
 <aside>
@@ -91,8 +92,23 @@ function csvCell(v){v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'
 function exportCSV(){let hdr=['Referral ID','Patient','Created','Age days','Priority','Status','Provider','Specialty','Reason','Destination','Concern','Calibration flags','Decision','Final priority','Owner','Clinical review note','Next step','Updated at'];let lines=[hdr];rows.forEach(r=>{let rev=getReview(r.id);lines.push([r.id,rev.patient,r.created,r.age_days,r.priority,r.status,r.provider,r.specialty,r.reason,r.destination,r.urgency_review,(r.calibration_flags||[]).map(f=>f.name).join('; '),rev.decision,rev.finalPriority,rev.owner,rev.reviewText,rev.nextStep,rev.updatedAt]);});download('referral_priority_clinical_review_calibrated.csv',lines.map(row=>row.map(csvCell).join(',')).join('\n'),'text/csv');}
 function exportJSON(){download('referral_priority_clinical_review_calibrated.json',JSON.stringify({exportedAt:new Date().toISOString(),rows:rows.map(r=>({...r,review:getReview(r.id)})),calibration},null,2),'application/json');}
 function download(name,content,type){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
-window.startDashboard=function(){init();};
+window.startDashboard=function(){init();if(window.renderAvanceAI)window.renderAvanceAI();};
 </script>
+<script>(function(){var A;try{A=JSON.parse(document.getElementById('data').textContent);}catch(e){A={questionable:[],calibrationCases:[]};}
+ var rows=A.questionable||[],cal=A.calibrationCases||[];
+ function topSpec(){var by={};rows.forEach(function(r){var s=r.specialty||'Unknown';by[s]=(by[s]||0)+1;});return Object.keys(by).map(function(k){return [k,by[k]];}).sort(function(a,b){return b[1]-a[1];});}
+ function pend(){return rows.filter(function(r){return String(r.status||'').indexOf('Pending')>=0;}).length;}
+ window.AVANCE_AI={
+  insight:function(){var t=topSpec()[0];return '<b>'+rows.length+'</b> questionable urgent/STAT referrals in the queue, <b>'+pend()+'</b> still pending. Most questionable specialty: <b>'+(t?t[0]+' ('+t[1]+')':'—')+'</b>. Start with Emergency/STAT items still pending appointment details — those carry the most risk if the urgency is real.';},
+  chips:['What should I review first?','Which specialty over-uses urgent/STAT?','Summarize the calibration themes.'],
+  answer:function(q){var ql=q.toLowerCase();
+   if(/first|priorit|start|review/.test(ql)){var em=rows.filter(function(r){return /Emergency|STAT/.test(String(r.priority));}).length;return '<h5>Review first</h5>Begin with the '+em+' Emergency/STAT-flagged referrals still pending appointment details — if the urgency is appropriate they need action now; if not, they are prime downgrade candidates.';}
+   if(/specialty|over.?use|inflat/.test(ql)){var t=topSpec().slice(0,3).map(function(x){return x[0]+' ('+x[1]+')';});return '<h5>Specialty over-use</h5>Most questionable urgent/STAT volume: '+t.join(', ')+'. These are where calibration and education will have the most impact.';}
+   if(/calibrat|theme|rule/.test(ql))return '<h5>Calibration themes</h5>'+cal.length+' completed gold-standard reviews inform the rubric — the recurring themes separate true clinical urgency from access/workflow problems and overuse. See the Calibration tab for the distilled rules.';
+   return '<h5>Summary</h5>'+rows.length+' questionable referrals queued. Use the rubric + calibration to decide: appropriate, downgrade, access/workflow, or overuse.';}
+ };
+})();</script>
+<script src="/avance-ai.js"></script>
 <script type="module" src="/avance-auth.js"></script>
 </body>
 </html>
