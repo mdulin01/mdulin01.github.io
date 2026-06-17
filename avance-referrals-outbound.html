@@ -11,9 +11,9 @@
   .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
   .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
   .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
-  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;color:#fff}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
   .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
-  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:200px}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:175px}
   .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
   .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:6px 2px 12px}
   .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
@@ -37,6 +37,8 @@
   </div>
   <div class="controls">
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Clinic</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
     <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
@@ -48,32 +50,45 @@
       <div class="card"><h3>By Priority</h3><div class="h">Routine / Urgent / STAT — STAT &amp; urgent need fast scheduling</div><div class="cb"><canvas id="cPri"></canvas></div></div>
     </div>
     <div class="sec">Pending Referral Worklist <span style="font-weight:600;text-transform:none;color:var(--peri)">— open referrals, oldest first; close the loop on consult notes</span></div>
-    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Patient</th><th>Specialty</th><th>Priority</th><th>Network</th><th class="num">Days pending</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Patient</th><th>Referring Provider</th><th>Specialty</th><th>Priority</th><th>Network</th><th class="num">Days pending</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
     <div class="foot" id="foot"></div>
   </div>
 </div>
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
-const DATA={Charlotte:{sent:262,pendOver7:31,statPct:3,closedLoop:71,inNetwork:64,daysToAppt:9.2},Triangle:{sent:388,pendOver7:39,statPct:3,closedLoop:76,inNetwork:69,daysToAppt:8.1}};
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",sent:50,pend7:5,statPct:2,closed:78,innet:68,days:8.2},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",sent:63,pend7:7,statPct:3,closed:74,innet:66,days:8.8},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",sent:47,pend7:6,statPct:2,closed:70,innet:62,days:10.1},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",sent:56,pend7:6,statPct:3,closed:72,innet:64,days:9.0},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",sent:46,pend7:2,statPct:2,closed:81,innet:71,days:7.4},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",sent:58,pend7:9,statPct:3,closed:73,innet:67,days:9.3},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",sent:49,pend7:3,statPct:2,closed:79,innet:70,days:7.8},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",sent:47,pend7:2,statPct:2,closed:80,innet:72,days:7.5},
+];
 const SPECS=[["Cardiology",.17],["Orthopedics",.15],["Gastroenterology",.12],["Dermatology",.11],["Endocrinology",.10],["Neurology",.09],["Pulmonology",.08],["ENT",.07],["Ophthalmology",.06],["Other",.05]];
 const PRI=[["Routine",.82,C.peri],["Urgent",.15,C.amber],["STAT",.03,C.red]];
-let region="all",period="mtd",charts={};
+let region="all",clinic="all",provId="all",period="mtd",charts={};
 const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
 function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
 function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
-function agg(){const rs=region==="all"?Object.values(DATA):[DATA[region]];const sent=rs.reduce((a,r)=>a+r.sent,0);const w=k=>rs.reduce((a,r)=>a+r[k]*r.sent,0)/Math.max(1,sent);return {sent,pendOver7:rs.reduce((a,r)=>a+r.pendOver7,0),statPct:w("statPct"),closedLoop:w("closedLoop"),inNetwork:w("inNetwork"),daysToAppt:w("daysToAppt")};}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function agg(){const rs=active();const sent=rs.reduce((a,r)=>a+r.sent,0)||1;const w=k=>rs.reduce((a,r)=>a+r[k]*r.sent,0)/sent;return {sent:rs.reduce((a,r)=>a+r.sent,0),pend7:rs.reduce((a,r)=>a+r.pend7,0),statPct:w("statPct"),closed:w("closed"),innet:w("innet"),days:w("days")};}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
-  const d=agg(),f=PERIODS[period].f,sent=round(d.sent*f),pend=round(d.pendOver7*f),stat=round(sent*d.statPct/100);
-  document.getElementById("who").textContent=(region==="all"?"Network — All Regions":region+" Region");
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  const d=agg(),f=PERIODS[period].f,sent=round(d.sent*f),pend=round(d.pend7*f),stat=round(sent*d.statPct/100),sel=active();
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+PERIODS[period].l+" · illustrative data";
   const cards=[
     {l:"Referrals Sent",n:fmt(sent),s:"outbound this period",ac:C.navy},
     {l:"Pending &gt;7 days",n:fmt(pend),s:"need follow-up",ac:tone(pend,false,sent*0.06,sent*0.12)},
     {l:"STAT Referrals",n:fmt(stat),s:"schedule ≤48h",ac:C.red},
-    {l:"Closed-Loop Rate",n:Math.round(d.closedLoop)+"%",s:"consult note received · target ≥80%",ac:tone(d.closedLoop,true,80,70)},
-    {l:"In-Network",n:Math.round(d.inNetwork)+"%",s:"vs. leakage out",ac:tone(d.inNetwork,true,70,60)},
-    {l:"Avg Days to Appt",n:d.daysToAppt.toFixed(1),s:"target ≤7 days",ac:tone(d.daysToAppt,false,7,10)},
+    {l:"Closed-Loop Rate",n:Math.round(d.closed)+"%",s:"consult note received · target ≥80%",ac:tone(d.closed,true,80,70)},
+    {l:"In-Network",n:Math.round(d.innet)+"%",s:"vs. leakage out",ac:tone(d.innet,true,70,60)},
+    {l:"Avg Days to Appt",n:d.days.toFixed(1),s:"target ≤7 days",ac:tone(d.days,false,7,10)},
   ];
   document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
   charts.sp&&charts.sp.destroy();
@@ -81,14 +96,18 @@ function render(){
   charts.pr&&charts.pr.destroy();
   charts.pr=new Chart(document.getElementById("cPri"),{type:"doughnut",data:{labels:PRI.map(p=>p[0]),datasets:[{data:PRI.map(p=>round(sent*p[1])),backgroundColor:PRI.map(p=>p[2]),borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
   const FIRST=["J","M","A","S","R","D","K","L","P","T","C","B"],LAST=["Carter","Lopez","Nguyen","Patel","Johnson","Reed","Khan","Brooks","Diaz","Foster","Owens","Ramos"];
-  let seed=region.length*11+3;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
-  const n=Math.min(pend+4,12),rows=[];for(let i=0;i<n;i++){const pr=i<1?["STAT",C.red]:i<3?["Urgent",C.amber]:["Routine",C.peri];const days=pr[0]==="Routine"?6+((rnd()*22)|0):1+((rnd()*9)|0);const innet=rnd()>0.35;rows.push({pt:FIRST[(rnd()*12)|0]+". "+LAST[(rnd()*12)|0],spec:SPECS[(rnd()*8)|0][0],pr,days,innet});}
+  const provs=sel.length?sel:PROV;
+  let seed=(region+clinic+provId).length*11+3;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  const n=Math.min(pend+4,12),rows=[];for(let i=0;i<n;i++){const pr=i<1?["STAT",C.red]:i<3?["Urgent",C.amber]:["Routine",C.peri];const days=pr[0]==="Routine"?6+((rnd()*22)|0):1+((rnd()*9)|0);const innet=rnd()>0.35;rows.push({pt:FIRST[(rnd()*12)|0]+". "+LAST[(rnd()*12)|0],prov:provs[(rnd()*provs.length)|0].name,spec:SPECS[(rnd()*8)|0][0],pr,days,innet});}
   rows.sort((a,b)=>b.days-a.days);
-  document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.spec}</td><td><span class="pill" style="background:${hexA(r.pr[1],.14)};color:${r.pr[1]}">${r.pr[0]}</span></td><td>${r.innet?'<span class="pill" style="background:'+hexA(C.greenD,.14)+';color:'+C.greenD+'">In-network</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Out</span>'}</td><td class="num">${r.days}</td><td>${r.days>7?'<span class="pill" style="background:'+hexA(C.red,.14)+';color:'+C.red+'">Awaiting note</span>':'<span class="pill" style="background:'+hexA(C.peri,.14)+';color:'+C.peri+'">Scheduled</span>'}</td></tr>`).join("");
-  document.getElementById("foot").innerHTML="Illustrative / synthetic outbound-referral data. Closing the loop (receiving consult notes) and keeping referrals in-network are the key value-based levers. Targets are placeholders — replace with Avance Care policy.";
+  document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.prov}</td><td>${r.spec}</td><td><span class="pill" style="background:${hexA(r.pr[1],.14)};color:${r.pr[1]}">${r.pr[0]}</span></td><td>${r.innet?'<span class="pill" style="background:'+hexA(C.greenD,.14)+';color:'+C.greenD+'">In-network</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Out</span>'}</td><td class="num">${r.days}</td><td>${r.days>7?'<span class="pill" style="background:'+hexA(C.red,.14)+';color:'+C.red+'">Awaiting note</span>':'<span class="pill" style="background:'+hexA(C.peri,.14)+';color:'+C.peri+'">Scheduled</span>'}</td></tr>`).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic outbound-referral data, drillable Region → Clinic → Provider. Closing the loop and keeping referrals in-network are the key value-based levers. Targets are placeholders.";
 }
 window.startDashboard=function(){
-  document.getElementById("selRegion").onchange=e=>{region=e.target.value;render();};
+  buildClinic();buildProvider();
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
+  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();
 };
