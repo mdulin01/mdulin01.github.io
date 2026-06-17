@@ -316,7 +316,7 @@ function renderKPIs(){
       <div class="lbl">${c.lbl}</div>
     </div>`).join("");
   document.querySelectorAll("#kpis .kpi").forEach(el=>{
-    el.addEventListener("click",()=>cards[+el.dataset.i].filter());
+    el.addEventListener("click",()=>{cards[+el.dataset.i].filter();document.querySelectorAll("#kpis .kpi").forEach(k=>k.classList.remove("active"));el.classList.add("active");const t=document.querySelector(".tablecard");if(t)t.scrollIntoView({behavior:"smooth",block:"start"});});
   });
 }
 let showFlaggedOnly=false;
