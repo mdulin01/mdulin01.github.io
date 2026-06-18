@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Professional Billing Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:6px 2px 12px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:240px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700}.nm small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Professional Billing Report</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Clinic</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+    <div class="sec">Revenue &amp; Collections</div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card"><h3>A/R Aging</h3><div class="h">Outstanding accounts receivable by age · &gt;90 days is the collection risk</div><div class="cb"><canvas id="cAging"></canvas></div></div>
+      <div class="card"><h3>Charges vs. Payments — last 6 months</h3><div class="h">Gross charges vs. net collections</div><div class="cb"><canvas id="cTrend"></canvas></div></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>Payer Mix</h3><div class="h">Share of charges by payer</div><div class="cb"><canvas id="cPayer"></canvas></div></div>
+      <div class="card"><h3>Adjustments Breakdown</h3><div class="h">Contractual vs. write-off vs. payer-withheld</div><div class="cb"><canvas id="cAdj"></canvas></div></div>
+    </div>
+    <div class="sec">By Provider <span style="font-weight:600;text-transform:none;color:var(--peri)">— charges, collections, net collection rate, denials &amp; A/R</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Provider</th><th class="num">Charges</th><th class="num">Collections</th><th class="num">Net Coll. %</th><th class="num">Denial %</th><th class="num">Days in A/R</th><th class="num">Clean Claim %</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+// monthly base $ + counts; arBalance & arDays & clean are point-in-time
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",charges:88000,payments:53500,contractual:26500,writeoff:1400,withheld:1100,denials:8,claims:382,arDays:31,arBal:96000,clean:96},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",charges:99000,payments:58000,contractual:31000,writeoff:1900,withheld:1500,denials:14,claims:416,arDays:36,arBal:124000,clean:93},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",charges:74000,payments:43000,contractual:24000,writeoff:1700,withheld:1300,denials:12,claims:326,arDays:41,arBal:112000,clean:91},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",charges:83000,payments:49000,contractual:26000,writeoff:2100,withheld:1600,denials:13,claims:364,arDays:38,arBal:118000,clean:92},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",charges:82000,payments:51000,contractual:24500,writeoff:1100,withheld:900,denials:6,claims:359,arDays:29,arBal:84000,clean:97},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",charges:87000,payments:51500,contractual:27000,writeoff:1800,withheld:1400,denials:11,claims:377,arDays:35,arBal:121000,clean:94},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",charges:84000,payments:51500,contractual:25000,writeoff:1200,withheld:1000,denials:7,claims:366,arDays:30,arBal:90000,clean:96},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",charges:84000,payments:52500,contractual:24500,writeoff:1000,withheld:850,denials:5,claims:369,arDays:28,arBal:82000,clean:97},
+ {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",charges:85000,payments:50000,contractual:26500,writeoff:1700,withheld:1300,denials:10,claims:370,arDays:34,arBal:110000,clean:94},
+];
+const PAYERS=[["Commercial",.40,C.navy],["Medicare",.22,C.peri],["BCBS",.21,C.green],["Medicaid",.12,C.periL],["Self-Pay",.05,C.gray]];
+let region="all",clinic="all",provId="all",period="mtd",charts={};
+const round=n=>Math.round(n);
+const money=n=>'$'+round(n).toLocaleString();
+const moneyK=n=>Math.abs(n)>=1000?'$'+round(n/1000).toLocaleString()+'K':'$'+round(n);
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function agg(){const rs=active();const s=k=>rs.reduce((a,r)=>a+r[k],0);const ch=s("charges")||1;const cl=s("claims")||1;
+  return {charges:s("charges"),payments:s("payments"),contractual:s("contractual"),writeoff:s("writeoff"),withheld:s("withheld"),
+    denials:s("denials"),claims:s("claims"),arBal:s("arBal"),
+    arDays:rs.reduce((a,r)=>a+r.arDays*r.charges,0)/ch, clean:rs.reduce((a,r)=>a+r.clean*r.claims,0)/cl};}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+
+function metrics(d,f){
+  const charges=d.charges*f, payments=d.payments*f, contractual=d.contractual*f, writeoff=d.writeoff*f, withheld=d.withheld*f;
+  const grossRate=payments/charges*100, netRate=payments/(charges-contractual)*100;
+  const denialRate=d.denials/d.claims*100, adjTotal=contractual+writeoff+withheld;
+  const over90=clamp((d.arDays-26)*0.6+6,4,22);
+  return {charges,payments,contractual,writeoff,withheld,grossRate,netRate,denialRate,adjTotal,over90,arDays:d.arDays,arBal:d.arBal,clean:d.clean};
+}
+function render(){
+  const d=agg(),f=PERIODS[period].f,m=metrics(d,f),sel=active();
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  const cards=[
+    {l:"Gross Charges",n:moneyK(m.charges),s:"billed this period",ac:C.navy},
+    {l:"Net Collections",n:moneyK(m.payments),s:Math.round(m.grossRate)+"% gross collection",ac:C.green},
+    {l:"Net Collection Rate",n:m.netRate.toFixed(1)+"%",s:"target ≥95%",ac:tone(m.netRate,true,95,92)},
+    {l:"Days in A/R",n:Math.round(m.arDays),s:"target ≤35 days",ac:tone(m.arDays,false,35,40)},
+    {l:"Denial Rate",n:m.denialRate.toFixed(1)+"%",s:"target ≤6%",ac:tone(m.denialRate,false,6,9)},
+    {l:"Total Adjustments",n:moneyK(m.adjTotal),s:"contractual + w/o + withheld",ac:C.amber},
+    {l:"Clean Claim Rate",n:Math.round(m.clean)+"%",s:"target ≥95%",ac:tone(m.clean,true,95,92)},
+    {l:"A/R Over 90 Days",n:m.over90.toFixed(0)+"%",s:moneyK(d.arBal*m.over90/100)+" at risk",ac:tone(m.over90,false,12,18)},
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  // aging
+  const o90=m.over90/100, b6190=0.12, b3160=0.22, b030=Math.max(0,1-o90-b6190-b3160);
+  const ag=[b030,b3160,b6190,o90].map(x=>round(d.arBal*x));
+  charts.ag&&charts.ag.destroy();
+  charts.ag=new Chart(document.getElementById("cAging"),{type:"bar",data:{labels:["0–30 days","31–60","61–90","90+ days"],datasets:[{data:ag,backgroundColor:[C.green,C.peri,C.amber,C.red],borderRadius:5}]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
+  // trend
+  const rr=(seed=>()=>{seed=(seed*9301+49297)%233280;return seed/233280;})((region+clinic+provId).length*7+5);
+  const ch=[],pa=[];for(let i=0;i<6;i++){const mul=0.94+rr()*0.12;ch.push(round(d.charges*mul));pa.push(round(d.payments*(0.94+rr()*0.12)));}
+  ch[5]=round(d.charges);pa[5]=round(d.payments);
+  charts.tr&&charts.tr.destroy();
+  charts.tr=new Chart(document.getElementById("cTrend"),{data:{labels:["Jan","Feb","Mar","Apr","May","Jun"],datasets:[
+    {type:"bar",label:"Charges",data:ch,backgroundColor:hexA(C.navy,.25),borderRadius:4},
+    {type:"line",label:"Collections",data:pa,borderColor:C.green,backgroundColor:hexA(C.green,.1),fill:true,tension:.35,pointRadius:2}]},
+    options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+money(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
+  // payer
+  charts.pm&&charts.pm.destroy();
+  charts.pm=new Chart(document.getElementById("cPayer"),{type:"doughnut",data:{labels:PAYERS.map(p=>p[0]),datasets:[{data:PAYERS.map(p=>round(m.charges*p[1])),backgroundColor:PAYERS.map(p=>p[2]),borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+money(c.parsed)}}}}});
+  // adjustments
+  charts.aj&&charts.aj.destroy();
+  charts.aj=new Chart(document.getElementById("cAdj"),{type:"doughnut",data:{labels:["Contractual","Write-off","Payer withheld"],datasets:[{data:[round(m.contractual),round(m.writeoff),round(m.withheld)],backgroundColor:[C.navy,C.amber,C.red],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+money(c.parsed)}}}}});
+  // table
+  const pillc=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
+  document.getElementById("tbody").innerHTML=sel.map(p=>{const pm=metrics(p,f);return `<tr>
+    <td class="nm">${p.name}<small>${p.clinic}</small></td>
+    <td class="num">${money(pm.charges)}</td>
+    <td class="num">${money(pm.payments)}</td>
+    <td class="num">${pillc(pm.netRate.toFixed(1)+'%',tone(pm.netRate,true,95,92))}</td>
+    <td class="num">${pillc(pm.denialRate.toFixed(1)+'%',tone(pm.denialRate,false,6,9))}</td>
+    <td class="num">${pillc(Math.round(pm.arDays),tone(pm.arDays,false,35,40))}</td>
+    <td class="num">${pillc(Math.round(pm.clean)+'%',tone(pm.clean,true,95,92))}</td></tr>`;}).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic professional-billing data, drillable Region → Clinic → Provider. Net collection rate = payments ÷ (charges − contractual). Adjustment categories (contractual, write-off, payer-withheld) reflect the 'Additional PB data' request. Targets are placeholders — replace with Avance Care benchmarks.";
+  if(window.renderAvanceAI)window.renderAvanceAI();
+}
+window.AVANCE_AI={
+ insight:function(){const d=agg(),f=PERIODS[period].f,m=metrics(d,f),scope=document.getElementById('who').textContent;
+   return '<b>'+scope+'</b>: '+moneyK(m.charges)+' charged, '+moneyK(m.payments)+' collected ('+m.netRate.toFixed(1)+'% net collection rate, target ≥95%). Denial rate '+m.denialRate.toFixed(1)+'%, '+Math.round(m.arDays)+' days in A/R, '+m.over90.toFixed(0)+'% of A/R is over 90 days ('+moneyK(d.arBal*m.over90/100)+' at risk). Biggest lever: work the aged A/R and cut denials.';},
+ chips:['Where is revenue leaking?','How do I lower days in A/R?','Which metric is furthest from target?'],
+ answer:function(q){const d=agg(),f=PERIODS[period].f,m=metrics(d,f),ql=q.toLowerCase();
+   if(/leak|denial|adjust|write/.test(ql))return '<h5>Revenue leakage</h5>Denial rate is '+m.denialRate.toFixed(1)+'% (target ≤6%) and write-offs + payer-withheld total '+moneyK(m.writeoff+m.withheld)+'. Net collection rate is '+m.netRate.toFixed(1)+'%. Work top denial reasons and confirm under-paid claims against contracts.';
+   if(/a\/?r|aging|days|collect/.test(ql))return '<h5>Days in A/R</h5>A/R is '+Math.round(m.arDays)+' days (target ≤35) with '+m.over90.toFixed(0)+'% over 90 days ('+moneyK(d.arBal*m.over90/100)+'). Focus a collector on the 90+ bucket and tighten claim follow-up at 30/45 days.';
+   if(/target|furthest|worst|focus|priorit/.test(ql)){const gaps=[['Net collection',95-m.netRate],['Denial rate',m.denialRate-6],['Days in A/R',m.arDays-35],['Clean claim',95-m.clean],['A/R 90+',m.over90-12]].filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);return '<h5>Furthest from target</h5>'+(gaps.length?gaps.slice(0,3).map(g=>g[0]).join(', ')+' are the biggest gaps to close.':'All headline metrics are at or above target.');}
+   return '<h5>Summary</h5>'+moneyK(m.charges)+' charged · '+moneyK(m.payments)+' collected · net '+m.netRate.toFixed(1)+'% · denial '+m.denialRate.toFixed(1)+'% · A/R '+Math.round(m.arDays)+'d · clean '+Math.round(m.clean)+'%.';}
+};
+window.startDashboard=function(){
+  buildClinic();buildProvider();
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
+  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>
