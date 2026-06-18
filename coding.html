@@ -98,6 +98,19 @@
   .atable th,.atable td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
   .atable th{background:var(--soft);color:var(--accent)}
   .upd{display:inline-block;background:var(--task-soft);color:var(--task);font-weight:700;font-size:.68rem;padding:2px 7px;border-radius:6px;margin-left:6px}
+  .rmbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  @media(max-width:760px){.board{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.board{grid-template-columns:1fr}}
+  .col{background:#fbfcfd;border:1px solid var(--line);border-radius:10px;padding:8px;min-height:54px}
+  .colhead{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:2px 2px 8px;display:flex;justify-content:space-between}
+  .ritem{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px;margin-bottom:7px}
+  .appchip{display:inline-block;font-size:.6rem;font-weight:800;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--muted)}
+  .ritem .rt{font-weight:600;font-size:.85rem;margin:5px 0 2px;line-height:1.3}
+  .ritem .rn{font-size:.76rem;color:var(--muted);white-space:pre-wrap;margin-top:2px}
+  .ritem .racts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+  .movesel{width:100%;margin-top:6px;font-size:.75rem;padding:5px 6px}
+  .ritem input,.ritem textarea{width:100%;font-size:13px;padding:7px;border:1px solid var(--line);border-radius:7px;margin-bottom:6px}
   @media(max-width:560px){ .head .ttl{font-size:1.25rem} }
 </style>
 </head>
@@ -128,6 +141,7 @@
     <button class="tab" data-tab="projects">🗂️ Projects</button>
     <button class="tab" data-tab="secrets">🔐 Secrets</button>
     <button class="tab" data-tab="architecture">🗺️ Architecture</button>
+    <button class="tab" data-tab="roadmap">🧭 Roadmap</button>
   </div>
 
   <!-- CAPTURE -->
@@ -365,8 +379,26 @@
       </details>
     </div>
   </section>
+  <!-- ROADMAP -->
+  <section class="view" id="v-roadmap">
+    <div class="card">
+      <h2>Roadmap <span class="upd" id="rmCount"></span></h2>
+      <p class="hint" style="margin-top:-4px">Kanban across all apps. Synced to your account, so add on your phone and it's here on the laptop. Use <b>Copy as Markdown</b> to hand the board to an AI session.</p>
+      <div class="rmbar">
+        <input type="text" id="rmTitle" placeholder="Add an item / idea… (Enter)" style="flex:2 1 220px">
+        <select id="rmApp" style="flex:1"></select>
+        <select id="rmStatus" style="flex:1"></select>
+        <button class="btn" id="rmAdd">Add</button>
+        <button class="btn sec" id="rmCopy">📋 Copy as Markdown</button>
+      </div>
+      <div class="chips" id="rmFilters"></div>
+      <div class="status" id="rmStatusMsg"></div>
+      <div class="board" id="rmBoard"></div>
+    </div>
+  </section>
 </div>
 
+  <script type="application/json" id="roadmap-seed">{"items":[{"id":"h2","app":"health","status":"doing","title":"Add BP + Weight + Body Fat to the mikeshealth HAE automation (iPhone)","note":"VO2/RHR flow to mikeshealth (pipeline works) but BP/weight/bodyfat dont \u2014 that automation just isnt EXPORTING them. iPhone: HAE \u2192 Automations \u2192 mikeshealth \u2192 Metrics \u2192 enable Blood Pressure + Weight & Body Mass + Body Fat %. Function (7cb9f73) hardened (kg\u2192lb, bf %\u2192fraction); deploy via firebase deploy --only functions. Hand-enter meanwhile via \u270f\ufe0f on the tile."},{"id":"av1","app":"lifeos","status":"done","title":"Recurring availability for Rupert (Charlotte Wed/Thu = Rea Farms)","note":"6/13 709390d \u2014 lifeos.commitments read by /api/rupert + cron-brief (hard rule: never schedule over them); editable card on Home; defaults to Charlotte Wed/Thu."},{"id":"mm1","app":"money","status":"done","title":"Empower-style net-worth component breakdown","note":"6/13 5707d99 \u2014 composition bar + tap component to chart over time from snapshots.byType."},{"id":"mm2","app":"money","status":"done","title":"Apply overflow/janky-fit fix to mikesmoney","note":"6/13 5707d99 \u2014 global overflow-x guard."},{"id":"px1","app":"lifeos","status":"done","title":"Floating dock polish (all 6 apps)","note":"6/13 \u2014 safe-area lift (above iPhone home indicator) + larger tap targets (46-48px, 22px icons) + more bottom padding. mikeshealth 1a512ad \u00b7 mikeslife 3a2be3c \u00b7 mikestravel b05aa47 \u00b7 mikesmoney dc78837 \u00b7 mikesfitness 3a36cad \u00b7 rainbow-rentals a34c5a6."},{"id":"mm3","app":"money","status":"done","title":"Vanguard holdings via Plaid \u2014 LIVE (52 positions)","note":"6/13 047706a \u2014 re-linked Vanguard WITH Investments \u2192 live positions flow (incl ESGV/BOTZ). Built \u2a2f Unlink + one-click 'Clear duplicated manual holdings' (keeps TIAA, which Plaid cant reach). Mike: click Clear to drop the stale Empower set; totals correct from inflated $5.4M \u2192 ~$2.6M live. Backend deployed."},{"id":"d20","app":"health","status":"done","title":"Conditions rename + metrics\u2192Preventive layout + freshness stamps + pull-to-refresh","note":"6/12 c8dc9ce"},{"id":"d21","app":"fitness","status":"done","title":"Metric freshness stamps + Apple-sync-ago + pull-to-refresh","note":"6/12 26b2a7a"},{"id":"d22","app":"travel","status":"done","title":"TripIt-style UI (covers/hero/timeline) + 105-trip history import (TripIt+Airbnb)","note":"6/12 c5a6f4d+9eda294 \u2014 57 trips/38 places live"},{"id":"d23","app":"travel","status":"done","title":"Connect-the-dots: flag missing lodging + suggest past stays in same city","note":"6/13 61e0d2d \u2014 Needs-attention card + \u26a0\ufe0f badge; solves Amsterdam case"},{"id":"d24","app":"travel","status":"done","title":"Booking.com history (+35 stays, 140 total) \u2192 84 trips/56 places live","note":"6/13 3dd4168"},{"id":"d25","app":"lifeos","status":"done","title":"Push notifications fixed (Re-sync + test-push) + Today memory bug + overflow hardening","note":"6/13 8c6cd3c/e635136/0edc3ce/a8bdfb9"},{"id":"d26","app":"lifeos","status":"done","title":"Recurring availability \u2014 Rupert respects Charlotte Wed/Thu","note":"6/13 709390d"},{"id":"d27","app":"money","status":"done","title":"Net-worth component breakdown + overflow fix + dock polish","note":"6/13 5707d99 / dc78837"},{"id":"d28","app":"money","status":"done","title":"Insight 'forbidden' fixed (securetoken verify) + 'Empower Portfolio' \u2192 'Portfolio'","note":"6/13 4b7b6b9 \u2014 still needs OPENAI_API_KEY in Vercel"},{"id":"d29","app":"health","status":"done","title":"Manual vitals entry (\u270f\ufe0f tap a tile) + Import no longer clobbers live values","note":"6/13 4fdc21d / 1205e75"},{"id":"d30","app":"lifeos","status":"done","title":"Dock polish across all 6 apps (safe-area + larger targets)","note":"6/13"},{"id":"d31","app":"travel","status":"done","title":"Connect-the-dots: missing-lodging flag + past-stay suggestions","note":"6/13 61e0d2d"},{"id":"d32","app":"money","status":"done","title":"\u2728 Insight button VERIFIED working + miscategorization rules (Citi/Schwab/Guild/NC Health)","note":"6/13 14263e8/b5d6633 \u2014 run \ud83e\ude84 Auto-categorize to re-tag existing txns"},{"id":"d33","app":"health","status":"done","title":"Metric tiles mobile layout + manual \u270f\ufe0f entry + Import no-clobber","note":"6/13 6d5651c/4fdc21d/1205e75"},{"id":"d34","app":"rentals","status":"done","title":"Rupert banner width aligned + dock polish","note":"6/13 4a3c09c"},{"id":"d35","app":"lifeos","status":"done","title":"Inbox 'Do it' actually works (adds to Today + Home); genetics appt logged in mikeshealth Visit Prep","note":"6/13 95c30be / 8825b34"},{"id":"d36","app":"lifeos","status":"done","title":"Real Inbox proposals LIVE + verified (6 grounded from health data)","note":"6/13 cd72607 \u2014 cron-proposals ran, generated Lp(a)/homocysteine/kidney/weight/plans proposals from real context."},{"id":"d37","app":"mini","status":"done","title":"rupertQueue consumer wired to real OpenClaw skills + verified (social e2e)","note":"6/13 \u2014 run-openclaw-job.mjs bridge; JOB_CMD_ADAMJOBS/SOCIAL set; social tested queued\u2192done\u2192alert+push."},{"id":"d38","app":"mini","status":"done","title":"Mini housekeeping + health-sync + gog consent published","note":"6/13 \u2014 7-job roster green; health-sync writing healthContext; gog consent screen Testing\u2192Production (project mikeslifeos)."},{"id":"d39","app":"lifeos","status":"done","title":"Vault: emergency one-pager + mikeshealth Records index","note":"6/13 81381c6 / 4be34f0"},{"id":"d40","app":"health","status":"done","title":"Health ingest hardened (units + body-fat fraction)","note":"6/13 7cb9f73 \u2014 needs firebase deploy --only functions"},{"id":"d41","app":"health","status":"done","title":"BP syncing live (110/75 today) + genetic files filed + MET enriched","note":"6/13 68ce78e \u2014 all-metrics HAE export \u2192 BP/VO2/RHR live; Invitae report + counseling packet in Records."},{"id":"d42","app":"money","status":"done","title":"Scroll-lock fix + Holdings manual/last-edited clarity","note":"6/13 aa9414a \u2014 overflow-x clip; amber manual note."},{"id":"d43","app":"money","status":"done","title":"Plaid Unlink (per-institution) + holdings-sync diagnostic","note":"6/13 91008a3/c3c3ecb"},{"id":"d44","app":"money","status":"done","title":"Vanguard holdings LIVE via Plaid + 1-click clear duplicates","note":"6/13 047706a \u2014 52 positions; keeps TIAA."},{"id":"d45","app":"health","status":"done","title":"Nav consolidated: Meds&Vaccines, Providers&Visits (latest prep per provider), Records promoted","note":"6/13 d963242"},{"id":"d46","app":"lifeos","status":"done","title":"Quick capture + Patterns + check-in mood/energy sliders","note":"6/13 78d606b"},{"id":"d47","app":"travel","status":"done","title":"Phase 2 itinerary parsing (paste email \u2192 segments)","note":"6/13 6cdd501"},{"id":"d48","app":"lifeos","status":"done","title":"Design unification (IBM Plex + spectrum) on money/fitness/rentals","note":"6/13 d3a9fee/c3cb632/64a64d1"},{"id":"m1","app":"mini","status":"done","title":"Unload old brief/content/check-in/fitness-note/portal plists","note":"6/13 \u2014 mini-housekeeping.sh archived all 5 to ~/Library/LaunchAgents/_retired-2026-06-13/; duplicate pushes gone. fitness-sync revived (had stopped). Failing health-sync unloaded until key added."},{"id":"m2","app":"mini","status":"done","title":"mikeshealth-sa.json key + health-sync enabled","note":"6/13 \u2014 firebase-adminsdk key dropped in ~/.openclaw/keys/; health-sync loaded (3:50am) + verified writing healthContext (eGFR 63, ApoB 75, Lp(a)\u26a0, HPRC). Brief now sees labs/kidney/body-fat."},{"id":"m3","app":"mini","status":"doing","title":"gog re-auth \u2014 consent screen PUBLISHED, finish re-auth on mini","note":"6/13 found gog OAuth project=mikeslifeos; published consent screen Testing\u2192Production (stops weekly invalid_grant). REMAINING: on the mini run gog auth add mdulin@gmail.com --services gmail,calendar,drive,contacts,docs,sheets, click past the unverified-app screen once. NOTE: brief calendar/email is a SEPARATE cloud pipeline (/api/google-auth)."},{"id":"m4","app":"mini","status":"done","title":"rupertQueue consumer \u2014 LIVE (every 5 min)","note":"6/13 \u2014 loaded + healthy. Polls lifeos.rupertQueue \u2192 runs job \u2192 alert + push \u2192 marks done. REMAINING (minor): wire adamjobs/social to the real OpenClaw jobs via env JOB_CMD_ADAMJOBS/JOB_CMD_SOCIAL or job-<kind>.mjs \u2014 until then those mark 'skipped' (no loop)."},{"id":"h1","app":"health","status":"done","title":"Tap \"Import data\" in mikeshealth (loads echo + labs)","note":"DONE by Mike 6/13. Safe import \u2014 no longer clobbers live BP/weight (1205e75)."},{"id":"h3","app":"health","status":"doing","title":"Fix Withings\u2192Apple Health weight sharing (iPhone)","note":"Weight tile stuck at 192 (2026-05 seed) \u2014 Withings app \u2192 Settings \u2192 Export to Apple Health, enable Weight + Body Fat. Or just hand-enter via the new \u270f\ufe0f edit on the tile."},{"id":"n2","app":"money","status":"done","title":"\u2462 Per-page \u2728 insight button + Amazon email parsing","note":"6/12 \u2014 mikes-money 26ea923 + mikeslife cron-amazon 9b365aa; rules published. \u23f3 Mike: add OPENAI_API_KEY in mikes-money Vercel."},{"id":"m5","app":"money","status":"done","title":"Add OPENAI_API_KEY to mikes-money Vercel env (Mike)","note":"DONE by Mike 6/13 \u2014 \u2728 insight button should now work (auth fixed in 4b7b6b9)."},{"id":"n3","app":"lifeos","status":"done","title":"\u2463 Design system unification","note":"6/13 \u2014 IBM Plex + spectrum hairline on money(d3a9fee)/fitness(c3cb632)/rentals(64a64d1); home pillar-status row already existed. Full theme rewrite optional later."},{"id":"n4","app":"travel","status":"done","title":"mikestravel Phase 2 \u2014 itinerary parsing","note":"6/13 6cdd501 \u2014 \u2728 Parse from email: paste confirmation \u2192 OpenAI extracts segments. Needs OPENAI_API_KEY in mikestravel Vercel. (Auto Gmail-cron parse = future.)"},{"id":"n5","app":"lifeos","status":"next","title":"Real Inbox proposals","note":"Rupert writes lifeos.proposals so the Inbox has live items."},{"id":"n6","app":"lifeos","status":"next","title":"iOS Shortcuts location automations","note":"LOCATION_TOKEN is set; build Arrive Gym/Grocery/Clinic/Home \u2192 POST /api/location."},{"id":"n7","app":"security","status":"next","title":"Security rotation (OVERDUE)","note":"GitHub PAT (also sitting in plaintext in 4 local .git/config files), Telegram bot token, HEALTH_INGEST_TOKEN; delete orphaned \"Rupert Google sync\" client secret in mikeslife-963c6."},{"id":"n8","app":"docs","status":"next","title":"Add mikestravel CLAUDE.md entry (#13)","note":""},{"id":"n9","app":"money","status":"next","title":"Q3 tax true-up (7/15) + H2 money transition","note":"TPC ends 6/30; retirement draws start July; Cowork task q3-tax-true-up fires 7/15 9am."},{"id":"i1","app":"lifeos","status":"done","title":"Quick capture","note":"6/13 78d606b \u2014 Home card \u2192 lifeos.captures, send to Today / delete."},{"id":"i2","app":"lifeos","status":"done","title":"Cross-app correlations (Patterns v1)","note":"6/13 78d606b \u2014 Patterns tab: energy/mood/capacity trends (check-in now captures sliders \u2192 checkinHistory) + top energizing activities. Spend/training correlations accrue as series fill."},{"id":"i3","app":"lifeos","status":"done","title":"Vault + emergency one-pager","note":"6/13 DONE both halves: mikeslife Vault tab = editable emergency one-pager (contacts/providers/insurance + medical/legal) w/ Print/Save-PDF (81381c6); mikeshealth Records module = medical-doc index (4be34f0, tap Import). No passwords by design."},{"id":"i4","app":"lifeos","status":"idea","title":"Calendar timeboxing","note":"Auto-block focus/training/recovery on the calendar."},{"id":"i8","app":"health","status":"idea","title":"Log booked appointments from a preventive item","note":"When Mike completes/schedules a preventive item (e.g. genetic counseling 7/7), capture what/when/why as a linked appointment \u2014 not just edit the dueDate. The genetics appt was logged manually to Visit Prep for now (8825b34)."},{"id":"i9","app":"lifeos","status":"done","title":"Real Inbox proposals (Rupert-written)","note":"6/13 cd72607 \u2014 cron-proposals daily 11:30 UTC; grounded in email signals + finance/fitness/health context + stalled plans; dismiss-safe (dismissedProposalKeys). Replaces seed mock."},{"id":"i10","app":"money","status":"idea","title":"Holdings: live source vs Empower bulk import","note":"Holdings are a frozen Empower bulk-import (manual) \u2014 Plaid Update won't change them, so ESGV/BOTZ won't appear until re-import or Vanguard investments are Plaid-linked. Decide the live-source strategy."},{"id":"i5","app":"fitness","status":"idea","title":"mikesfitness ideas (add yours)","note":""},{"id":"i6","app":"health","status":"idea","title":"mikeshealth ideas (add yours)","note":""},{"id":"i7","app":"travel","status":"idea","title":"mikestravel ideas (add yours)","note":""},{"id":"d0","app":"lifeos","status":"done","title":"\u2461 Plan-step input dialogs","note":"Today one-liner \u2192 tap \u2192 step sheet; answer saved to plan task.note (Planning hub shows it). 6/12 \u00b7 1df2e73"},{"id":"dR","app":"lifeos","status":"done","title":"Roadmap moved out of mikeslife to this board","note":"Tab removed (fcf2b5b) 6/12; dev tracker \u2260 life cockpit."},{"id":"d1","app":"lifeos","status":"done","title":"Rupert chat brain (gpt-5.5) + voice","note":""},{"id":"d2","app":"lifeos","status":"done","title":"Planning hub (activate\u2192steps, Odyssey, mind-map, journal)","note":""},{"id":"d3","app":"lifeos","status":"done","title":"Alert history + ratings + global search","note":""},{"id":"d4","app":"lifeos","status":"done","title":"Wellness-first check-in (drag-to-rank)","note":""},{"id":"d5","app":"lifeos","status":"done","title":"Today engine (4\u20135/day, delay + roll-forward)","note":""},{"id":"d6","app":"lifeos","status":"done","title":"Google calendar + email pipeline (LIVE)","note":""},{"id":"d7","app":"lifeos","status":"done","title":"Cloud crons (brief/content/celebrate/google/finance/invoice)","note":""},{"id":"d8","app":"lifeos","status":"done","title":"Refresh + focus pages + location capture","note":""},{"id":"d9","app":"lifeos","status":"done","title":"Purpose Learning hub (courses + 2026 conferences)","note":""},{"id":"d10","app":"lifeos","status":"done","title":"Floating dock + peacocks on all 5 apps","note":""},{"id":"d12","app":"money","status":"done","title":"Business tab (income matrix + timesheet + invoices + GMA ledger)","note":"Portal retired to public site."},{"id":"d15","app":"travel","status":"done","title":"mikestravel born + live","note":"5 real trips, members/invites, domain attached."}]}</script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -408,7 +440,7 @@
     catch(e){ $("loginMsg").textContent = e.code==="auth/unauthorized-domain" ? "Add mikedulinmd.app to Firebase Auth → Authorized domains." : (e.message||"Sign-in failed"); }
   };
   $("signoutBtn").onclick = ()=>signOut(auth);
-  let unsub=null, unsub2=null;
+  let unsub=null, unsub2=null, unsub3=null;
   onAuthStateChanged(auth, (user)=>{
     if(user && user.email===OWNER){
       $("login").style.display="none"; $("app").style.display="block";
@@ -417,7 +449,7 @@
     }else{
       if(user){ $("loginMsg").textContent="That account isn't authorized."; signOut(auth); }
       $("login").style.display="flex"; $("app").style.display="none";
-      if(unsub){unsub();unsub=null;} if(unsub2){unsub2();unsub2=null;}
+      if(unsub){unsub();unsub=null;} if(unsub2){unsub2();unsub2=null;} if(unsub3){unsub3();unsub3=null;}
     }
   });
 
@@ -596,6 +628,69 @@ ${$("notes").value.trim()||"- none"}`;
     });
   }
 
+  // ---------- roadmap (Firestore-backed kanban; seeded from embed) ----------
+  const RM_APPS={lifeos:"LifeOS",money:"Money",fitness:"Fitness",health:"Health",travel:"Travel",rentals:"Rentals",mini:"Mini/Rupert",security:"Security",docs:"Docs",other:"Other"};
+  const RM_COLS=[["doing","In progress"],["next","Next up"],["idea","Ideas"],["done","Done"]];
+  let rmItems=[], rmFilter="all", rmEditing=null, rmSeedTried=false;
+  function rmFillSelects(){
+    const a=$("rmApp"); if(a && !a.options.length){ Object.entries(RM_APPS).forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;a.appendChild(o);}); a.value="lifeos"; }
+    const st=$("rmStatus"); if(st && !st.options.length){ RM_COLS.forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k==="idea")o.selected=true;st.appendChild(o);}); }
+  }
+  function rmRender(){
+    const board=$("rmBoard"); if(!board) return;
+    rmFillSelects();
+    $("rmCount").textContent="· "+rmItems.length+" items";
+    const apps=["all",...Array.from(new Set(rmItems.map(i=>i.app)))];
+    const fc=$("rmFilters"); fc.innerHTML="";
+    apps.forEach(a=>{const b=document.createElement("button");b.className="chip"+(rmFilter===a?" on":"");b.textContent=a==="all"?"All":(RM_APPS[a]||a);b.onclick=()=>{rmFilter=a;rmRender();};fc.appendChild(b);});
+    const shown=rmItems.filter(i=>rmFilter==="all"||i.app===rmFilter);
+    board.innerHTML="";
+    RM_COLS.forEach(([sname,label])=>{
+      const col=document.createElement("div"); col.className="col";
+      const list=shown.filter(i=>i.status===sname);
+      const head=document.createElement("div"); head.className="colhead"; head.innerHTML="<span>"+label+"</span><span>"+list.length+"</span>"; col.appendChild(head);
+      if(!list.length){ const e=document.createElement("div"); e.className="empty"; e.textContent="—"; col.appendChild(e); }
+      list.forEach(it=>{
+        const d=document.createElement("div"); d.className="ritem";
+        if(rmEditing===it.id){
+          d.innerHTML='<input type="text" id="rmET"><textarea id="rmEN" rows="3"></textarea><select id="rmEA"></select><div class="racts"><button class="btn sm" data-a="save">Save</button><button class="btn sm sec" data-a="cancel">Cancel</button></div>';
+          d.querySelector("#rmET").value=it.title; d.querySelector("#rmEN").value=it.note||"";
+          const sel=d.querySelector("#rmEA"); Object.entries(RM_APPS).forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k===it.app)o.selected=true;sel.appendChild(o);});
+          d.querySelector('[data-a="save"]').onclick=()=>{ updateDoc(doc(db,"coding_roadmap",it.id),{title:d.querySelector("#rmET").value.trim()||it.title,note:d.querySelector("#rmEN").value.trim(),app:sel.value}); rmEditing=null; };
+          d.querySelector('[data-a="cancel"]').onclick=()=>{ rmEditing=null; rmRender(); };
+        }else{
+          const chip=document.createElement("span"); chip.className="appchip"; chip.textContent=RM_APPS[it.app]||it.app; d.appendChild(chip);
+          const t=document.createElement("div"); t.className="rt"; t.textContent=it.title; d.appendChild(t);
+          if(it.note){ const n=document.createElement("div"); n.className="rn"; n.textContent=it.note; d.appendChild(n); }
+          const ms=document.createElement("select"); ms.className="movesel"; RM_COLS.forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k===it.status)o.selected=true;ms.appendChild(o);}); ms.onchange=()=>updateDoc(doc(db,"coding_roadmap",it.id),{status:ms.value}); d.appendChild(ms);
+          const acts=document.createElement("div"); acts.className="racts";
+          const eb=document.createElement("button"); eb.className="iconbtn"; eb.textContent="✏️"; eb.onclick=()=>{rmEditing=it.id;rmRender();};
+          const db_=document.createElement("button"); db_.className="iconbtn"; db_.textContent="🗑"; db_.onclick=()=>{ if(confirm("Delete this item?")) deleteDoc(doc(db,"coding_roadmap",it.id)); };
+          acts.appendChild(eb); acts.appendChild(db_); d.appendChild(acts);
+        }
+        col.appendChild(d);
+      });
+      board.appendChild(col);
+    });
+  }
+  function rmBindControls(){
+    $("rmAdd").onclick=async()=>{ const t=$("rmTitle").value.trim(); if(!t) return; try{ await addDoc(collection(db,"coding_roadmap"),{title:t,app:$("rmApp").value,status:$("rmStatus").value,note:"",createdAt:serverTimestamp()}); $("rmTitle").value=""; }catch(e){ alert("Couldn't add: "+(e.message||e)); } };
+    $("rmTitle").onkeydown=(e)=>{ if(e.key==="Enter") $("rmAdd").click(); };
+    $("rmCopy").onclick=()=>{ const md=["# Roadmap — LifeOS + spoke apps",""]; RM_COLS.forEach(([sname,label])=>{ md.push("## "+label,""); rmItems.filter(i=>i.status===sname).forEach(it=>md.push("- "+(sname==="done"?"[x]":"[ ]")+" ["+(RM_APPS[it.app]||it.app)+"] "+it.title+(it.note?" — "+it.note:""))); md.push(""); }); navigator.clipboard.writeText(md.join("\n")).then(()=>{ $("rmStatusMsg").textContent="Copied as Markdown — paste it into a chat."; },()=>{ $("rmStatusMsg").textContent="Copy failed."; }); };
+  }
+  async function rmSeedIfEmpty(count){
+    if(count>0 || rmSeedTried) return; rmSeedTried=true;
+    try{
+      const g=await getDoc(doc(db,"coding_meta","roadmap"));
+      if(g.exists() && g.data().seeded) return;
+      const seed=JSON.parse(document.getElementById("roadmap-seed").textContent).items||[];
+      $("rmStatusMsg").textContent="Setting up your roadmap…";
+      await Promise.all(seed.map(it=>addDoc(collection(db,"coding_roadmap"),{app:it.app||"other",status:it.status||"idea",title:it.title||"",note:it.note||"",createdAt:serverTimestamp()})));
+      await setDoc(doc(db,"coding_meta","roadmap"),{seeded:true,seededAt:serverTimestamp()},{merge:true});
+      $("rmStatusMsg").textContent="Seeded "+seed.length+" items from your board.";
+    }catch(e){ console.error("roadmap seed",e); }
+  }
+
   // ---------- boot ----------
   let started=false;
   async function startApp(){
@@ -608,6 +703,10 @@ ${$("notes").value.trim()||"- none"}`;
     unsub2 = onSnapshot(query(collection(db,"coding_secrets"),orderBy("name","asc")), (snap)=>{
       secrets = snap.docs.map(d=>({id:d.id,...d.data()})); renderSecrets();
     }, (err)=>{ $("secList").innerHTML='<div class="empty">Can’t load secrets: '+(err.message||err)+'</div>'; });
+    rmBindControls();
+    unsub3 = onSnapshot(query(collection(db,"coding_roadmap"),orderBy("createdAt","desc")), (snap)=>{
+      rmItems = snap.docs.map(d=>({id:d.id,...d.data()})); rmRender(); rmSeedIfEmpty(rmItems.length);
+    }, (err)=>{ const b=$("rmBoard"); if(b) b.innerHTML='<div class="empty">Can’t load roadmap: '+(err.message||err)+'</div>'; });
   }
 </script>
 </body>

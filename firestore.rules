@@ -37,5 +37,8 @@ service cloud.firestore {
     match /coding_secrets/{docId} {
       allow read, write: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com';
     }
+    match /coding_roadmap/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'mdulin@gmail.com';
+    }
   }
 }
