@@ -5,7 +5,7 @@
 <title>Avance Care — Professional Billing Report</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);--shadow-lg:0 12px 40px rgba(30,40,60,.22);}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
   .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
@@ -19,7 +19,10 @@
   .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
   .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600;padding-right:14px}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .kpi[data-drill]{cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .kpi[data-drill]:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .kpi .dz{position:absolute;right:9px;top:9px;font-size:11px;color:#C2CAD6}.kpi[data-drill]:hover .dz{color:var(--navy)}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 0}
   .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
   .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:230px}
@@ -28,6 +31,25 @@
   .nm{font-weight:700}.nm small{display:block;font-weight:500;color:var(--muted);font-size:11px}
   .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
   .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  /* modal */
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,25,45,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+  .modal-overlay[hidden]{display:none}
+  .modal{background:#fff;border-radius:16px;max-width:780px;width:100%;box-shadow:var(--shadow-lg);overflow:hidden}
+  .modal header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line)}
+  .modal header .mt{font-size:17px;font-weight:800;color:var(--navy)}.modal header .ms{font-size:12px;color:var(--muted);margin-top:3px}
+  .modal .x{border:none;background:#F0F2F6;border-radius:8px;width:30px;height:30px;font-size:16px;cursor:pointer;color:var(--muted);flex:none}
+  .modal-body{padding:18px 22px 22px}
+  .mchips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .mchip{border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:115px}
+  .mchip .ml{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}.mchip .mv{font-size:18px;font-weight:800;margin-top:2px}
+  .mnote{font-size:12.5px;color:#41505a;background:#F6F8FB;border-left:3px solid var(--peri);padding:9px 12px;border-radius:8px;margin-bottom:14px;line-height:1.5}
+  .mtbl{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12.5px}
+  .mtbl th{text-align:left;background:#F4F6FA;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 10px;border-bottom:1px solid var(--line)}
+  .mtbl th.num,.mtbl td.num{text-align:right}.mtbl td{padding:8px 10px;border-bottom:1px solid #EEF1F5}
+  .tagp{display:inline-block;padding:1px 7px;border-radius:5px;font-weight:700;font-size:11px}
+  .actions{background:#F2FAF3;border:1px solid #D6EFD2;border-radius:10px;padding:12px 14px}
+  .actions h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--green-dark);margin-bottom:6px}.actions ul{margin:0;padding-left:18px}.actions li{font-size:12.5px;margin:3px 0;line-height:1.45}
+  .legend2{display:flex;gap:14px;font-size:11px;color:var(--muted);margin-top:6px}.legend2 i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle}
   @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -47,25 +69,28 @@
   <div class="wrap">
     <div id="aiBar"></div>
 
-    <div class="sec">Production &amp; Cash Flow <span>— charges, collections, charge lag &amp; first-pass payment</span></div>
+    <div class="sec">Production &amp; Cash Flow <span>— click any metric to see Practice vs. Central-Office drivers</span></div>
     <div class="kpis" id="kProd"></div>
     <div class="grid">
       <div class="card"><h3>Charge Lag — clinic vs. enterprise</h3><div class="h">Days from date-of-service to charge entry · goal &lt; 3 days</div><div class="cb"><canvas id="cLag"></canvas></div></div>
-      <div class="card"><h3>Charges vs. Collections — last 6 months</h3><div class="h">Gross charges vs. net collections</div><div class="cb"><canvas id="cTrend"></canvas></div></div>
+      <div class="card"><h3>A/R Aging — 30 / 60 / 90</h3><div class="h">Outstanding receivable by age · click a bar to drill</div><div class="cb"><canvas id="cAging"></canvas></div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="card"><h3>Charges vs. Collections — last 6 months</h3><div class="h">Gross charges vs. net collections</div><div class="cb" style="height:200px"><canvas id="cTrend"></canvas></div></div>
     </div>
 
     <div class="sec">Errors &amp; Edits <span>— claims stopped by edits, by category</span></div>
     <div class="kpis" id="kErr" style="grid-template-columns:repeat(3,1fr)"></div>
     <div class="grid">
-      <div class="card"><h3>Dollars Held by Error Category</h3><div class="h">Where revenue is stopped before it goes out the door</div><div class="cb"><canvas id="cErr"></canvas></div></div>
-      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Error Category</th><th class="num">Errors</th><th class="num">$ Affected</th></tr></thead><tbody id="errBody"></tbody></table></div>
+      <div class="card"><h3>Dollars Held by Error Category</h3><div class="h">Where revenue is stopped before it goes out the door</div><div class="cb"><canvas id="cErr"></canvas></div><div class="legend2"><span><i style="background:#2B2C6B"></i>Practice (front desk / coding)</span><span><i style="background:#0E8A6E"></i>Central office (RCM / IT)</span></div></div>
+      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Error Category</th><th>Owner</th><th class="num">Errors</th><th class="num">$ Affected</th></tr></thead><tbody id="errBody"></tbody></table></div>
     </div>
 
     <div class="sec">Work Queues — Backlog <span>— unresolved items still sitting, with aging</span></div>
     <div class="kpis" id="kWq" style="grid-template-columns:repeat(3,1fr)"></div>
     <div class="grid">
       <div class="card"><h3>Dollars Stuck by Work Queue</h3><div class="h">Largest backlog = biggest bottleneck</div><div class="cb"><canvas id="cWq"></canvas></div></div>
-      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Work Queue</th><th class="num">Items</th><th class="num">$ Stuck</th><th class="num">Avg WQ Age</th><th class="num">Avg DOS Age</th></tr></thead><tbody id="wqBody"></tbody></table></div>
+      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Work Queue</th><th>Owner</th><th class="num">Items</th><th class="num">$ Stuck</th><th class="num">WQ Age</th><th class="num">DOS Age</th></tr></thead><tbody id="wqBody"></tbody></table></div>
     </div>
 
     <div class="sec">By Provider</div>
@@ -73,6 +98,13 @@
     <div class="foot" id="foot"></div>
   </div>
 </div>
+
+<div class="modal-overlay" id="modal" hidden><div class="modal">
+  <header><div><div class="mt" id="mTitle"></div><div class="ms" id="mSub"></div></div><button class="x" id="mClose">&times;</button></header>
+  <div class="modal-body"><div class="mchips" id="mChips"></div><div class="mnote" id="mNote" style="display:none"></div><div id="mTable"></div>
+    <div class="actions" id="mActions" style="display:none"><h4>Recommended actions</h4><ul id="mActionsList"></ul></div></div>
+</div></div>
+
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
@@ -88,15 +120,16 @@ const PROV=[
  {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",charges:84000,payments:52500,contractual:24500,denials:5,claims:369,arDays:28,arBal:82000,lag:2.0,cleanPaid:4},
  {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",charges:85000,payments:50000,contractual:26500,denials:10,claims:370,arDays:34,arBal:110000,lag:2.6,cleanPaid:3},
 ];
-// network-level error & work-queue categories (illustrative, from the Midtown PB report interpretation)
-const ERRCATS=[["Registration",210,72000,C.red],["Professional Coding",102,50000,C.amber],["Project Team / System",198,27000,C.peri],["Billing / Posting",157,23000,C.gray]];
-const WQCATS=[["Professional Coding",352,91000,45,60],["Registration",210,72000,35,48],["Project Team",189,39000,57,74]];
-const PAYERS=[["Commercial",.40,C.navy],["Medicare",.22,C.peri],["BCBS",.21,C.green],["Medicaid",.12,C.periL],["Self-Pay",.05,C.gray]];
+const ERRCATS=[["Registration",210,72000,"Practice",C.navy],["Professional Coding",102,50000,"Practice / Coding",C.navy],["Project Team / System",198,27000,"Central Office",C.teal],["Billing / Posting",157,23000,"Central Office",C.teal]];
+const WQCATS=[["Professional Coding",352,91000,45,60,"Practice / Coding"],["Registration",210,72000,35,48,"Practice"],["Project Team",189,39000,57,74,"Central Office"]];
 
 let region="all",clinic="all",provId="all",period="mtd",charts={};
 const round=n=>Math.round(n), money=n=>'$'+round(n).toLocaleString(), moneyK=n=>Math.abs(n)>=1000?'$'+round(n/1000).toLocaleString()+'K':'$'+round(n);
 function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
 function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function tagp(t,c){return `<span class="tagp" style="background:${hexA(c,.14)};color:${c}">${t}</span>`;}
+function ownerPill(o){return tagp(o,/Central/.test(o)?C.teal:C.navy);}
 const TOTAL_CH=PROV.reduce((a,p)=>a+p.charges,0);
 function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
 function shareSel(){return active().reduce((a,p)=>a+p.charges,0)/TOTAL_CH;}
@@ -106,9 +139,10 @@ function agg(){const rs=active();const s=k=>rs.reduce((a,r)=>a+r[k],0);const ch=
 function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
 function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
 function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
-
-function errScaled(){const sc=shareSel()*PERIODS[period].f;return ERRCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3]]);}
-function wqScaled(){const sc=shareSel();return WQCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3],c[4]]);}
+function errScaled(){const sc=shareSel()*PERIODS[period].f;return ERRCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3],c[4]]);}
+function wqScaled(){const sc=shareSel();return WQCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3],c[4],c[5]]);}
+function aging(arDays,arBal){const o90=clamp((arDays-26)*0.6+6,4,24),b6190=13,b3160=22,b030=Math.max(0,100-o90-b6190-b3160);
+  return [["0–30 days",b030,"Normal cycle (Central follow-up)"],["31–60 days",b3160,"Central A/R follow-up"],["61–90 days",b6190,"Central + Practice (denials)"],["90+ days",o90,"Escalate — Practice + Central"]].map(b=>[b[0],round(arBal*b[1]/100),b[1],b[2]]);}
 
 function render(){
   const d=agg(),f=PERIODS[period].f,sel=active();
@@ -118,29 +152,30 @@ function render(){
   document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
   const prod=[
     {l:"Gross Charges",n:moneyK(charges),s:"~"+moneyK(dailyRev)+"/day · "+moneyK(weekly)+"/wk",ac:C.navy},
-    {l:"Net Collections",n:moneyK(payments),s:Math.round(grossRate)+"% gross collection",ac:C.green},
-    {l:"Net Collection Rate",n:netRate.toFixed(1)+"%",s:"target ≥95%",ac:tone(netRate,true,95,92)},
-    {l:"Charge Lag (clinic)",n:d.lag.toFixed(1)+" d",s:"enterprise "+ENTERPRISE_LAG+" d · goal <3",ac:tone(d.lag,false,3,4)},
-    {l:"Clean Paid Rate",n:Math.round(d.cleanPaid)+"%",s:"first-pass paid — low, rework needed",ac:tone(d.cleanPaid,true,50,20)},
-    {l:"Days in A/R",n:Math.round(d.arDays),s:"target ≤35 days",ac:tone(d.arDays,false,35,40)},
-    {l:"Denial Rate",n:denialRate.toFixed(1)+"%",s:"target ≤6%",ac:tone(denialRate,false,6,9)},
-    {l:"A/R Balance",n:moneyK(d.arBal),s:"outstanding",ac:C.peri},
+    {l:"Net Collections",n:moneyK(payments),s:Math.round(grossRate)+"% gross collection",ac:C.green,drill:"netrate"},
+    {l:"Net Collection Rate",n:netRate.toFixed(1)+"%",s:"target ≥95%",ac:tone(netRate,true,95,92),drill:"netrate"},
+    {l:"Charge Lag (clinic)",n:d.lag.toFixed(1)+" d",s:"enterprise "+ENTERPRISE_LAG+" d · goal <3",ac:tone(d.lag,false,3,4),drill:"chargelag"},
+    {l:"Clean Paid Rate",n:Math.round(d.cleanPaid)+"%",s:"first-pass paid — low, rework needed",ac:tone(d.cleanPaid,true,50,20),drill:"cleanpaid"},
+    {l:"Days in A/R",n:Math.round(d.arDays),s:"target ≤35 days",ac:tone(d.arDays,false,35,40),drill:"aging"},
+    {l:"Denial Rate",n:denialRate.toFixed(1)+"%",s:"target ≤6%",ac:tone(denialRate,false,6,9),drill:"denial"},
+    {l:"A/R Balance",n:moneyK(d.arBal),s:"outstanding · click for 30/60/90",ac:C.peri,drill:"aging"},
   ];
-  document.getElementById("kProd").innerHTML=prod.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  document.getElementById("kProd").innerHTML=prod.map(c=>`<div class="kpi" ${c.drill?`data-drill="${c.drill}"`:''}>${c.drill?'<span class="dz">⤢</span>':''}<div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  document.querySelectorAll('#kProd .kpi[data-drill]').forEach(el=>el.onclick=()=>openDrill(el.dataset.drill));
 
-  // errors KPIs + chart + table
+  // errors
   const E=errScaled(), eTot=E.reduce((a,c)=>a+c[1],0), eDol=E.reduce((a,c)=>a+c[2],0), eTop=[...E].sort((a,b)=>b[2]-a[2])[0];
   document.getElementById("kErr").innerHTML=[
     {l:"Total Errors / Edits",n:eTot.toLocaleString(),s:"claims stopped by edits",ac:C.amber},
-    {l:"Dollars Held",n:moneyK(eDol),s:"not yet out the door",ac:C.bad?C.red:C.red},
-    {l:"Biggest Driver",n:eTop[0],s:moneyK(eTop[2])+" · "+eTop[1]+" errors",ac:eTop[3]},
+    {l:"Dollars Held",n:moneyK(eDol),s:"not yet out the door",ac:C.red},
+    {l:"Biggest Driver",n:eTop[0],s:moneyK(eTop[2])+" · "+eTop[3],ac:eTop[4]},
   ].map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
   const Es=[...E].sort((a,b)=>b[2]-a[2]);
   charts.err&&charts.err.destroy();
-  charts.err=new Chart(document.getElementById("cErr"),{type:"bar",data:{labels:Es.map(c=>c[0]),datasets:[{data:Es.map(c=>c[2]),backgroundColor:Es.map(c=>c[3]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.x)}}},scales:{x:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
-  document.getElementById("errBody").innerHTML=Es.map(c=>`<tr><td class="nm">${c[0]}</td><td class="num">${c[1].toLocaleString()}</td><td class="num">${money(c[2])}</td></tr>`).join("");
+  charts.err=new Chart(document.getElementById("cErr"),{type:"bar",data:{labels:Es.map(c=>c[0]),datasets:[{data:Es.map(c=>c[2]),backgroundColor:Es.map(c=>c[4]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.x)}}},scales:{x:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
+  document.getElementById("errBody").innerHTML=Es.map(c=>`<tr><td class="nm">${c[0]}</td><td>${ownerPill(c[3])}</td><td class="num">${c[1].toLocaleString()}</td><td class="num">${money(c[2])}</td></tr>`).join("");
 
-  // work queues KPIs + chart + table
+  // work queues
   const W=wqScaled(), wTot=W.reduce((a,c)=>a+c[1],0), wDol=W.reduce((a,c)=>a+c[2],0), wOld=[...W].sort((a,b)=>b[4]-a[4])[0];
   document.getElementById("kWq").innerHTML=[
     {l:"Items in Work Queues",n:wTot.toLocaleString(),s:"unresolved & aging",ac:C.amber},
@@ -151,44 +186,117 @@ function render(){
   charts.wq&&charts.wq.destroy();
   charts.wq=new Chart(document.getElementById("cWq"),{type:"bar",data:{labels:Ws.map(c=>c[0]),datasets:[{data:Ws.map(c=>c[2]),backgroundColor:[C.amber,C.red,C.peri],borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.x)}}},scales:{x:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
   const agec=a=>a>50?C.red:a>40?C.amber:C.greenD;
-  document.getElementById("wqBody").innerHTML=Ws.map(c=>`<tr><td class="nm">${c[0]}</td><td class="num">${c[1].toLocaleString()}</td><td class="num">${money(c[2])}</td><td class="num"><span class="pill" style="background:${hexA(agec(c[3]),.14)};color:${agec(c[3])}">${c[3]} d</span></td><td class="num"><span class="pill" style="background:${hexA(agec(c[4]),.14)};color:${agec(c[4])}">${c[4]} d</span></td></tr>`).join("");
+  document.getElementById("wqBody").innerHTML=Ws.map(c=>`<tr><td class="nm">${c[0]}</td><td>${ownerPill(c[5])}</td><td class="num">${c[1].toLocaleString()}</td><td class="num">${money(c[2])}</td><td class="num">${tagp(c[3]+' d',agec(c[3]))}</td><td class="num">${tagp(c[4]+' d',agec(c[4]))}</td></tr>`).join("");
 
   // charge lag chart
   charts.lag&&charts.lag.destroy();
   charts.lag=new Chart(document.getElementById("cLag"),{type:"bar",data:{labels:["This selection","Enterprise (Avance)"],datasets:[{label:"Charge lag (days)",data:[+d.lag.toFixed(1),ENTERPRISE_LAG],backgroundColor:[tone(d.lag,false,3,4),C.gray],borderRadius:6},{label:"Goal < 3 days",type:"line",data:[3,3],borderColor:C.greenD,borderDash:[5,4],borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true,title:{display:true,text:"days"}}}}});
+  // A/R aging chart
+  const AG=aging(d.arDays,d.arBal);
+  charts.ag&&charts.ag.destroy();
+  charts.ag=new Chart(document.getElementById("cAging"),{type:"bar",data:{labels:AG.map(b=>b[0]),datasets:[{data:AG.map(b=>b[1]),backgroundColor:[C.green,C.peri,C.amber,C.red],borderRadius:5}]},options:{onClick:()=>openDrill("aging"),plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.y)+' · '+AG[c.dataIndex][2]+'%'}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
   // trend
   const rr=(seed=>()=>{seed=(seed*9301+49297)%233280;return seed/233280;})((region+clinic+provId).length*7+5);
   const ch=[],pa=[];for(let i=0;i<6;i++){ch.push(round(d.charges*(0.94+rr()*0.12)));pa.push(round(d.payments*(0.94+rr()*0.12)));}
   ch[5]=round(d.charges);pa[5]=round(d.payments);
   charts.tr&&charts.tr.destroy();
-  charts.tr=new Chart(document.getElementById("cTrend"),{data:{labels:["Jan","Feb","Mar","Apr","May","Jun"],datasets:[
-    {type:"bar",label:"Charges",data:ch,backgroundColor:hexA(C.navy,.25),borderRadius:4},
-    {type:"line",label:"Collections",data:pa,borderColor:C.green,backgroundColor:hexA(C.green,.1),fill:true,tension:.35,pointRadius:2}]},
-    options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+money(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
+  charts.tr=new Chart(document.getElementById("cTrend"),{data:{labels:["Jan","Feb","Mar","Apr","May","Jun"],datasets:[{type:"bar",label:"Charges",data:ch,backgroundColor:hexA(C.navy,.25),borderRadius:4},{type:"line",label:"Collections",data:pa,borderColor:C.green,backgroundColor:hexA(C.green,.1),fill:true,tension:.35,pointRadius:2}]},options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+money(c.parsed.y)}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
 
   // by provider
-  const pillc=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
+  const pc2=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
   document.getElementById("tbody").innerHTML=sel.map(p=>{const pc=p.charges*f,pp=p.payments*f,nr=pp/(pc-p.contractual*f)*100;return `<tr>
-    <td class="nm">${p.name}<small>${p.clinic}</small></td>
-    <td class="num">${money(pc)}</td><td class="num">${money(pp)}</td>
-    <td class="num">${pillc(nr.toFixed(1)+'%',tone(nr,true,95,92))}</td>
-    <td class="num">${pillc(p.lag.toFixed(1)+' d',tone(p.lag,false,3,4))}</td>
-    <td class="num">${pillc(p.cleanPaid+'%',tone(p.cleanPaid,true,50,20))}</td></tr>`;}).join("");
-  document.getElementById("foot").innerHTML="Illustrative / synthetic professional-billing data structured to mirror the Avance Care PB report (production &amp; charge lag, error/edit categories, and work-queue backlog with aging). Error and work-queue figures are network totals scaled by the current selection. Targets are placeholders — replace with Avance Care benchmarks and the live PB/SlicerDicer export.";
+    <td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${money(pc)}</td><td class="num">${money(pp)}</td>
+    <td class="num">${pc2(nr.toFixed(1)+'%',tone(nr,true,95,92))}</td><td class="num">${pc2(p.lag.toFixed(1)+' d',tone(p.lag,false,3,4))}</td><td class="num">${pc2(p.cleanPaid+'%',tone(p.cleanPaid,true,50,20))}</td></tr>`;}).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic professional-billing data structured to mirror the Avance Care PB report. Each KPI is clickable for a Practice-vs-Central-Office root-cause breakdown. Error/work-queue figures are network totals scaled by the current selection. Targets &amp; dollar splits are placeholders — replace with the live PB / SlicerDicer export.";
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 
+/* ---------- drill-downs: Practice vs Central Office ---------- */
+function tableHTML(cols,rows){return `<table class="mtbl"><thead><tr>${cols.map(c=>`<th class="${c.num?'num':''}">${c.h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td class="${c.num?'num':''}">${r[c.k]}</td>`).join("")}</tr>`).join("")}</tbody></table>`;}
+function buildDrill(key){
+  const d=agg(),f=PERIODS[period].f,who=document.getElementById("who").textContent;
+  const charges=d.charges*f, payments=d.payments*f, netRate=payments/(charges-d.contractual*f)*100, denialRate=d.denials/d.claims*100;
+  const avgClaim=d.charges/d.claims, E=errScaled();
+  const regErr=(E.find(c=>c[0]==="Registration")||[,,0])[2], codErr=(E.find(c=>c[0]==="Professional Coding")||[,,0])[2];
+  if(key==="netrate"){
+    const denialDol=round(d.denials*f*avgClaim), contractVar=round(d.contractual*f*0.05), chargeLagDol=round(charges*0.006), underCode=round(charges*0.012), posting=round(charges*0.004);
+    const rows=[
+      {dr:"Registration / eligibility errors",ow:ownerPill("Practice"),im:money(regErr),ac:"Verify insurance &amp; eligibility at check-in"},
+      {dr:"Charge lag / missed charges",ow:ownerPill("Practice"),im:money(chargeLagDol),ac:"Enter charges ≤3 days; reconcile in-office &amp; LARC charges"},
+      {dr:"Under-coding / documentation",ow:ownerPill("Practice"),im:money(underCode),ac:"Code to documented level; modifier accuracy"},
+      {dr:"Denials not worked / appealed",ow:ownerPill("Central Office"),im:money(denialDol),ac:"Work denial queue; appeal within filing limits"},
+      {dr:"Contractual underpayments",ow:ownerPill("Central Office"),im:money(contractVar),ac:"Variance review vs. fee schedule; payer escalation"},
+      {dr:"Posting / adjustment accuracy",ow:ownerPill("Central Office"),im:money(posting),ac:"Audit write-offs &amp; adjustment codes"},
+    ];
+    const pracDol=regErr+chargeLagDol+underCode, centDol=denialDol+contractVar+posting;
+    return {title:"Net Collection Rate — why is it low?",sub:who+" · "+PERIODS[period].l,
+      chips:[{l:"Net collection rate",v:netRate.toFixed(1)+"%",c:tone(netRate,true,95,92)},{l:"Target",v:"≥95%",c:C.navy},{l:"Practice side",v:moneyK(pracDol),c:C.navy},{l:"Central office",v:moneyK(centDol),c:C.teal}],
+      note:`Net collection rate = payments ÷ (charges − contractual). The gap splits into <b>practice</b> drivers (front desk, charge entry, coding ≈ <b>${moneyK(pracDol)}</b>) and <b>central-office</b> drivers (denials, payer follow-up, posting ≈ <b>${moneyK(centDol)}</b>). Practice-side is usually the faster, higher-ROI fix.`,
+      cols:[{h:"Driver",k:"dr"},{h:"Owner",k:"ow"},{h:"Est. $ impact",k:"im",num:1},{h:"Action",k:"ac"}],rows,
+      actions:["Fix registration / eligibility at the front desk first — biggest practice lever","Tighten charge entry to &lt;3 days and reconcile ancillary / LARC charges","Escalate aged denials and contractual variances to central RCM","Re-measure monthly and assign owner accountability (practice vs central)"]};
+  }
+  if(key==="chargelag"){
+    return {title:"Charge Lag — practice or central?",sub:who+" · goal < 3 days",
+      chips:[{l:"This selection",v:d.lag.toFixed(1)+" d",c:tone(d.lag,false,3,4)},{l:"Enterprise",v:ENTERPRISE_LAG+" d",c:C.gray},{l:"Goal",v:"<3 d",c:C.navy}],
+      note:"Charge lag (visit → charge entry) is <b>almost entirely practice-owned</b>. Central office only affects the downstream scrub/submit step. Your selection is "+(d.lag<3?"at goal":"above goal")+"; the enterprise lag of "+ENTERPRISE_LAG+" days is dragged up elsewhere in the system.",
+      cols:[{h:"Driver",k:"dr"},{h:"Owner",k:"ow"},{h:"Lever",k:"lv"}],
+      rows:[{dr:"Provider charge entry timeliness",ow:ownerPill("Practice"),lv:"Close encounters &amp; enter charges same/next day"},
+            {dr:"In-office ancillary / LARC capture",ow:ownerPill("Practice"),lv:"Reconcile EKG, spirometry, LARC to a dropped charge"},
+            {dr:"Front-desk encounter closure",ow:ownerPill("Practice"),lv:"Daily check that every visit is charged"},
+            {dr:"Claim scrub / submission",ow:ownerPill("Central Office"),lv:"Central billing submits within 24h of charge"}],
+      actions:["Set a &lt;3-day charge-entry standard and monitor by provider","Daily encounter-closure reconciliation at the clinic","Hand clean charges to central billing within 24h"]};
+  }
+  if(key==="cleanpaid"){
+    return {title:"Clean Paid Rate — why so low?",sub:who+" · first-pass paid",
+      chips:[{l:"Clean paid rate",v:Math.round(d.cleanPaid)+"%",c:tone(d.cleanPaid,true,50,20)},{l:"Registration $",v:moneyK(regErr),c:C.navy},{l:"Coding $",v:moneyK(codErr),c:C.navy}],
+      note:"A low first-pass paid rate means most claims need rework before they pay — slower cash and more labor. Root causes are mostly <b>front-end (practice)</b>: registration/eligibility and coding completeness, plus some <b>central</b> pre-bill edits.",
+      cols:[{h:"Driver",k:"dr"},{h:"Owner",k:"ow"},{h:"Est. $",k:"im",num:1},{h:"Action",k:"ac"}],
+      rows:[{dr:"Registration / demographics / eligibility",ow:ownerPill("Practice"),im:money(regErr),ac:"Real-time eligibility; demographic accuracy"},
+            {dr:"Coding completeness / modifiers",ow:ownerPill("Practice / Coding"),im:money(codErr),ac:"Same-week coding; documentation prompts"},
+            {dr:"Pre-bill / payer edits",ow:ownerPill("Central Office"),im:money(round(charges*0.005)),ac:"Build pre-bill edits; clearinghouse rules"}],
+      actions:["Real-time eligibility verification at check-in","Same-week coding turnaround with documentation prompts","Add pre-bill edits so errors are caught before submission"]};
+  }
+  if(key==="aging"){
+    const AG=aging(d.arDays,d.arBal);
+    return {title:"A/R Aging — 30 / 60 / 90 / 90+",sub:who+" · "+money(d.arBal)+" outstanding",
+      chips:[{l:"A/R balance",v:moneyK(d.arBal),c:C.peri},{l:"Days in A/R",v:Math.round(d.arDays),c:tone(d.arDays,false,35,40)},{l:"90+ days",v:AG[3][2]+"%",c:tone(AG[3][2],false,12,18)}],
+      note:"0–60 days is the normal billing cycle, owned by <b>central A/R follow-up</b>. The <b>90+ bucket</b> is the risk — it needs escalation, and it's often <b>seeded by front-end (practice) errors</b> that caused an early denial. "+moneyK(AG[3][1])+" sits in 90+.",
+      cols:[{h:"Age bucket",k:"b"},{h:"$ Outstanding",k:"d",num:1},{h:"% of A/R",k:"p",num:1},{h:"Primary owner",k:"o"}],
+      rows:AG.map((b,i)=>({b:b[0],d:money(b[1]),p:b[2]+"%",o:ownerPill(i>=2?(i===3?"Practice + Central":"Central + Practice"):"Central Office")})),
+      actions:["Run a weekly aging sweep on all &gt;30-day items","Escalate the 90+ bucket first — highest denial / timely-filing risk","Trace 90+ root causes back to registration / coding (practice)","Central RCM owns payer follow-up cadence at 30 / 45 / 60 days"]};
+  }
+  if(key==="denial"){
+    const reasons=[["Eligibility / registration","Practice",34],["Coding / modifier","Practice / Coding",24],["Medical necessity / auth","Provider / Practice",18],["Timely filing","Central Office",12],["Duplicate / COB","Central Office",12]];
+    const tot=round(d.denials*f);
+    return {title:"Denials — by reason &amp; owner",sub:who+" · "+denialRate.toFixed(1)+"% denial rate",
+      chips:[{l:"Denial rate",v:denialRate.toFixed(1)+"%",c:tone(denialRate,false,6,9)},{l:"Target",v:"≤6%",c:C.navy},{l:"Denials (period)",v:tot,c:C.amber}],
+      note:"Most denial volume is <b>practice-side</b> (eligibility/registration + coding + documentation). <b>Timely filing &amp; duplicates</b> are <b>central</b> process issues. Fixing the front end prevents denials rather than reworking them.",
+      cols:[{h:"Denial reason",k:"r"},{h:"Owner",k:"o"},{h:"Share",k:"s",num:1},{h:"Est. count",k:"n",num:1}],
+      rows:reasons.map(x=>({r:x[0],o:ownerPill(x[1]),s:x[2]+"%",n:round(tot*x[2]/100)})),
+      actions:["Front-desk eligibility checks to prevent registration denials","Coding edits + targeted education for modifier/coding denials","Prior-auth workflow &amp; documentation for medical-necessity denials","Central: submit within filing windows; scrub duplicates / COB"]};
+  }
+  return {title:"Detail",sub:who,chips:[],cols:[{h:"Info",k:"i"}],rows:[{i:"No drill configured."}],actions:[]};
+}
+function openDrill(key){const o=buildDrill(key);
+  document.getElementById("mTitle").innerHTML=o.title;document.getElementById("mSub").textContent=o.sub||"";
+  document.getElementById("mChips").innerHTML=(o.chips||[]).map(c=>`<div class="mchip"><div class="ml">${c.l}</div><div class="mv" style="color:${c.c||C.ink}">${c.v}</div></div>`).join("");
+  const note=document.getElementById("mNote");if(o.note){note.style.display="block";note.innerHTML=o.note;}else note.style.display="none";
+  document.getElementById("mTable").innerHTML=(o.rows&&o.rows.length)?tableHTML(o.cols,o.rows):"";
+  const act=document.getElementById("mActions");if(o.actions&&o.actions.length){act.style.display="block";document.getElementById("mActionsList").innerHTML=o.actions.map(a=>`<li>${a}</li>`).join("");}else act.style.display="none";
+  document.getElementById("modal").hidden=false;
+}
+function closeModal(){document.getElementById("modal").hidden=true;}
+
 window.AVANCE_AI={
  insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent;
-   const E=errScaled(),W=wqScaled(),eDol=E.reduce((a,c)=>a+c[2],0),wDol=W.reduce((a,c)=>a+c[2],0),wItems=W.reduce((a,c)=>a+c[1],0);
+   const E=errScaled(),W=wqScaled(),wDol=W.reduce((a,c)=>a+c[2],0),wItems=W.reduce((a,c)=>a+c[1],0);
    const reg=E.find(c=>c[0]==='Registration'),cod=W.find(c=>c[0]==='Professional Coding');
-   return '<b>'+scope+'</b>: charge lag is strong ('+d.lag.toFixed(1)+' d vs enterprise '+ENTERPRISE_LAG+' d) but clean paid rate is low (~'+Math.round(d.cleanPaid)+'%). <b>'+moneyK(wDol)+'</b> across <b>'+wItems.toLocaleString()+'</b> items is stuck in work queues, aging 45–74 days. Biggest, most-fixable leaks: front-end <b>Registration</b> ('+moneyK(reg?reg[2]:0)+' in errors) and the <b>Coding</b> backlog ('+moneyK(cod?cod[2]:0)+'). Lever #1: fix registration / eligibility at the front desk.';},
+   return '<b>'+scope+'</b>: charge lag is strong ('+d.lag.toFixed(1)+' d vs enterprise '+ENTERPRISE_LAG+' d) but clean paid rate is low (~'+Math.round(d.cleanPaid)+'%). <b>'+moneyK(wDol)+'</b> across <b>'+wItems.toLocaleString()+'</b> items is stuck in work queues, aging 45–74 days. Most-fixable leaks are <b>practice-side</b>: Registration ('+moneyK(reg?reg[2]:0)+') and the Coding backlog ('+moneyK(cod?cod[2]:0)+'). Click any KPI to see Practice vs Central-Office drivers.';},
  chips:['Where is the biggest ROI?','What is aging the most?','Why is the clean paid rate low?'],
- answer:function(q){const d=agg(),ql=q.toLowerCase(),E=errScaled(),W=wqScaled();
-   const reg=E.find(c=>c[0]==='Registration'),cod=W.find(c=>c[0]==='Professional Coding');
-   if(/roi|biggest|first|fix|priorit/.test(ql))return '<h5>Highest ROI</h5>1) <b>Registration / eligibility</b> — '+moneyK(reg?reg[2]:0)+' in front-end errors; verification + real-time eligibility could unlock it fastest. 2) <b>Coding capacity</b> — '+moneyK(cod?cod[2]:0)+' backlog; same-week coding turnaround. These two are process fixes, not volume problems.';
-   if(/aging|old|stuck|days|timely/.test(ql))return '<h5>Aging</h5>Work-queue items are aging 30–57 days and date-of-service ages run 40–74 days — Project Team and Coding are oldest. Anything past ~30 days risks denials and timely-filing loss. Run a weekly “aging sweep” on >30-day items.';
-   if(/clean|paid|first.?pass|rework/.test(ql))return '<h5>Clean paid rate</h5>First-pass paid is ~'+Math.round(d.cleanPaid)+'% — most claims need rework before they pay, which slows cash and adds labor. Root causes trace to the same front-end (registration) and coding errors; pre-bill edits + better reg/coding coordination lift it.';
+ answer:function(q){const d=agg(),ql=q.toLowerCase(),E=errScaled(),W=wqScaled();const reg=E.find(c=>c[0]==='Registration'),cod=W.find(c=>c[0]==='Professional Coding');
+   if(/roi|biggest|first|fix|priorit|practice|central/.test(ql))return '<h5>Highest ROI — and who owns it</h5>1) <b>Registration / eligibility (Practice)</b> — '+moneyK(reg?reg[2]:0)+' in front-end errors. 2) <b>Coding capacity (Practice/Coding)</b> — '+moneyK(cod?cod[2]:0)+' backlog. Central office owns denials, payer follow-up and posting. The front-end practice fixes are faster and higher-ROI. Click Net Collection Rate for the full split.';
+   if(/aging|old|stuck|days|timely|a\/?r/.test(ql))return '<h5>Aging</h5>Work-queue items age 30–57 days and date-of-service ages run 40–74 days. A/R 90+ is the risk bucket — escalate it first. Click A/R Balance or Days in A/R for the 30/60/90 split and owners.';
+   if(/clean|paid|first.?pass|rework/.test(ql))return '<h5>Clean paid rate</h5>~'+Math.round(d.cleanPaid)+'% first-pass paid — most claims need rework. Root cause is front-end (registration + coding, practice-side). Pre-bill edits + real-time eligibility lift it.';
    return '<h5>Summary</h5>Strong production &amp; charge lag; the problem is downstream — '+moneyK(W.reduce((a,c)=>a+c[2],0))+' stuck in work queues and a low clean paid rate. Fix registration first, then coding throughput.';}
 };
 window.startDashboard=function(){
@@ -197,6 +305,9 @@ window.startDashboard=function(){
   document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("mClose").onclick=closeModal;
+  document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
   render();
 };
 </script>
