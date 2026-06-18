@@ -86,6 +86,18 @@
     color:#173f46;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;white-space:pre-wrap}
   .status{min-height:18px;margin-top:8px;color:var(--task);font-size:.85rem;font-weight:700}
   .note-amber{background:var(--idea-soft);border-left:4px solid var(--idea);border-radius:6px;padding:11px 13px;font-size:.85rem;color:#4d3900;margin-top:4px}
+  details.acc{border:1px solid var(--line);border-radius:10px;background:#fbfcfd;margin-bottom:10px}
+  details.acc>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  details.acc>summary::-webkit-details-marker{display:none}
+  details.acc>summary::after{content:'▸';color:var(--dim);font-weight:400}
+  details.acc[open]>summary::after{content:'▾'}
+  details.acc .acc-body{padding:2px 14px 14px;font-size:.9rem;color:var(--muted)}
+  details.acc .acc-body b{color:var(--ink)}
+  .mermaid{overflow-x:auto;margin:8px 0;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .atable{width:100%;border-collapse:collapse;font-size:.8rem;margin:6px 0}
+  .atable th,.atable td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  .atable th{background:var(--soft);color:var(--accent)}
+  .upd{display:inline-block;background:var(--task-soft);color:var(--task);font-weight:700;font-size:.68rem;padding:2px 7px;border-radius:6px;margin-left:6px}
   @media(max-width:560px){ .head .ttl{font-size:1.25rem} }
 </style>
 </head>
@@ -115,6 +127,7 @@
     <button class="tab" data-tab="context">🤖 AI Context</button>
     <button class="tab" data-tab="projects">🗂️ Projects</button>
     <button class="tab" data-tab="secrets">🔐 Secrets</button>
+    <button class="tab" data-tab="architecture">🗺️ Architecture</button>
   </div>
 
   <!-- CAPTURE -->
@@ -204,6 +217,154 @@
     </div>
     <div class="card"><h2>Tracked secrets</h2><div id="secList"></div></div>
   </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="view" id="v-architecture">
+    <div class="card">
+      <h2>LifeOS data architecture <span class="upd">updated 2026-06-18</span></h2>
+      <p class="hint" style="margin-top:-4px">A <b>hub-and-spoke</b>: many single-purpose apps (spokes), each its own Firebase project + source of truth, a strategic hub (<b>mikeslife</b>), and an agent (<b>Rupert</b>) that reads curated slices from the spokes, thinks, and writes guidance back. Spokes never talk to each other directly — Rupert is the connective tissue. Tap a section to expand.</p>
+
+      <details class="acc" open>
+        <summary>1 · The big picture</summary>
+        <div class="acc-body">
+          <pre class="mermaid">flowchart TB
+  USER["📱 Mike (iPhone) — installed PWAs + push"]
+  HUB["🦚 mikeslife hub<br/>doc: lifeos/uid"]
+  subgraph RUP["Rupert — agent / data engine"]
+    CLOUD["☁️ Vercel crons in mikeslife<br/>brief · context · banners · heartbeat<br/>/api/rupert chat (OpenAI or Claude)"]
+    MINI["🖥️ Mac mini (OpenClaw)<br/>adamjobs + social digests only"]
+  end
+  subgraph SPOKES["Spoke apps — each its own Firebase project"]
+    FIT["💪 fitness"]
+    HLTH["🫀 health"]
+    MON["💰 money"]
+    RENT["🏠 rentals"]
+    UPD["📡 updates"]
+    NUT["🥗 nutrition"]
+  end
+  USER -->|read/write| HUB
+  USER -->|read/write| SPOKES
+  USER -->|peacock chat| CLOUD
+  CLOUD <-->|read slices / write brief, content| HUB
+  CLOUD -->|read curated data via admin SAs| SPOKES
+  CLOUD -->|write banners + generated content| SPOKES
+  MINI -->|digest alerts| HUB
+  HUB -->|FCM push| USER</pre>
+          <p><b>Today's shift:</b> the Rupert banners for money &amp; rentals moved from the mini to cloud crons (<code>cron-finance-note</code>, <code>cron-rental-note</code>), joining <code>cron-fitness-note</code>. The mini is now down to the non-critical adamjobs/social digests.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>2 · App ↔ Firebase project map</summary>
+        <div class="acc-body">
+          <table class="atable"><thead><tr><th>App</th><th>Firebase project</th><th>Rupert key</th></tr></thead><tbody>
+            <tr><td>mikeslife (hub)</td><td>mikeslife-963c6</td><td>FIREBASE_SERVICE_ACCOUNT</td></tr>
+            <tr><td>mikesfitness</td><td>trip-planner-5cc84 (shared)</td><td>FIREBASE_SA_FITNESS</td></tr>
+            <tr><td>mikeshealth</td><td>mikeshealth-ad213</td><td>FIREBASE_SA_HEALTH</td></tr>
+            <tr><td>mikes-money</td><td>mikesmoney-91595</td><td>FIREBASE_SA_MONEY</td></tr>
+            <tr><td>rainbow-rentals</td><td>rainbow-rentals</td><td>FIREBASE_SA_RAINBOW</td></tr>
+            <tr><td>mikestravel</td><td>mikestravel</td><td>— (phase 2)</td></tr>
+            <tr><td>mikesupdates</td><td>mikesupdates-5f240</td><td>FIREBASE_SA_UPDATES (write)</td></tr>
+            <tr><td>mikesnutrition</td><td>mikesnutrition-4a6dc</td><td>FIREBASE_SA_NUTRITION (write)</td></tr>
+            <tr><td>mikedulinmd</td><td>mikedulinmd-cf65b</td><td>public site + this coding workspace</td></tr>
+          </tbody></table>
+          <p>One app = one project = one source of truth. Only shared project: <code>trip-planner-5cc84</code> (fitness + mikeandadam). Rupert reaches other projects with per-project admin service-account keys (Vercel env in the cloud).</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>3 · Rupert — the data engine (agentSlices)</summary>
+        <div class="acc-body">
+          <pre class="mermaid">flowchart LR
+  subgraph SRC["Spoke sources of truth"]
+    FIT["💪 fitness"]
+    HLTH["🫀 health"]
+    MON["💰 money"]
+    GOOG["📧 Google Cal + Gmail"]
+  end
+  subgraph CRONS["Vercel context crons (read)"]
+    CF["cron-fitness-context"]
+    CH["cron-health-context"]
+    CM["cron-finance-context"]
+    CG["cron-google (3d/30msg + delivery sweep)"]
+  end
+  SL["lifeos/uid slices:<br/>fitnessContext · healthContext<br/>financeContext · calendarText<br/>emailText (+snippets +deliveries)"]
+  subgraph THINK["Rupert thinks — OpenAI or Claude (settings.aiProvider)"]
+    BR["cron-brief → todayBrief"]
+    CHAT["/api/rupert chat"]
+  end
+  subgraph OUT["Write-out"]
+    WU["cron-updates → updates"]
+    WN["cron-nutrition → nutrition"]
+    WB["banners: fitness/finance/rental-note"]
+  end
+  FIT --> CF --> SL
+  HLTH --> CH --> SL
+  MON --> CM --> SL
+  GOOG --> CG --> SL
+  SL --> BR
+  SL --> CHAT
+  THINK --> OUT</pre>
+          <p><b>Read-in:</b> daily, just before the brief, cloud crons distill each spoke into a few lines in <code>lifeos/uid</code>. <b>Write-out:</b> other crons generate content + banners into the spokes' own Firestore. <b>New:</b> the brain is now provider-agnostic (<code>api/_llm.js</code>) — flip OpenAI↔Claude in Settings.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>4 · The morning-brief pipeline</summary>
+        <div class="acc-body">
+          <pre class="mermaid">sequenceDiagram
+  autonumber
+  participant G as Google
+  participant SP as Spokes
+  participant L as lifeos/uid
+  participant B as cron-brief
+  participant P as iPhone
+  Note over G,L: context syncs ~10:50 UTC
+  G->>L: cron-google → calendar, email(+deliveries)
+  SP->>L: fitness/finance/health-context → slices
+  Note over B: runs hourly, fires at settings.briefHour (def 7 ET)
+  L->>B: commitments, plans, slices, recent-focus, doneLedger
+  B->>B: Top of mind · Focus · Health · FYI · Delivery · Looking ahead
+  B->>L: write todayBrief (idempotent per ET day)
+  B->>P: FCM push (suppressed during quiet hours)
+  P->>L: tap ✓ handled → marks plan task done</pre>
+          <p><b>Today's changes:</b> the brief + check-in crons now run <b>hourly</b>, gated to <code>settings.briefHour</code> (so you can move your brief time); <b>quiet hours</b> suppress the push while still writing data; the Gemini-style brief adds <b>Delivery updates</b> + <b>Looking ahead</b>; and <code>doneLedger</code> stops completed items resurfacing.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>5 · External data ingestion</summary>
+        <div class="acc-body">
+          <pre class="mermaid">flowchart TB
+  HAE["Health Auto Export (iPhone)"] -->|POST webhook + token| HF["Cloud Function: mikeshealthHealthIngest"]
+  HF -->|normalize + write| HD["mikeshealth: dailyMetrics + biology/bio"]
+  HD -->|cron-health-context| L["lifeos.healthContext"]
+  PLAID["Plaid"] -->|syncItem Cloud Function| MD["mikes-money: accounts/transactions"]
+  MD -->|daily dashboardSnapshots| MS["snapshot"]
+  MS -->|cron-finance-context| L2["lifeos.financeContext"]
+  GAPI["Google APIs (OAuth)"] -->|cron-google| L3["lifeos.calendar / emailText"]</pre>
+          <p><b>Two-hop for health:</b> Apple Health → mikeshealth Cloud Function → Firestore → context cron → lifeos. That Cloud Function deploys <b>separately</b> (<code>firebase deploy --only functions</code>) — it does not ship with Vercel.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>6 · Observability &amp; notifications</summary>
+        <div class="acc-body">
+          <p><b>Heartbeat (NEW):</b> <code>cron-heartbeat</code> (14:00 UTC) checks that Google + the three context syncs + today's brief actually ran; if anything is &gt;26h stale it pushes one alert — so silent failures surface instead of hiding.</p>
+          <p><b>Banners:</b> a <code>rupert/note</code> doc in each spoke's Firestore (now written by cloud crons) drives the shared RupertBanner atop that app.</p>
+          <p><b>Push:</b> all notifications come from mikeslife via FCM. <b>Fix today:</b> only the latest FCM token is kept, ending the duplicate-morning-ping bug.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>7 · Design principles &amp; fragilities</summary>
+        <div class="acc-body">
+          <p><b>Principles:</b> loose coupling (per-project Firebase, one-directional cross-project access via Rupert's keys) · agentSlices not duplication · cloud-first (mini now nearly retired) · git push auto-deploys frontends + Vercel crons.</p>
+          <p><b>Watch out for:</b> Firebase Cloud Functions don't auto-deploy (separate <code>firebase deploy --only functions</code>) · local folders can drift behind GitHub (pull/clone fresh) · a new Rupert↔spoke link needs that project's admin SA in Vercel env (missing = 503) · Eastern-time everywhere (never UTC <code>toISOString().split()</code>).</p>
+        </div>
+      </details>
+    </div>
+  </section>
 </div>
 
 <script type="module">
@@ -265,7 +426,25 @@
     document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
     document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
     t.classList.add("on"); $("v-"+t.dataset.tab).classList.add("on");
+    if(t.dataset.tab==="architecture") renderArch();
   });
+
+  // ---------- architecture (lazy Mermaid render) ----------
+  let mermaidMod=null;
+  async function runMermaidIn(root){
+    const nodes=[...root.querySelectorAll(".mermaid:not([data-processed])")];
+    if(!nodes.length) return;
+    try{
+      if(!mermaidMod){ mermaidMod=await import("https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"); mermaidMod.default.initialize({startOnLoad:false,theme:"neutral",securityLevel:"loose"}); }
+      await mermaidMod.default.run({nodes});
+    }catch(e){ console.error("mermaid",e); nodes.forEach(n=>{ n.innerHTML='<span style="color:var(--bug)">diagram failed to render — '+(e.message||e)+'</span>'; }); }
+  }
+  let archInit=false;
+  function renderArch(){
+    runMermaidIn(document.getElementById("v-architecture"));
+    if(archInit) return; archInit=true;
+    document.querySelectorAll("#v-architecture details.acc").forEach(d=>d.addEventListener("toggle",()=>{ if(d.open) runMermaidIn(d); }));
+  }
 
   // ---------- capture ----------
   const TYPE_LABEL={bug:"Bug",idea:"Idea",task:"Task"};
