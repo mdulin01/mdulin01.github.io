@@ -813,13 +813,13 @@ function buildDrill(key,d){
       actions:["Protect new-patient slots in the template","Ensure same-day / next-day availability for acquisition","Tighten new-patient intake & onboarding","Track conversion from first call to completed visit"]};
    }
    case "procedures":{
-    const tot=d.procC,ps=[["EKG (93000)",.26],["Joint injection (20610)",.16],["Skin biopsy (11102)",.13],["Spirometry (94010)",.12],["Lesion removal (17110)",.1],["Laceration repair (12001)",.08],["Other",.15]];
+    const tot=d.procC,ps=[["EKG (93000)",.22],["Joint injection (20610)",.14],["IUD insertion — LARC (58300)",.09],["Contraceptive implant — LARC (11981)",.06],["Skin biopsy (11102)",.12],["Spirometry (94010)",.11],["Lesion removal (17110)",.09],["Laceration repair (12001)",.07],["Other",.10]];
     const rows=ps.map(p=>({s:p[0],n:round(tot*p[1])}));
     return {title:"In-office procedures",sub:who+" · "+PERIODS[period].lbl,
       chips:[{l:"Procedures",v:fmt(tot),c:C.green},{l:"Per 100 visits",v:(tot/Math.max(1,d.visitsC)*100).toFixed(0),c:C.navy}],
       note:"Keeping appropriate procedures in primary care improves access and captures revenue — confirm each is charged (see Charge Capture).",
       cols:[{h:"Procedure",k:"s"},{h:"Count",k:"n",num:1}],rows,
-      actions:["Reconcile every procedure to a dropped charge","Expand in-office procedure offerings where demand exists","Verify supplies/consents for high-volume procedures"]};
+      actions:["Track LARC usage and reconcile inventory — flag missing devices or count discrepancies to recoup lost revenue (58300/11981, supplies J7300/J7296/J7307)","Reconcile every procedure to a dropped charge","Expand in-office procedure offerings where demand exists","Verify supplies/consents for high-volume procedures"]};
    }
    case "rooming":{
     const rows=[];for(let i=0;i<5;i++){const t=r1(d.rooming*(0.8+r()*0.5));rows.push({ma:"MA "+person(r),roomed:20+((r()*30)|0),avg:t+" min",st:pill(t<=8?"on target":"slow",t<=8?C.greenD:C.amber)});}
