@@ -1,0 +1,16 @@
+{
+  "name": "Coding Projects",
+  "short_name": "Coding",
+  "description": "Mike's coding workspace — capture, roadmap, architecture, secrets index.",
+  "start_url": "/coding.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1b2d",
+  "theme_color": "#f6f8fa",
+  "icons": [
+    { "src": "/coding-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/coding-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/coding-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
