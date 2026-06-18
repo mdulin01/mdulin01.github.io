@@ -522,9 +522,10 @@
       const dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate().toLocaleDateString():"";
       row.innerHTML=`<span class="tag ${i.type}">${TYPE_LABEL[i.type]||i.type}</span>
         <div class="body"><div class="t"></div><div class="meta">${i.project} · ${dt}</div>${i.notes?`<div class="notes"></div>`:""}</div>
-        <div class="acts"><button class="iconbtn" data-act="toggle">${i.status==="done"?"↩︎":"✓"}</button><button class="iconbtn" data-act="del">🗑</button></div>`;
+        <div class="acts"><button class="iconbtn" data-act="copy" title="Copy">📋</button><button class="iconbtn" data-act="toggle">${i.status==="done"?"↩︎":"✓"}</button><button class="iconbtn" data-act="del">🗑</button></div>`;
       row.querySelector(".t").textContent=i.title;
       if(i.notes) row.querySelector(".notes").textContent=i.notes;
+      const cbtn=row.querySelector('[data-act="copy"]'); cbtn.onclick=()=>{ const txt="["+i.project+"/"+(TYPE_LABEL[i.type]||i.type)+"] "+i.title+(i.notes?" — "+i.notes:""); navigator.clipboard.writeText(txt).then(()=>{ cbtn.textContent="✓"; setTimeout(()=>cbtn.textContent="📋",1200); }); };
       row.querySelector('[data-act="toggle"]').onclick=()=>updateDoc(doc(db,"coding_items",i.id),{status:i.status==="done"?"open":"done",doneAt:i.status==="done"?null:serverTimestamp()});
       row.querySelector('[data-act="del"]').onclick=()=>{ if(confirm("Delete this item?")) deleteDoc(doc(db,"coding_items",i.id)); };
       L.appendChild(row);
@@ -664,9 +665,10 @@ ${$("notes").value.trim()||"- none"}`;
           if(it.note){ const n=document.createElement("div"); n.className="rn"; n.textContent=it.note; d.appendChild(n); }
           const ms=document.createElement("select"); ms.className="movesel"; RM_COLS.forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k===it.status)o.selected=true;ms.appendChild(o);}); ms.onchange=()=>updateDoc(doc(db,"coding_roadmap",it.id),{status:ms.value}); d.appendChild(ms);
           const acts=document.createElement("div"); acts.className="racts";
+          const cb=document.createElement("button"); cb.className="iconbtn"; cb.title="Copy this item"; cb.textContent="📋"; cb.onclick=()=>{ const txt="["+(RM_APPS[it.app]||it.app)+"] "+it.title+(it.note?" — "+it.note:""); navigator.clipboard.writeText(txt).then(()=>{ cb.textContent="✓"; setTimeout(()=>cb.textContent="📋",1200); }); };
           const eb=document.createElement("button"); eb.className="iconbtn"; eb.textContent="✏️"; eb.onclick=()=>{rmEditing=it.id;rmRender();};
           const db_=document.createElement("button"); db_.className="iconbtn"; db_.textContent="🗑"; db_.onclick=()=>{ if(confirm("Delete this item?")) deleteDoc(doc(db,"coding_roadmap",it.id)); };
-          acts.appendChild(eb); acts.appendChild(db_); d.appendChild(acts);
+          acts.appendChild(cb); acts.appendChild(eb); acts.appendChild(db_); d.appendChild(acts);
         }
         col.appendChild(d);
       });
