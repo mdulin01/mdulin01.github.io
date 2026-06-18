@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coding Projects · Michael Dulin</title>
+<style>
+  :root{
+    --ink:#1e2932; --muted:#5c6876; --dim:#8a96a3; --line:#dce3ea; --paper:#f6f8fa;
+    --panel:#ffffff; --soft:#eef6f7; --accent:#126b76; --accent-dark:#0f4f58;
+    --bug:#c0392b; --bug-soft:#fdecea; --idea:#8a5a00; --idea-soft:#fff3d0;
+    --task:#1f7a55; --task-soft:#e4f4ed; --shadow:0 12px 34px rgba(31,41,51,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  a{color:var(--accent)}
+  .wrap{width:min(880px,calc(100% - 28px));margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 0 80px}
+  /* login */
+  #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(120deg,#0f4f58,#126b76 60%,#3a98a2);padding:20px;z-index:50}
+  #login .card{background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.35);max-width:400px;width:100%;padding:34px 30px;text-align:center}
+  #login h1{font-size:1.4rem;margin:6px 0 4px}
+  #login p{color:var(--muted);font-size:.92rem;margin:0 0 20px}
+  .gbtn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;color:var(--ink);
+    border-radius:10px;padding:11px 18px;font-weight:650;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .gbtn:hover{border-color:var(--accent)}
+  #loginMsg{margin-top:14px;font-size:.85rem;color:var(--bug);min-height:18px}
+  /* header */
+  .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+  .head .ttl{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+  .head .ttl span{color:var(--accent)}
+  .head .who{font-size:.78rem;color:var(--dim);text-align:right}
+  .signout{background:none;border:none;color:var(--accent);font-size:.78rem;text-decoration:underline;padding:0}
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin:14px 0 16px;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:none;padding:10px 14px;font-weight:650;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .view{display:none}
+  .view.on{display:block}
+  /* cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+  .card h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 12px;font-weight:800}
+  label{font-weight:650;font-size:.85rem;display:block;margin-bottom:5px}
+  input[type=text],input[type=date],select,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:10px 11px;font-size:15px}
+  textarea{min-height:64px;resize:vertical}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:130px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:9px;padding:10px 14px;font-weight:700}
+  .btn.sec{background:#fff;color:var(--accent)}
+  .btn.sm{padding:5px 9px;font-size:.8rem;border-radius:7px}
+  /* capture list */
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:5px 11px;font-size:.8rem;font-weight:600}
+  .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .item{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:none}
+  .item .tag{flex:0 0 auto;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 7px;border-radius:6px;margin-top:2px}
+  .tag.bug{background:var(--bug-soft);color:var(--bug)} .tag.idea{background:var(--idea-soft);color:var(--idea)} .tag.task{background:var(--task-soft);color:var(--task)}
+  .item .body{flex:1;min-width:0}
+  .item .t{font-weight:650}
+  .item.done .t{text-decoration:line-through;opacity:.55}
+  .item .meta{font-size:.76rem;color:var(--dim);margin-top:2px}
+  .item .notes{font-size:.85rem;color:var(--muted);margin-top:4px;white-space:pre-wrap}
+  .item .acts{display:flex;gap:6px;flex:0 0 auto}
+  .iconbtn{background:none;border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:.85rem;color:var(--muted)}
+  .empty{color:var(--dim);font-size:.9rem;padding:8px 0}
+  /* projects */
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .pcard{border:1px solid var(--line);border-radius:10px;padding:13px;background:#fbfcfd}
+  .pcard .nm{font-weight:750;margin-bottom:3px}
+  .pcard .desc{font-size:.8rem;color:var(--muted);margin-bottom:8px}
+  .pcard .lnk{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem}
+  /* ai context */
+  .ctl{padding:12px 0;border-top:1px solid var(--line)}
+  .ctl:first-of-type{border-top:none;padding-top:0}
+  .ctl .lr{display:flex;justify-content:space-between;align-items:baseline}
+  .ctl .val{color:var(--accent);font-weight:750}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .hint{color:var(--dim);font-size:.82rem;margin-top:3px}
+  .tg{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;padding:7px 0}
+  .tg input{margin-top:3px;accent-color:var(--accent)}
+  .out{min-height:160px;max-height:340px;overflow:auto;padding:13px;border:1px solid #bdd7dc;border-radius:8px;background:var(--soft);
+    color:#173f46;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;white-space:pre-wrap}
+  .status{min-height:18px;margin-top:8px;color:var(--task);font-size:.85rem;font-weight:700}
+  .note-amber{background:var(--idea-soft);border-left:4px solid var(--idea);border-radius:6px;padding:11px 13px;font-size:.85rem;color:#4d3900;margin-top:4px}
+  @media(max-width:560px){ .head .ttl{font-size:1.25rem} }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#126b76" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <h1>Coding Projects</h1>
+    <p>Private workspace — sign in to continue.</p>
+    <button class="gbtn" id="signinBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.8-6.8C35.6 2.4 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v7.8h12.4c-.3 2-1.6 5-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.2z"/><path fill="#FBBC05" d="M10.5 28.4c-.5-1.5-.8-3.1-.8-4.4s.3-3 .8-4.4l-7.9-6.2C1 16.3 0 20 0 24s1 7.7 2.6 10.6l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.6 2.2-7.9 2.2-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="head">
+    <div class="ttl">Coding <span>Projects</span></div>
+    <div class="who"><span id="whoami"></span><br><button class="signout" id="signoutBtn">Sign out</button></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="capture">🐛 Capture</button>
+    <button class="tab" data-tab="context">🤖 AI Context</button>
+    <button class="tab" data-tab="projects">🗂️ Projects</button>
+    <button class="tab" data-tab="secrets">🔐 Secrets</button>
+  </div>
+
+  <!-- CAPTURE -->
+  <section class="view on" id="v-capture">
+    <div class="card">
+      <h2>Log a bug, idea, or task</h2>
+      <div class="row">
+        <input type="text" id="capTitle" placeholder="What's the bug / idea? (e.g. dock jumps on iOS)">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="capType"><option value="bug">🐛 Bug</option><option value="idea">💡 Idea</option><option value="task">✅ Task</option></select>
+        <select id="capProject"></select>
+      </div>
+      <div style="margin-top:8px"><textarea id="capNotes" placeholder="Notes / steps to reproduce (optional)"></textarea></div>
+      <div style="margin-top:10px;text-align:right"><button class="btn" id="capAdd">Add</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Open items <span id="openCount" style="color:var(--dim)"></span></h2>
+      <div class="chips" id="filterChips"></div>
+      <div id="list"></div>
+    </div>
+  </section>
+
+  <!-- AI CONTEXT -->
+  <section class="view" id="v-context">
+    <div class="card">
+      <h2>AI collaboration context</h2>
+      <p class="hint" style="margin-top:-4px">Tune how you want AI coding agents to work with you, then save or copy the summary to paste at the start of a session.</p>
+
+      <div class="ctl"><div class="lr"><label for="detail">Response detail</label><span class="val" id="detailV">Balanced</span></div>
+        <input id="detail" type="range" min="1" max="5" value="3"><div class="hint">1 brief · 5 deep dive</div></div>
+      <div class="ctl"><div class="lr"><label for="autonomy">Agent autonomy</label><span class="val" id="autonomyV">Proactive</span></div>
+        <input id="autonomy" type="range" min="1" max="5" value="4"><div class="hint">1 asks first · 5 makes reasonable calls and moves</div></div>
+      <div class="ctl"><div class="lr"><label for="teaching">Explanation mode</label><span class="val" id="teachingV">Coach</span></div>
+        <input id="teaching" type="range" min="1" max="5" value="3"><div class="hint">1 just do it · 5 walk me through the thinking</div></div>
+      <div class="ctl"><div class="lr"><label for="conf">Uncertainty threshold</label><span class="val" id="confV">70%</span></div>
+        <input id="conf" type="range" min="50" max="95" step="5" value="70"><div class="hint">Below this confidence: ask, verify, or label the assumption</div></div>
+      <div class="ctl"><label for="feedback">Feedback style</label>
+        <select id="feedback"><option>Direct and kind</option><option>Executive summary first</option><option>Step-by-step</option><option>Questions before recommendations</option></select></div>
+      <div class="ctl"><label>Behaviors I value</label>
+        <label class="tg"><input type="checkbox" data-b="Make a strong first draft before asking setup questions." checked><span>First draft before setup questions</span></label>
+        <label class="tg"><input type="checkbox" data-b="Verify the build (esbuild/vite) before pushing." checked><span>Verify build before pushing</span></label>
+        <label class="tg"><input type="checkbox" data-b="Explain the why behind technical choices, briefly." checked><span>Explain the why, briefly</span></label>
+        <label class="tg"><input type="checkbox" data-b="Tell me directly when I'm making an error — don't flatter." checked><span>Flag my errors directly</span></label>
+        <label class="tg"><input type="checkbox" data-b="Commit + push for me; Vercel auto-deploys." checked><span>Commit + push for me</span></label></div>
+      <div class="ctl"><label for="notes">Extra context for this session</label><textarea id="notes" placeholder="e.g. working on mikeslife brief; on mobile, no computer"></textarea></div>
+
+      <pre class="out" id="summary" aria-live="polite"></pre>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="saveCtx">Save</button>
+        <button class="btn sec" id="copyCtx">Copy</button>
+        <button class="btn sec" id="resetCtx">Reset</button>
+      </div>
+      <div class="status" id="ctxStatus"></div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="view" id="v-projects">
+    <div class="card">
+      <h2>Active projects</h2>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+    <div class="card">
+      <h2>Reference docs</h2>
+      <p class="hint" style="margin-top:-4px">Handoff + architecture live in the <code>Coding-Projects</code> folder (iCloud) and aren't web-hosted yet. Repos below are the source of truth.</p>
+      <div class="note-amber"><strong>Secrets:</strong> by design, no tokens or keys are stored here. Keep your GitHub PAT and API keys in a password manager (1Password / Apple Passwords) and app secrets in Vercel / Google Secret Manager. See the <b>🔐 Secrets</b> tab to track <em>where</em> each one lives and when it's due to rotate.</div>
+    </div>
+  </section>
+
+  <!-- SECRETS -->
+  <section class="view" id="v-secrets">
+    <div class="card">
+      <h2>Secrets index <span style="color:var(--dim);font-weight:600">— names &amp; locations only, never values</span></h2>
+      <div class="note-amber"><strong>No secret values are stored here.</strong> This is a rotation tracker: what exists, where it lives, and when it's due. Keep the actual values in a password manager / Secret Manager.</div>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="secName" placeholder="Name (e.g. GitHub PAT)">
+        <input type="text" id="secLoc" placeholder="Where (e.g. Apple Passwords / Vercel mikeslife-a1qy)">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label>Last rotated</label><input type="date" id="secDate"></div>
+        <div><label>Rotate every (days)</label><input type="text" id="secEvery" inputmode="numeric" placeholder="90"></div>
+      </div>
+      <div style="margin-top:8px"><input type="text" id="secNotes" placeholder="Notes (optional)"></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="secAdd">Add</button><button class="btn sec" id="secSeed">Add my known secrets</button></div>
+    </div>
+    <div class="card"><h2>Tracked secrets</h2><div id="secList"></div></div>
+  </section>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const OWNER = "mdulin@gmail.com";
+  const app = initializeApp({
+    apiKey:"AIzaSyC5mOkljbkSMCMhRf-jrJ7TIpkESMTcxHY", authDomain:"mikedulinmd-cf65b.firebaseapp.com",
+    projectId:"mikedulinmd-cf65b", storageBucket:"mikedulinmd-cf65b.firebasestorage.app",
+    messagingSenderId:"714928483011", appId:"1:714928483011:web:dd1b266d77c6042c6f5076"
+  });
+  const auth = getAuth(app); const db = getFirestore(app);
+  const $ = (id)=>document.getElementById(id);
+
+  // Project metadata (kept in sync by hand with Coding-Projects/CLAUDE.md).
+  const PROJECTS = [
+    ["mikeslife","LifeOS hub + Rupert","https://mikeslife.app","https://github.com/mdulin01/mikeslife"],
+    ["mikes-money","Personal finance","https://www.mikesmoney.app","https://github.com/mdulin01/mikes-money"],
+    ["mikeshealth","Health / longevity","https://mikeshealth.app","https://github.com/mdulin01/mikeshealth"],
+    ["mikesfitness","Fitness tracker","https://mikesfitness.app","https://github.com/mdulin01/mikesfitness"],
+    ["mikesnutrition","Recipes / meal prep","https://mikesnutrition.app","https://github.com/mdulin01/mikesnutrition"],
+    ["mikesupdates","Content feed","https://mikesupdates.app","https://github.com/mdulin01/mikesupdates"],
+    ["mikestravel","Trips","https://www.mikestravel.app","https://github.com/mdulin01/mikestravel"],
+    ["mikeandadam","Shared life hub","https://mikeandadam.app","https://github.com/mdulin01/mikeandadam"],
+    ["rainbow-rentals","Rentals (Rainbow)","https://rainbowrentals.app","https://github.com/mdulin01/rainbow-rentals"],
+    ["dulinproperties","Rentals (Dulin)","https://dulinproperties.app","https://github.com/mdulin01/dulinproperties"],
+    ["lifedesigncourse","Course platform","https://lifedesigncourse.app","https://github.com/mdulin01/lifedesigncourse"],
+    ["downtownGSO","Community platform","https://downtownGSO.org","https://github.com/mdulin01/downtownGSO"],
+    ["adamthecruiseguy","Cruise CRM","","https://github.com/mdulin01/adam-the-cruise-guy"],
+    ["mikedulinmd","This site","https://mikedulinmd.app","https://github.com/mdulin01/mdulin01.github.io"],
+    ["rupert","Chief-of-staff agent","","" ],
+    ["other","Other / general","",""]
+  ];
+
+  // ---------- auth ----------
+  $("signinBtn").onclick = async ()=>{
+    $("loginMsg").textContent="";
+    try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch(e){ $("loginMsg").textContent = e.code==="auth/unauthorized-domain" ? "Add mikedulinmd.app to Firebase Auth → Authorized domains." : (e.message||"Sign-in failed"); }
+  };
+  $("signoutBtn").onclick = ()=>signOut(auth);
+  let unsub=null, unsub2=null;
+  onAuthStateChanged(auth, (user)=>{
+    if(user && user.email===OWNER){
+      $("login").style.display="none"; $("app").style.display="block";
+      $("whoami").textContent=user.email;
+      startApp();
+    }else{
+      if(user){ $("loginMsg").textContent="That account isn't authorized."; signOut(auth); }
+      $("login").style.display="flex"; $("app").style.display="none";
+      if(unsub){unsub();unsub=null;} if(unsub2){unsub2();unsub2=null;}
+    }
+  });
+
+  // ---------- tabs ----------
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on"); $("v-"+t.dataset.tab).classList.add("on");
+  });
+
+  // ---------- capture ----------
+  const TYPE_LABEL={bug:"Bug",idea:"Idea",task:"Task"};
+  let items=[]; let filter={project:"all",status:"open"};
+
+  function fillProjectSelects(){
+    const sel=$("capProject"); sel.innerHTML="";
+    PROJECTS.forEach(([id,desc])=>{ const o=document.createElement("option"); o.value=id; o.textContent=id; sel.appendChild(o); });
+    sel.value="mikeslife";
+  }
+  function projName(id){ const p=PROJECTS.find(x=>x[0]===id); return p?p[0]:id; }
+
+  $("capAdd").onclick = async ()=>{
+    const title=$("capTitle").value.trim(); if(!title) return;
+    $("capAdd").disabled=true;
+    try{
+      await addDoc(collection(db,"coding_items"),{
+        title, type:$("capType").value, project:$("capProject").value,
+        notes:$("capNotes").value.trim(), status:"open",
+        createdAt:serverTimestamp(), createdBy:OWNER
+      });
+      $("capTitle").value=""; $("capNotes").value="";
+    }catch(e){ alert("Couldn't save: "+(e.message||e)); }
+    $("capAdd").disabled=false;
+  };
+
+  function renderChips(){
+    const projs=["all",...new Set(items.map(i=>i.project))];
+    const c=$("filterChips"); c.innerHTML="";
+    const mk=(label,active,on)=>{ const b=document.createElement("button"); b.className="chip"+(active?" on":""); b.textContent=label; b.onclick=on; return b; };
+    c.appendChild(mk(filter.status==="open"?"Open":"Done", true, ()=>{filter.status=filter.status==="open"?"done":"open";render();}));
+    projs.forEach(p=>c.appendChild(mk(p==="all"?"All projects":p, filter.project===p, ()=>{filter.project=p;render();})));
+  }
+  function render(){
+    renderChips();
+    const fl=items.filter(i=>i.status===filter.status && (filter.project==="all"||i.project===filter.project));
+    $("openCount").textContent = "· "+items.filter(i=>i.status==="open").length+" open";
+    const L=$("list");
+    if(!fl.length){ L.innerHTML='<div class="empty">Nothing here yet.</div>'; return; }
+    L.innerHTML="";
+    fl.forEach(i=>{
+      const row=document.createElement("div"); row.className="item"+(i.status==="done"?" done":"");
+      const dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate().toLocaleDateString():"";
+      row.innerHTML=`<span class="tag ${i.type}">${TYPE_LABEL[i.type]||i.type}</span>
+        <div class="body"><div class="t"></div><div class="meta">${i.project} · ${dt}</div>${i.notes?`<div class="notes"></div>`:""}</div>
+        <div class="acts"><button class="iconbtn" data-act="toggle">${i.status==="done"?"↩︎":"✓"}</button><button class="iconbtn" data-act="del">🗑</button></div>`;
+      row.querySelector(".t").textContent=i.title;
+      if(i.notes) row.querySelector(".notes").textContent=i.notes;
+      row.querySelector('[data-act="toggle"]').onclick=()=>updateDoc(doc(db,"coding_items",i.id),{status:i.status==="done"?"open":"done",doneAt:i.status==="done"?null:serverTimestamp()});
+      row.querySelector('[data-act="del"]').onclick=()=>{ if(confirm("Delete this item?")) deleteDoc(doc(db,"coding_items",i.id)); };
+      L.appendChild(row);
+    });
+  }
+
+  // ---------- projects ----------
+  function renderProjects(){
+    const g=$("pgrid"); g.innerHTML="";
+    PROJECTS.filter(p=>p[0]!=="other").forEach(([id,desc,url,repo])=>{
+      const d=document.createElement("div"); d.className="pcard";
+      d.innerHTML=`<div class="nm">${id}</div><div class="desc">${desc}</div><div class="lnk">
+        ${url?`<a href="${url}" target="_blank">Live ↗</a>`:""}${repo?`<a href="${repo}" target="_blank">Repo ↗</a>`:""}</div>`;
+      g.appendChild(d);
+    });
+  }
+
+  // ---------- AI context ----------
+  const LB={detail:["Very brief","Concise","Balanced","Detailed","Deep dive"],autonomy:["Ask first","Low","Balanced","Proactive","High autonomy"],teaching:["Just do it","Explain","Guide","Coach","Socratic"]};
+  const DEF={detail:"3",autonomy:"4",teaching:"3",conf:"70",feedback:"Direct and kind",notes:""};
+  function vlabel(id){ return LB[id][Number($(id).value)-1]; }
+  function buildSummary(){
+    const beh=[...document.querySelectorAll("[data-b]:checked")].map(x=>"- "+x.dataset.b).join("\n");
+    return `AI CODING CONTEXT — MICHAEL DULIN
+
+Working style:
+- Response detail: ${vlabel("detail")}
+- Agent autonomy: ${vlabel("autonomy")}
+- Explanation mode: ${vlabel("teaching")}
+- Feedback style: ${$("feedback").value}
+- Uncertainty threshold: below ${$("conf").value}% confidence, ask / verify / label the assumption.
+
+Behaviors I value:
+${beh}
+
+Stack & flow: React + Vite + Tailwind/plain CSS, Firebase, Vercel auto-deploy from GitHub (mdulin01). Edit → build-check → commit → push.
+
+Extra context:
+${$("notes").value.trim()||"- none"}`;
+  }
+  function updateCtx(){
+    $("detailV").textContent=vlabel("detail"); $("autonomyV").textContent=vlabel("autonomy");
+    $("teachingV").textContent=vlabel("teaching"); $("confV").textContent=$("conf").value+"%";
+    $("summary").textContent=buildSummary(); $("ctxStatus").textContent="";
+  }
+  ["detail","autonomy","teaching","conf","feedback","notes"].forEach(id=>{$(id).addEventListener("input",updateCtx);$(id).addEventListener("change",updateCtx);});
+  document.querySelectorAll("[data-b]").forEach(x=>x.addEventListener("change",updateCtx));
+  $("copyCtx").onclick=async()=>{ try{await navigator.clipboard.writeText($("summary").textContent);$("ctxStatus").textContent="Copied.";}catch{$("ctxStatus").textContent="Select + copy manually.";} };
+  $("resetCtx").onclick=()=>{ $("detail").value=DEF.detail;$("autonomy").value=DEF.autonomy;$("teaching").value=DEF.teaching;$("conf").value=DEF.conf;$("feedback").value=DEF.feedback;$("notes").value="";document.querySelectorAll("[data-b]").forEach(x=>x.checked=true);updateCtx(); };
+  $("saveCtx").onclick=async()=>{ try{ await setDoc(doc(db,"coding_meta","aiContext"),{summary:buildSummary(),savedAt:serverTimestamp(),savedBy:OWNER}); $("ctxStatus").textContent="Saved."; }catch(e){ $("ctxStatus").textContent="Save failed: "+(e.message||e); } };
+
+  // ---------- secrets index (NO values — names/locations/rotation only) ----------
+  let secrets=[];
+  const localYMD=()=>{ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+  function rotStatus(x){
+    if(!x.lastRotated||!x.every) return {txt:"no schedule",cls:"task"};
+    const due=new Date(x.lastRotated); due.setDate(due.getDate()+Number(x.every));
+    const days=Math.round((due-Date.now())/86400000);
+    if(days<0) return {txt:"overdue "+(-days)+"d",cls:"bug"};
+    if(days<=14) return {txt:"due in "+days+"d",cls:"idea"};
+    return {txt:"ok · "+days+"d",cls:"task"};
+  }
+  $("secAdd").onclick=async()=>{
+    const name=$("secName").value.trim(); if(!name) return;
+    try{ await addDoc(collection(db,"coding_secrets"),{name,location:$("secLoc").value.trim(),lastRotated:$("secDate").value||"",every:$("secEvery").value.trim(),notes:$("secNotes").value.trim(),createdAt:serverTimestamp()});
+      $("secName").value="";$("secLoc").value="";$("secDate").value="";$("secEvery").value="";$("secNotes").value=""; }
+    catch(e){ alert("Couldn't save: "+(e.message||e)); }
+  };
+  const KNOWN=[
+    ["GitHub PAT (mdulin01)","Apple Passwords / 1Password","90"],
+    ["Telegram bot token (Rupert)","Mac mini ~/.openclaw + password manager","180"],
+    ["HEALTH_INGEST_TOKEN","Vercel mikeshealth + iOS Shortcuts","180"],
+    ["OPENAI_API_KEY","Vercel mikeslife-a1qy","180"],
+    ["ANTHROPIC_API_KEY","Vercel mikeslife-a1qy","180"],
+    ["CRON_SECRET","Vercel mikeslife-a1qy","365"],
+    ["FIREBASE_SERVICE_ACCOUNT + FIREBASE_SA_*","Vercel mikeslife-a1qy","365"],
+    ["Google OAuth client secret","Vercel + GCP mikeslife-963c6","365"],
+    ["LOCATION_TOKEN","Vercel mikeslife-a1qy + iOS Shortcuts","365"]
+  ];
+  $("secSeed").onclick=async()=>{
+    if(secrets.length && !confirm("Add the known starter secrets anyway? (may duplicate)")) return;
+    try{ for(const [name,location,every] of KNOWN){ await addDoc(collection(db,"coding_secrets"),{name,location,lastRotated:"",every,notes:"",createdAt:serverTimestamp()}); } }
+    catch(e){ alert("Couldn't seed: "+(e.message||e)); }
+  };
+  function renderSecrets(){
+    const L=$("secList");
+    if(!secrets.length){ L.innerHTML='<div class="empty">No secrets tracked yet — add one or tap "Add my known secrets".</div>'; return; }
+    L.innerHTML="";
+    secrets.forEach(x=>{
+      const st=rotStatus(x);
+      const row=document.createElement("div"); row.className="item";
+      row.innerHTML=`<span class="tag ${st.cls}">${st.txt}</span>
+        <div class="body"><div class="t"></div><div class="meta"></div>${x.notes?'<div class="notes"></div>':''}</div>
+        <div class="acts"><button class="iconbtn" data-act="rot" title="Mark rotated today">rotated ✓</button><button class="iconbtn" data-act="del">🗑</button></div>`;
+      row.querySelector(".t").textContent=x.name;
+      row.querySelector(".meta").textContent=(x.location||"—")+(x.every?" · every "+x.every+"d":"")+(x.lastRotated?" · last "+x.lastRotated:" · never rotated");
+      if(x.notes) row.querySelector(".notes").textContent=x.notes;
+      row.querySelector('[data-act="rot"]').onclick=()=>updateDoc(doc(db,"coding_secrets",x.id),{lastRotated:localYMD()});
+      row.querySelector('[data-act="del"]').onclick=()=>{ if(confirm("Remove from index?")) deleteDoc(doc(db,"coding_secrets",x.id)); };
+      L.appendChild(row);
+    });
+  }
+
+  // ---------- boot ----------
+  let started=false;
+  async function startApp(){
+    if(started) return; started=true;
+    fillProjectSelects(); renderProjects(); updateCtx();
+    try{ const s=await getDoc(doc(db,"coding_meta","aiContext")); if(s.exists()&&s.data().summary){ $("summary").textContent=s.data().summary; $("ctxStatus").textContent="Loaded your saved context."; } }catch{}
+    unsub = onSnapshot(query(collection(db,"coding_items"),orderBy("createdAt","desc")), (snap)=>{
+      items = snap.docs.map(d=>({id:d.id,...d.data()})); render();
+    }, (err)=>{ $("list").innerHTML='<div class="empty">Can’t load items: '+(err.message||err)+'</div>'; });
+    unsub2 = onSnapshot(query(collection(db,"coding_secrets"),orderBy("name","asc")), (snap)=>{
+      secrets = snap.docs.map(d=>({id:d.id,...d.data()})); renderSecrets();
+    }, (err)=>{ $("secList").innerHTML='<div class="empty">Can’t load secrets: '+(err.message||err)+'</div>'; });
+  }
+</script>
+</body>
+</html>
