@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Referral Completion</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--green-dark));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
+  .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:230px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700}.nm small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Referral Completion &amp; Loop Closure</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Location</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+    <div class="sec">Loop Closure <span>— completion-rate goal ≥ 80%</span></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card"><h3>Referral Outcome</h3><div class="h">Completed / Failed / Still open</div><div class="cb"><canvas id="cOutcome"></canvas></div></div>
+      <div class="card"><h3>Reasons for Failure</h3><div class="h">Why the loop did not close</div><div class="cb"><canvas id="cFail"></canvas></div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="card"><h3>Completion Rate — last 6 months</h3><div class="h">% of referrals with a closed loop</div><div class="cb" style="height:200px"><canvas id="cTrend"></canvas></div></div>
+    </div>
+    <div class="sec">By Provider <span>— completion rate, days to close &amp; open loops</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Provider</th><th class="num">Referrals</th><th class="num">Completion %</th><th class="num">Avg Days to Close</th><th class="num">Failed</th><th class="num">Open Loops</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+const OPEN_PCT=12, GOAL_COMPLETE=80;
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",vol:50,comp:82,days:9.2},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",vol:63,comp:76,days:11.1},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",vol:47,comp:71,days:13.4},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",vol:56,comp:74,days:11.8},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",vol:46,comp:85,days:8.4},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",vol:58,comp:73,days:12.3},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",vol:49,comp:83,days:9.0},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",vol:47,comp:86,days:8.1},
+ {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",vol:53,comp:77,days:10.6},
+];
+const FAILREASONS=[["Patient declined",.26,C.amber],["Insurance / OON issue",.22,C.red],["Specialty unable to schedule",.20,C.peri],["Unable to reach patient",.18,C.periL],["Other / undocumented",.14,C.gray]];
+let region="all",clinic="all",provId="all",period="mtd",charts={};
+const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function agg(){const rs=active();const vol=rs.reduce((a,p)=>a+p.vol,0)||1;return {vol:rs.reduce((a,p)=>a+p.vol,0),comp:rs.reduce((a,p)=>a+p.comp*p.vol,0)/vol,days:rs.reduce((a,p)=>a+p.days*p.vol,0)/vol};}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Locations${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function render(){
+  const d=agg(),f=PERIODS[period].f,sel=active();
+  const vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT),completed=round(vol*d.comp/100),failed=round(vol*failPct/100),open=round(vol*OPEN_PCT/100);
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  const cards=[
+    {l:"Referrals",n:fmt(vol),s:"in scope this period",ac:C.navy},
+    {l:"Completion Rate",n:Math.round(d.comp)+"%",s:"loop closed · goal ≥80%",ac:tone(d.comp,true,80,73)},
+    {l:"Avg Days to Close",n:d.days.toFixed(1)+" d",s:"referral → loop closed",ac:tone(d.days,false,10,13)},
+    {l:"Completed",n:fmt(completed),s:"consult note / result returned",ac:C.green},
+    {l:"Failed / Closed-incomplete",n:fmt(failed),s:failPct.toFixed(0)+"% of referrals",ac:tone(failPct,false,8,14)},
+    {l:"Open Loops",n:fmt(open),s:"still awaiting closure",ac:tone(OPEN_PCT,false,12,18)},
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  // outcome donut
+  charts.oc&&charts.oc.destroy();
+  charts.oc=new Chart(document.getElementById("cOutcome"),{type:"doughnut",data:{labels:["Completed","Failed / incomplete","Still open"],datasets:[{data:[completed,failed,open],backgroundColor:[C.green,C.red,C.amber],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
+  // fail reasons
+  charts.fl&&charts.fl.destroy();
+  charts.fl=new Chart(document.getElementById("cFail"),{type:"bar",data:{labels:FAILREASONS.map(r=>r[0]),datasets:[{data:FAILREASONS.map(r=>round(failed*r[1])),backgroundColor:FAILREASONS.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // trend
+  const rr=(seed=>()=>{seed=(seed*9301+49297)%233280;return seed/233280;})((region+clinic+provId).length*7+5);
+  const tr=[];for(let i=0;i<6;i++){tr.push(round(clampC(d.comp+(rr()-0.5)*8)));}tr[5]=round(d.comp);
+  charts.tr&&charts.tr.destroy();
+  charts.tr=new Chart(document.getElementById("cTrend"),{data:{labels:["Jan","Feb","Mar","Apr","May","Jun"],datasets:[{type:"line",label:"Completion rate",data:tr,borderColor:C.green,backgroundColor:hexA(C.green,.1),fill:true,tension:.35,pointRadius:2},{type:"line",label:"Goal 80%",data:[80,80,80,80,80,80],borderColor:C.amber,borderDash:[5,4],borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{min:60,max:95,ticks:{callback:v=>v+'%'}}}}});
+  // table
+  const pc=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
+  document.getElementById("tbody").innerHTML=sel.map(p=>{const pv=round(p.vol*f),fp=Math.max(0,100-p.comp-OPEN_PCT);return `<tr>
+    <td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${fmt(pv)}</td>
+    <td class="num">${pc(p.comp+'%',tone(p.comp,true,80,73))}</td><td class="num">${pc(p.days.toFixed(1)+' d',tone(p.days,false,10,13))}</td>
+    <td class="num">${fmt(round(pv*fp/100))}</td><td class="num">${fmt(round(pv*OPEN_PCT/100))}</td></tr>`;}).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic referral-completion data, drillable Region → Location → Provider. Completion = loop closed with consult note / result returned. Failure reasons (patient declined, insurance / OON, specialty unable to schedule, unable to reach patient) support closing the loop and reducing avoidable failures. Completion-rate goal ≥80%.";
+  if(window.renderAvanceAI)window.renderAvanceAI();
+}
+function clampC(v){return Math.max(55,Math.min(95,v));}
+window.AVANCE_AI={
+ insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent,vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT);
+   return '<b>'+scope+'</b>: completion rate <b>'+Math.round(d.comp)+'%</b> (goal ≥80%), avg '+d.days.toFixed(1)+' days to close. '+failPct.toFixed(0)+'% fail to close — top reasons are patient declined (26%), insurance/OON (22%) and specialty unable to schedule (20%). Biggest lever: work the failure reasons — insurance/OON and unreachable patients are the most recoverable.';},
+ chips:['Why are loops not closing?','Who has the lowest completion?','How do we improve completion?'],
+ answer:function(q){const d=agg(),ql=q.toLowerCase();
+   if(/fail|reason|not clos|decline|insurance|oon/.test(ql))return '<h5>Failure reasons</h5>Of referrals that fail to close: patient declined 26%, insurance / OON 22%, specialty unable to schedule 20%, unable to reach patient 18%. Insurance/OON and unreachable-patient are the most recoverable — pre-check network status and add a second outreach attempt.';
+   if(/who|lowest|worst|provider/.test(ql)){const w=active().map(p=>[p.name,p.comp]).sort((a,b)=>a[1]-b[1]).slice(0,3);return '<h5>Lowest completion</h5>'+w.map(x=>x[0]+' ('+x[1]+'%)').join(', ')+'. Pair these with a referral coordinator sweep on open loops.';}
+   if(/improve|close|better|loop/.test(ql))return '<h5>Improve completion</h5>1) Verify network/insurance before sending (cuts OON failures). 2) Second outreach attempt + MyChart message for unreachable patients. 3) Escalate specialty-can’t-schedule to redirect to a high-value specialist. Goal ≥80%.';
+   return '<h5>Summary</h5>Completion '+Math.round(d.comp)+'% · '+d.days.toFixed(1)+' days to close · failures led by patient-declined and insurance/OON.';}
+};
+window.startDashboard=function(){
+  buildClinic();buildProvider();
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
+  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>

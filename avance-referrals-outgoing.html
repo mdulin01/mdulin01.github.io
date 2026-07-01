@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Outgoing Referrals (High-Value Specialists)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
+  .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:230px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700}.nm small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .hvs{display:inline-block;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;background:#E6F2E6;color:var(--green-dark);margin-left:5px}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Outgoing Referrals — High-Value Specialists</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Location</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+    <div class="sec">Volume &amp; Turnaround <span>— goal: routine ≤ 4 days · urgent/STAT ≤ 24 hrs</span></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card"><h3>Referral Status Snapshot</h3><div class="h">% Pending / Scheduled / Closed</div><div class="cb"><canvas id="cStatus"></canvas></div></div>
+      <div class="card"><h3>Volume by Specialist Type</h3><div class="h">Outbound referrals by specialty</div><div class="cb"><canvas id="cSpec"></canvas></div></div>
+    </div>
+    <div class="sec">Redirection &amp; Closure</div>
+    <div class="grid">
+      <div class="card"><h3>Redirection Reasons</h3><div class="h">Why a referral had to be redirected · OON tracked separately</div><div class="cb"><canvas id="cRedir"></canvas></div></div>
+      <div class="card"><h3>Closure Reasons</h3><div class="h">Documented reason the referral loop closed</div><div class="cb"><canvas id="cClose"></canvas></div></div>
+    </div>
+    <div class="sec">STAT / Urgent Volume by Location <span>— dropdown to provider level via the filter above</span></div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px"><table><thead><tr><th>Provider</th><th class="num">Referrals</th><th class="num">Urgent/STAT</th><th class="num">Submit TAT</th><th class="num">Routine TAT</th><th class="num">Urgent TAT</th><th class="num">High-Value %</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="sec">Top Specialists by Volume <span>— ✓HV = high-value specialist</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Specialist</th><th>Type</th><th class="num">Referrals</th><th class="num">% Scheduled</th><th class="num">Avg TAT (days)</th></tr></thead><tbody id="specBody"></tbody></table></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+const GOAL_ROUTINE=4, GOAL_URGENT=24, GOAL_SUBMIT=24; // days, hrs, hrs
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",sent:50,subTAT:8,routine:3.6,urgent:20,pending:18,sched:54,hvs:82,redirect:9,oon:4},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",sent:63,subTAT:12,routine:4.3,urgent:26,pending:22,sched:50,hvs:76,redirect:12,oon:7},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",sent:47,subTAT:18,routine:5.1,urgent:30,pending:26,sched:46,hvs:71,redirect:15,oon:9},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",sent:56,subTAT:14,routine:4.5,urgent:27,pending:24,sched:48,hvs:74,redirect:13,oon:6},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",sent:46,subTAT:6,routine:3.2,urgent:18,pending:15,sched:58,hvs:86,redirect:7,oon:2},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",sent:58,subTAT:16,routine:4.8,urgent:28,pending:25,sched:47,hvs:73,redirect:14,oon:8},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",sent:49,subTAT:7,routine:3.4,urgent:19,pending:16,sched:56,hvs:84,redirect:8,oon:3},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",sent:47,subTAT:6,routine:3.1,urgent:17,pending:14,sched:58,hvs:87,redirect:6,oon:2},
+ {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",sent:53,subTAT:11,routine:4.2,urgent:25,pending:21,sched:51,hvs:77,redirect:11,oon:5},
+];
+const SPECTYPES=[["Cardiology",.17],["Orthopedics",.15],["Gastroenterology",.12],["Dermatology",.11],["Endocrinology",.10],["Neurology",.09],["Pulmonology",.08],["ENT",.07],["Ophthalmology",.06],["Other",.05]];
+const REDIR=[["Out-of-network (OON)",.40,C.red],["Not accepting new patients",.25,C.amber],["Patient preference",.20,C.peri],["No appointment availability",.15,C.gray]];
+const CLOSE=[["Loop closed — completed",.62,C.green],["Patient declined",.12,C.amber],["Unable to schedule",.10,C.peri],["Insurance / OON issue",.09,C.red],["Unable to reach patient",.07,C.gray]];
+const NAMEDSPEC=[["Charlotte Cardiology Associates","Cardiology",1,.19],["OrthoCarolina","Orthopedics",1,.16],["Carolina Digestive Health","Gastroenterology",1,.12],["Dermatology & Laser Center","Dermatology",0,.10],["Triangle Endocrine","Endocrinology",1,.09],["Avance Neurology (internal)","Neurology",1,.08],["Wake Pulmonary","Pulmonology",0,.07],["Piedmont ENT","ENT",1,.06],["Carolina Eye Associates","Ophthalmology",0,.06],["Other specialists","Various",0,.07]];
+let region="all",clinic="all",provId="all",period="mtd",charts={};
+const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function agg(){const rs=active();const s=k=>rs.reduce((a,r)=>a+r[k],0);const sent=s("sent")||1;const w=k=>rs.reduce((a,r)=>a+r[k]*r.sent,0)/sent;
+  return {sent:s("sent"),subTAT:w("subTAT"),routine:w("routine"),urgent:w("urgent"),pending:w("pending"),sched:w("sched"),hvs:w("hvs"),redirect:w("redirect"),oon:s("oon")};}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Locations${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function render(){
+  const d=agg(),f=PERIODS[period].f,sel=active();
+  const sent=round(d.sent*f),closed=100-d.pending-d.sched,urgentVol=round(sent*0.14);
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  const cards=[
+    {l:"Referrals Sent",n:fmt(sent),s:urgentVol+" urgent/STAT",ac:C.navy},
+    {l:"Submission TAT",n:d.subTAT.toFixed(0)+" hrs",s:"receive → fax out · goal ≤24h",ac:tone(d.subTAT,false,24,36)},
+    {l:"Routine TAT",n:d.routine.toFixed(1)+" d",s:"to appointment · goal ≤4 d",ac:tone(d.routine,false,4,5.5)},
+    {l:"Urgent / STAT TAT",n:d.urgent.toFixed(0)+" hrs",s:"to appointment · goal ≤24h",ac:tone(d.urgent,false,24,36)},
+    {l:"% Scheduled",n:Math.round(d.sched)+"%",s:Math.round(closed)+"% closed",ac:tone(d.sched,true,55,48)},
+    {l:"% Pending",n:Math.round(d.pending)+"%",s:"awaiting scheduling",ac:tone(d.pending,false,18,24)},
+    {l:"High-Value Specialist %",n:Math.round(d.hvs)+"%",s:"sent to high-value specialists",ac:tone(d.hvs,true,80,72)},
+    {l:"Redirection Rate",n:Math.round(d.redirect)+"%",s:fmt(round(d.oon*f))+" sent out-of-network",ac:tone(d.redirect,false,10,14)},
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  // status donut
+  charts.st&&charts.st.destroy();
+  charts.st=new Chart(document.getElementById("cStatus"),{type:"doughnut",data:{labels:["Pending","Scheduled","Closed"],datasets:[{data:[round(d.pending),round(d.sched),round(closed)],backgroundColor:[C.amber,C.peri,C.green],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
+  // specialty bar
+  charts.sp&&charts.sp.destroy();
+  charts.sp=new Chart(document.getElementById("cSpec"),{type:"bar",data:{labels:SPECTYPES.map(s=>s[0]),datasets:[{data:SPECTYPES.map(s=>round(sent*s[1])),backgroundColor:C.teal,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // redirection
+  const redTot=round(sent*d.redirect/100);
+  charts.rd&&charts.rd.destroy();
+  charts.rd=new Chart(document.getElementById("cRedir"),{type:"bar",data:{labels:REDIR.map(r=>r[0]),datasets:[{data:REDIR.map(r=>round(redTot*r[1])),backgroundColor:REDIR.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // closure
+  const closeTot=round(sent*closed/100);
+  charts.cl&&charts.cl.destroy();
+  charts.cl=new Chart(document.getElementById("cClose"),{type:"bar",data:{labels:CLOSE.map(r=>r[0]),datasets:[{data:CLOSE.map(r=>round(closeTot*r[1])),backgroundColor:CLOSE.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // provider table
+  const pc=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
+  document.getElementById("tbody").innerHTML=sel.map(p=>{const ps=round(p.sent*f),uv=round(ps*0.14);return `<tr>
+    <td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${fmt(ps)}</td><td class="num">${pc(uv,C.amber)}</td>
+    <td class="num">${pc(p.subTAT+' h',tone(p.subTAT,false,24,36))}</td><td class="num">${pc(p.routine.toFixed(1)+' d',tone(p.routine,false,4,5.5))}</td>
+    <td class="num">${pc(p.urgent+' h',tone(p.urgent,false,24,36))}</td><td class="num">${pc(p.hvs+'%',tone(p.hvs,true,80,72))}</td></tr>`;}).join("");
+  // specialist table
+  document.getElementById("specBody").innerHTML=NAMEDSPEC.map(s=>{const v=round(sent*s[3]);const sc=round(d.sched*(0.9+Math.random()*0.2));return `<tr>
+    <td class="nm">${s[0]}${s[2]?'<span class="hvs">✓ HV</span>':''}</td><td>${s[1]}</td><td class="num">${fmt(v)}</td><td class="num">${Math.min(99,Math.round(d.sched))}%</td><td class="num">${d.routine.toFixed(1)}</td></tr>`;}).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic outgoing-referral data, drillable Region → Location → Provider. Turnaround goals: routine ≤4 days, urgent/STAT ≤24 hrs, submission (receive → fax out) ≤24 hrs. ‘High-value specialist’ = preferred, integrated (e.g., Carelink) or high-quality specialist. Redirection tracks OON, not-accepting, patient-preference and availability; OON volume is broken out for the in-network team.";
+  if(window.renderAvanceAI)window.renderAvanceAI();
+}
+window.AVANCE_AI={
+ insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent,sent=round(d.sent*f);
+   return '<b>'+scope+'</b>: <b>'+fmt(sent)+'</b> referrals sent. Submission TAT '+d.subTAT.toFixed(0)+' hrs (goal ≤24h), routine '+d.routine.toFixed(1)+' d (goal ≤4), urgent '+d.urgent.toFixed(0)+' hrs (goal ≤24h). '+Math.round(d.hvs)+'% went to high-value specialists; redirection '+Math.round(d.redirect)+'% ('+fmt(round(d.oon*f))+' out-of-network). Biggest lever: cut submission turnaround in the fax box and keep referrals with high-value specialists.';},
+ chips:['Where are we missing the turnaround goal?','What is driving redirection / OON?','How can the fax box speed up?'],
+ answer:function(q){const d=agg(),ql=q.toLowerCase();
+   if(/turnaround|tat|goal|slow|speed|fax|automat/.test(ql))return '<h5>Turnaround</h5>Submission TAT is '+d.subTAT.toFixed(0)+' hrs (goal ≤24). Routine '+d.routine.toFixed(1)+' d vs 4-day goal; urgent '+d.urgent.toFixed(0)+' hrs vs 24-hr goal. The fax box is the automation target — 150 orders/day handled manually. Auto-routing inbound faxes and same-day STAT handling would move all three toward goal.';
+   if(/redirect|oon|network|high.?value|specialist/.test(ql))return '<h5>Redirection & high-value specialists</h5>'+Math.round(d.hvs)+'% of referrals go to high-value specialists; redirection is '+Math.round(d.redirect)+'%, mostly OON (40%) and specialists not accepting new patients (25%). Keeping referrals with high-value / in-network specialists reduces redirection rework and improves closure.';
+   return '<h5>Summary</h5>'+fmt(round(d.sent*PERIODS[period].f))+' referrals · submit '+d.subTAT.toFixed(0)+'h · routine '+d.routine.toFixed(1)+'d · urgent '+d.urgent.toFixed(0)+'h · '+Math.round(d.hvs)+'% high-value · '+Math.round(d.redirect)+'% redirected.';}
+};
+window.startDashboard=function(){
+  buildClinic();buildProvider();
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
+  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>
