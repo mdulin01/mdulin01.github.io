@@ -234,7 +234,7 @@
         <div><label>Rotate every (days)</label><input type="text" id="secEvery" inputmode="numeric" placeholder="90"></div>
       </div>
       <div style="margin-top:8px"><input type="text" id="secNotes" placeholder="Notes (optional)"></div>
-      <div class="row" style="margin-top:10px"><button class="btn" id="secAdd">Add</button><button class="btn sec" id="secSeed">Add my known secrets</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="secAdd">Add</button><button class="btn sec" id="secSeed">Add my known secrets</button></div>\n      <p class="hint">Claude reads this whole workspace (Capture · Roadmap · AI context · this index) at session start via the mikeslife <code>/api/coding-board</code> endpoint — log things here and every session sees them.</p>
     </div>
     <div class="card"><h2>Tracked secrets</h2><div id="secList"></div></div>
   </section>
@@ -242,7 +242,7 @@
   <!-- ARCHITECTURE -->
   <section class="view" id="v-architecture">
     <div class="card">
-      <h2>LifeOS data architecture <span class="upd">updated 2026-06-18</span></h2>
+      <h2>LifeOS data architecture <span class="upd">updated 2026-07-06</span></h2>
       <p class="hint" style="margin-top:-4px">A <b>hub-and-spoke</b>: many single-purpose apps (spokes), each its own Firebase project + source of truth, a strategic hub (<b>mikeslife</b>), and an agent (<b>Rupert</b>) that reads curated slices from the spokes, thinks, and writes guidance back. Spokes never talk to each other directly — Rupert is the connective tissue. Tap a section to expand.</p>
 
       <details class="acc" open>
@@ -252,7 +252,7 @@
   USER["📱 Mike (iPhone) — installed PWAs + push"]
   HUB["🦚 mikeslife hub<br/>doc: lifeos/uid"]
   subgraph RUP["Rupert — agent / data engine"]
-    CLOUD["☁️ Vercel crons in mikeslife<br/>brief · context · banners · heartbeat<br/>/api/rupert chat (OpenAI or Claude)"]
+    CLOUD["☁️ Vercel crons in mikeslife<br/>brief · context · banners · heartbeat<br/>travel · fitness-coach · updates · nutrition<br/>/api/rupert chat (OpenAI or Claude, auto-fallback)"]
     MINI["🖥️ Mac mini (OpenClaw)<br/>adamjobs + social digests only"]
   end
   subgraph SPOKES["Spoke apps — each its own Firebase project"]
@@ -262,6 +262,7 @@
     RENT["🏠 rentals"]
     UPD["📡 updates"]
     NUT["🥗 nutrition"]
+    TRAV["✈️ travel"]
   end
   USER -->|read/write| HUB
   USER -->|read/write| SPOKES
@@ -602,14 +603,19 @@ ${$("notes").value.trim()||"- none"}`;
     catch(e){ alert("Couldn't save: "+(e.message||e)); }
   };
   const KNOWN=[
-    ["GitHub PAT (mdulin01)","Apple Passwords / 1Password","90"],
+    ["GitHub PAT (mdulin01)","Apple Passwords / 1Password (created 2026-07-04)","90"],
     ["Telegram bot token (Rupert)","Mac mini ~/.openclaw + password manager","180"],
     ["HEALTH_INGEST_TOKEN","Vercel mikeshealth + iOS Shortcuts","180"],
     ["OPENAI_API_KEY","Vercel mikeslife-a1qy","180"],
-    ["ANTHROPIC_API_KEY","Vercel mikeslife-a1qy","180"],
+    ["OPENAI_API_KEY (insights)","Vercel mikes-money","180"],
+    ["OPEN_API_Key (email parse)","Vercel mikestravel","180"],
+    ["ANTHROPIC_API_KEY (mikeslife-rupert)","Vercel mikeslife-a1qy + Anthropic Console (created 2026-07-06)","180"],
+    ["GMAIL_REFRESH_TOKEN (invoice drafts)","Vercel mikes-money (gmail.compose, set 2026-06-30)","365"],
     ["CRON_SECRET","Vercel mikeslife-a1qy","365"],
-    ["FIREBASE_SERVICE_ACCOUNT + FIREBASE_SA_*","Vercel mikeslife-a1qy","365"],
-    ["Google OAuth client secret","Vercel + GCP mikeslife-963c6","365"],
+    ["CODING_BOARD_TOKEN","Vercel mikeslife-a1qy + Coding-Projects/CLAUDE.md","365"],
+    ["FIREBASE_SERVICE_ACCOUNT + FIREBASE_SA_* (fitness/money/health/rainbow/updates/nutrition/travel/mikedulinmd)","Vercel mikeslife-a1qy","365"],
+    ["Google OAuth client secret (Rupert Google sync)","Vercel + GCP mikeslife-963c6","365"],
+    ["Google OAuth client secret (invoice email)","Vercel + GCP mikesmoney-91595","365"],
     ["LOCATION_TOKEN","Vercel mikeslife-a1qy + iOS Shortcuts","365"]
   ];
   $("secSeed").onclick=async()=>{
