@@ -68,8 +68,8 @@
     </div>
     <div class="sec">By Referring Provider <span>— who's sending, and how much</span></div>
     <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Referring Provider</th><th class="num">To BH</th><th class="num">To Nutrition</th><th class="num">To Neurology</th><th class="num">To Psychiatry</th><th class="num">Total</th></tr></thead><tbody id="tbody"></tbody></table></div>
-    <div class="sec">Specialist Availability <span>— open schedules: next available appointment &amp; open slots (next 14 days)</span></div>
-    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Specialist</th><th>Service</th><th>Location</th><th class="num">Next Available</th><th class="num">Open Slots (14d)</th><th class="num">Utilization</th><th>New Patients</th></tr></thead><tbody id="availBody"></tbody></table></div>
+    <div class="sec">Specialist Availability &amp; New-Patient Flow <span>— open schedules, next available appointment, and new patients per specialist (NEW = onboarded &lt;6 months; watch that new providers are filling)</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Specialist</th><th>Service</th><th>Location</th><th class="num">Next Available</th><th class="num">Open Slots (14d)</th><th class="num">Utilization</th><th class="num">New Pts (mo)</th><th>Accepting New</th></tr></thead><tbody id="availBody"></tbody></table></div>
     <div class="foot" id="foot"></div>
   </div>
 </div>
@@ -93,16 +93,16 @@ const PROV=[
  {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",bh:26,nutr:11,neuro:8,psych:7},
 ];
 const SPEC=[
- ["Dr. Elena Vasquez, PsyD","bh","Charlotte — SouthPark",3,14,86,"Yes"],
- ["Karen Mills, LCSW","bh","Durham",5,9,91,"Yes"],
- ["Dr. Tom Nguyen, PhD","bh","Apex",8,6,94,"Limited"],
- ["Rachel Kim, RD","nutr","Holly Springs",4,16,78,"Yes"],
- ["Marcus Webb, RD","nutr","Midtown Charlotte",7,10,84,"Yes"],
- ["Dr. Susan Patel","neuro","Chapel Hill",18,3,97,"Limited"],
- ["Dr. David Orr","neuro","Charlotte — SouthPark",23,2,98,"No"],
- ["Beth Connor, PMHNP","psych","Apex",12,5,92,"Yes"],
- ["Dr. Lisa Moreau","psych","Durham",21,2,98,"Limited"],
- ["Dr. Alan Reyes-Cruz","psych","Rea Farms",27,1,99,"No"],
+ ["Dr. Elena Vasquez, PsyD","bh","Charlotte — SouthPark",3,14,86,"Yes",14,0],
+ ["Karen Mills, LCSW","bh","Durham",5,9,91,"Yes",11,0],
+ ["Dr. Tom Nguyen, PhD","bh","Apex",8,6,94,"Limited",6,0],
+ ["Rachel Kim, RD","nutr","Holly Springs",4,16,78,"Yes",18,1],
+ ["Marcus Webb, RD","nutr","Midtown Charlotte",7,10,84,"Yes",12,0],
+ ["Dr. Susan Patel","neuro","Chapel Hill",18,3,97,"Limited",4,0],
+ ["Dr. David Orr","neuro","Charlotte — SouthPark",23,2,98,"No",3,0],
+ ["Beth Connor, PMHNP","psych","Apex",12,5,92,"Yes",16,1],
+ ["Dr. Lisa Moreau","psych","Durham",21,2,98,"Limited",4,0],
+ ["Dr. Alan Reyes-Cruz","psych","Rea Farms",27,1,99,"No",2,0],
 ];
 const LOC_REGION={"Holly Springs":"Triangle","Apex":"Triangle","Chapel Hill":"Triangle","Durham":"Triangle","Fuquay-Varina":"Triangle","Charlotte — SouthPark":"Charlotte","Midtown Charlotte":"Charlotte","Rea Farms":"Charlotte"};
 let service="all",region="all",clinicSel=[],period="mtd",charts={};
@@ -162,7 +162,7 @@ function render(){
   document.getElementById("tbody").innerHTML=active().map(p=>`<tr><td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${round(p.bh*f)}</td><td class="num">${round(p.nutr*f)}</td><td class="num">${round(p.neuro*f)}</td><td class="num">${round(p.psych*f)}</td><td class="num" style="font-weight:700">${round((p.bh+p.nutr+p.neuro+p.psych)*f)}</td></tr>`).join("");
   const npPill=x=>x==="Yes"?['#E6F2E6',C.greenD]:x==="Limited"?['#FCF3DC','#9A6E00']:['#FBEAE8',C.red];
   document.getElementById("availBody").innerHTML=sa.slice().sort((a,b)=>a[3]-b[3]).map(x=>{const c=x[3]<=7?C.greenD:x[3]<=14?C.amber:C.red,np=npPill(x[6]);
-    return `<tr><td class="nm">${x[0]}</td><td>${SERVICES[x[1]].name}</td><td>${x[2]}</td><td class="num" style="font-weight:800;color:${c}">${x[3]} d</td><td class="num">${x[4]}</td><td class="num">${x[5]}%</td><td><span class="pill" style="background:${np[0]};color:${np[1]}">${x[6]}</span></td></tr>`;}).join("");
+    return `<tr><td class="nm">${x[0]}</td><td>${SERVICES[x[1]].name}</td><td>${x[2]}</td><td class="num" style="font-weight:800;color:${c}">${x[3]} d</td><td class="num">${x[4]}</td><td class="num">${x[5]}%</td><td class="num" style="font-weight:700">${x[7]}${x[8]?' <span class="pill" style="background:#EEF1FB;color:#2B2C6B">NEW</span>':''}</td><td><span class="pill" style="background:${np[0]};color:${np[1]}">${x[6]}</span></td></tr>`;}).join("");
   document.getElementById("foot").innerHTML="Illustrative / synthetic internal-referral data for Avance's own service lines (Behavioral Health, Nutrition, Neurology, Psychiatry). Tracks incoming volume, who is referring, time-to-schedule (goal ≤7 days), status, and internal-capture (kept in-house vs. sent external). Recommend validating metrics with Jennifer Lattimer, Ysanne Cole (Neurology OM) and Kim Waters.";
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
@@ -172,6 +172,7 @@ window.AVANCE_AI={
  chips:['Which service has the longest wait?','Who has open schedule right now?','Where are we losing internal capture?'],
  answer:function(q){const ql=q.toLowerCase(),v=svcVol();
    if(/open|avail|slot|capacity/.test(ql)){const so=specActive().slice().sort((a,b)=>a[3]-b[3]).slice(0,3);return '<h5>Most open schedule</h5>'+so.map(x=>x[0]+' — '+SERVICES[x[1]].name+', next available '+x[3]+' d ('+x[4]+' open slots)').join('; ')+'. Psychiatry and Neurology run the tightest schedules — route routine follow-ups to APPs to free new-patient slots.';}
+   if(/new patient|new provider|fill|ramp/.test(ql)){const so=specActive().slice().sort((a,b)=>b[7]-a[7]);return '<h5>New-patient flow</h5>'+so.slice(0,4).map(x=>x[0]+' '+x[7]+'/mo'+(x[8]?' (NEW)':'')).join(' · ')+'. New providers (Rachel Kim, Beth Connor) are out-filling several established specialists — but check the tail: '+so.slice(-2).map(x=>x[0]+' '+x[7]+'/mo').join(', ')+' are effectively closed to new patients.';}
    if(/wait|schedul|access|slow|bottleneck|neuro|psych/.test(ql))return '<h5>Access</h5>Time-to-schedule: BH '+SERVICES.bh.tts+' d, Nutrition '+SERVICES.nutr.tts+' d, Neurology '+SERVICES.neuro.tts+' d, Psychiatry '+SERVICES.psych.tts+' d (goal ≤7). Time-to-first-appointment: BH '+SERVICES.bh.ttfa+' d → Psychiatry '+SERVICES.psych.ttfa+' d (goal ≤14). Psychiatry and Neurology are the bottlenecks.';
    if(/refer|sending|who|volume|source/.test(ql)){const rs=active().map(p=>[p.name,p.bh+p.nutr+p.neuro+p.psych]).sort((a,b)=>b[1]-a[1]).slice(0,3);return '<h5>Top referrers</h5>'+rs.map(r=>r[0]+' ('+r[1]+'/mo)').join(', ')+'. Behavioral Health is the largest destination ('+v.bh+'/mo network).';}
    if(/capture|leak|external|in.?house/.test(ql))return '<h5>Internal capture</h5>Capture: BH '+SERVICES.bh.capture+'% · Nutrition '+SERVICES.nutr.capture+'% · Neurology '+SERVICES.neuro.capture+'% · Psychiatry '+SERVICES.psych.capture+'%. Referrals leak external when internal access is slow — the Psychiatry/Neurology waits are the capture risk.';

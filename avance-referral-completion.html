@@ -67,6 +67,10 @@
     </div>
     <div class="sec">By Provider <span>— completion rate, days to close &amp; open loops</span></div>
     <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Provider</th><th class="num">Referrals</th><th class="num">Completion %</th><th class="num">Avg Days to Close</th><th class="num">Failed</th><th class="num">Open Loops</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="sec">By Specialty <span>— loop closure by receiving specialty · ✓ = high-value specialist group</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Specialty</th><th class="num">Referrals</th><th class="num">Completion %</th><th class="num">Avg Days to Close</th><th class="num">Failed</th><th class="num">Open Loops</th></tr></thead><tbody id="specBody"></tbody></table></div>
+    <div class="sec">By Facility <span>— where loops close (and where they don't)</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Facility</th><th class="num">Referrals</th><th class="num">Completion %</th><th class="num">Avg Days to Close</th><th class="num">Failed</th><th class="num">Open Loops</th></tr></thead><tbody id="facBody"></tbody></table></div>
     <div class="foot" id="foot"></div>
   </div>
 </div>
@@ -105,6 +109,10 @@ function buildClinic(){
 }
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
 function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+const SPECS=[["Cardiology",.20,86,16,1],["Orthopedics",.17,83,18,1],["Gastroenterology",.14,79,22,1],["Dermatology",.12,74,26,0],["Endocrinology",.10,81,19,1],["Neurology (ext)",.09,71,29,0],["ENT",.08,76,24,0],["Other",.10,72,27,0]];
+const FACS=[["Atrium Health",.24,84,17],["Novant Health",.21,80,20],["Duke Health",.15,82,18],["UNC Health",.14,78,23],["Raleigh Radiology",.06,88,12],["OrthoCarolina",.08,85,15],["Independent / other",.12,68,31]];
+function drillRows(list,vol,hv){return list.map(x=>{const rv=Math.round(vol*x[1]),fp=Math.max(0,100-x[2]-8);
+  return `<tr><td class="nm">${x[0]}${hv&&x[4]?' <span style="color:var(--green-dark);font-weight:800">✓</span>':''}</td><td class="num">${rv.toLocaleString()}</td><td class="num" style="font-weight:800;color:${x[2]>=80?'#2F9E45':x[2]>=73?'#D4A017':'#C0392B'}">${x[2]}%</td><td class="num">${x[3]} d</td><td class="num">${Math.round(rv*fp/100)}</td><td class="num">${Math.round(rv*0.08)}</td></tr>`;}).join("");}
 function render(){
   const d=agg(),f=PERIODS[period].f,sel=active();
   const vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT),completed=round(vol*d.comp/100),failed=round(vol*failPct/100),open=round(vol*OPEN_PCT/100);
@@ -136,6 +144,8 @@ function render(){
     <td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${fmt(pv)}</td>
     <td class="num">${pc(p.comp+'%',tone(p.comp,true,80,73))}</td><td class="num">${pc(p.days.toFixed(1)+' d',tone(p.days,false,10,13))}</td>
     <td class="num">${fmt(round(pv*fp/100))}</td><td class="num">${fmt(round(pv*OPEN_PCT/100))}</td></tr>`;}).join("");
+  document.getElementById("specBody").innerHTML=drillRows(SPECS,vol,true);
+  document.getElementById("facBody").innerHTML=drillRows(FACS,vol,false);
   document.getElementById("foot").innerHTML="Illustrative / synthetic referral-completion data, drillable Region → Location → Provider. Completion = loop closed with consult note / result returned. Failure reasons (patient declined, insurance / OON, specialty unable to schedule, unable to reach patient) support closing the loop and reducing avoidable failures. Completion-rate goal ≥80%.";
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
