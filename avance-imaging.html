@@ -14,6 +14,16 @@
   .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
   .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
   .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:150px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
   .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
   .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
   .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
@@ -42,7 +52,7 @@
   <div class="controls">
     <div class="ctrl"><label>Modality</label><select id="selMod"><option value="all">All Modalities</option><option>X-ray</option><option>Ultrasound</option><option>CT</option><option>MRI</option><option>Mammography</option></select></div>
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
-    <div class="ctrl"><label>Location</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
     <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
@@ -86,21 +96,31 @@ const PROV=[
 const MODS=[["X-ray",.30],["Ultrasound",.20],["CT",.18],["MRI",.16],["Mammography",.10],["Other",.06]];
 const FACIL=[["UNC Radiology",1,.16],["Raleigh Radiology",1,.15],["Duke Imaging",1,.14],["Cardinal Points Imaging",1,.12],["Wake Radiology",0,.13],["Novant Imaging",0,.12],["Charlotte Radiology",0,.10],["Other (fax)",0,.08]];
 const FAXQ=[["Inbound imaging order faxes",150,3.0,"High"],["Order receipt confirmation",120,2.0,"High"],["Referral status update faxes",300,8.5,"Partial"],["Image return / result faxes",90,1.5,"Partial"]];
-let mod="all",region="all",clinic="all",provId="all",period="mtd",charts={};
+let mod="all",region="all",clinicSel=[],provId="all",period="mtd",charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
 const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
 function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
 function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
 function modShare(){if(mod==="all")return 1;const m=MODS.find(x=>x[0]===mod);return m?m[1]:1;}
-function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)&&(provId==="all"||p.id===provId));}
 function agg(){const rs=active();const o=rs.reduce((a,p)=>a+p.orders,0)||1;const w=k=>rs.reduce((a,p)=>a+p[k]*p.orders,0)/o;
   return {orders:rs.reduce((a,p)=>a+p.orders,0),carelink:w("carelink"),subTAT:w("subTAT"),sched:w("sched"),stat:w("stat"),pending:w("pending"),schedP:w("schedP"),ret:w("ret")};}
 function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
-function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Locations${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
-function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function buildClinic(){
+  clinicSel=clinicSel.filter(c=>clinics().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinics().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProvider();syncClinicBtn();render();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProvider();buildClinic();render();};
+  syncClinicBtn();
+}
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
   const d=agg(),f=PERIODS[period].f,sel=active();
   const orders=round(d.orders*f*modShare()),closed=100-d.pending-d.schedP;
-  document.getElementById("who").textContent=(mod==="all"?"":mod+" · ")+(provId!=="all"?sel[0].name:clinic!=="all"?clinic:region!=="all"?region+" Region":"Network — All Regions");
+  document.getElementById("who").textContent=(mod==="all"?"":mod+" · ")+(provId!=="all"?sel[0].name:clinicLabel()?clinicLabel():region!=="all"?region+" Region":"Network — All Regions");
   document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
   const cards=[
     {l:"Imaging Orders",n:fmt(orders),s:round(orders*0.14)+" STAT",ac:C.navy},
@@ -159,8 +179,11 @@ window.AVANCE_AI={
 window.startDashboard=function(){
   buildClinic();buildProvider();
   document.getElementById("selMod").onchange=e=>{mod=e.target.value;render();};
-  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
-  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinic();buildProvider();render();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();

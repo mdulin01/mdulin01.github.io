@@ -14,6 +14,16 @@
   .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--green-dark));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
   .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
   .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:175px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
   .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
   .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:6px 2px 12px}
   .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
@@ -37,7 +47,7 @@
   </div>
   <div class="controls">
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
-    <div class="ctrl"><label>Clinic</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
     <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
@@ -71,19 +81,29 @@ const PROV=[
 ];
 const SOURCES=[["Primary care / community MD",.34],["ED / hospital discharge",.22],["Health-system / Epic",.18],["Self / web scheduling",.16],["Insurance directory",.10]];
 const STATUS=[["New / unworked",.14,C.red],["Contacted",.17,C.amber],["Scheduled",.34,C.peri],["Seen",.30,C.green],["Declined / no-show",.05,C.gray]];
-let region="all",clinic="all",provId="all",period="mtd",charts={};
+let region="all",clinicSel=[],provId="all",period="mtd",charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
 const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
-function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)&&(provId==="all"||p.id===provId));}
 function agg(){const rs=active();const recv=rs.reduce((a,r)=>a+r.recv,0)||1;const w=k=>rs.reduce((a,r)=>a+r[k]*r.recv,0)/recv;return {recv:rs.reduce((a,r)=>a+r.recv,0),sched:w("sched"),seen:w("seen"),days:w("days"),conv:w("conv")};}
 function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
 function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
 function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
-function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
-function buildProvider(){const s=document.getElementById("selProvider"),list=active();const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function buildClinic(){
+  clinicSel=clinicSel.filter(c=>clinics().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinics().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProvider();syncClinicBtn();render();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProvider();buildClinic();render();};
+  syncClinicBtn();
+}
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
+function buildProvider(){const s=document.getElementById("selProvider"),list=active();const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
   const d=agg(),f=PERIODS[period].f,recv=round(d.recv*f),pend=round(recv*0.31);
   const sel=active();
-  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
   document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+PERIODS[period].l+" · illustrative data";
   const cards=[
     {l:"Referrals Received",n:fmt(recv),s:"inbound this period",ac:C.navy},
@@ -101,7 +121,7 @@ function render(){
   const FIRST=["J","M","A","S","R","D","K","L","P","T","C","B"],LAST=["Carter","Lopez","Nguyen","Patel","Johnson","Reed","Khan","Brooks","Diaz","Foster","Owens","Ramos"];
   const REASON=["New patient — PCP","Post-ED follow-up","Hospital discharge","Behavioral health","Annual physical","Chronic care transfer","Pediatric intake"];
   const provs=sel.length?sel:PROV;
-  let seed=(region+clinic+provId).length*7+5;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  let seed=(region+(clinicLabel()||"all")+provId).length*7+5;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
   const n=Math.min(pend,12),rows=[];for(let i=0;i<n;i++){const days=1+Math.floor(rnd()*16);const st=days>7?["Unworked",C.red]:days>3?["Contacted",C.amber]:["New",C.peri];rows.push({pt:FIRST[(rnd()*12)|0]+". "+LAST[(rnd()*12)|0],src:SOURCES[(rnd()*SOURCES.length)|0][0].split(" / ")[0],reason:REASON[(rnd()*REASON.length)|0],prov:provs[(rnd()*provs.length)|0].name,recd:"6/"+(1+((rnd()*16)|0)),days,st});}
   rows.sort((a,b)=>b.days-a.days);
   document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.src}</td><td>${r.reason}</td><td>${r.prov}</td><td>${r.recd}</td><td class="num">${r.days}</td><td><span class="pill" style="background:${hexA(r.st[1],.14)};color:${r.st[1]}">${r.st[0]}</span></td></tr>`).join("");
@@ -118,8 +138,11 @@ window.AVANCE_AI={
 };
 window.startDashboard=function(){
   buildClinic();buildProvider();
-  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
-  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinic();buildProvider();render();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();

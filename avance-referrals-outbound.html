@@ -14,6 +14,16 @@
   .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
   .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
   .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:175px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
   .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
   .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:6px 2px 12px}
   .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
@@ -37,7 +47,7 @@
   </div>
   <div class="controls">
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
-    <div class="ctrl"><label>Clinic</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
     <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
@@ -71,18 +81,28 @@ const PROV=[
 ];
 const SPECS=[["Cardiology",.17],["Orthopedics",.15],["Gastroenterology",.12],["Dermatology",.11],["Endocrinology",.10],["Neurology",.09],["Pulmonology",.08],["ENT",.07],["Ophthalmology",.06],["Other",.05]];
 const PRI=[["Routine",.82,C.peri],["Urgent",.15,C.amber],["STAT",.03,C.red]];
-let region="all",clinic="all",provId="all",period="mtd",charts={};
+let region="all",clinicSel=[],provId="all",period="mtd",charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
 const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
 function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
 function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
-function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)&&(provId==="all"||p.id===provId));}
 function agg(){const rs=active();const sent=rs.reduce((a,r)=>a+r.sent,0)||1;const w=k=>rs.reduce((a,r)=>a+r[k]*r.sent,0)/sent;return {sent:rs.reduce((a,r)=>a+r.sent,0),pend7:rs.reduce((a,r)=>a+r.pend7,0),statPct:w("statPct"),closed:w("closed"),innet:w("innet"),days:w("days")};}
 function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
-function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
-function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function buildClinic(){
+  clinicSel=clinicSel.filter(c=>clinics().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinics().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProvider();syncClinicBtn();render();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProvider();buildClinic();render();};
+  syncClinicBtn();
+}
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
   const d=agg(),f=PERIODS[period].f,sent=round(d.sent*f),pend=round(d.pend7*f),stat=round(sent*d.statPct/100),sel=active();
-  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
   document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+PERIODS[period].l+" · illustrative data";
   const cards=[
     {l:"Referrals Sent",n:fmt(sent),s:"outbound this period",ac:C.navy},
@@ -99,7 +119,7 @@ function render(){
   charts.pr=new Chart(document.getElementById("cPri"),{type:"doughnut",data:{labels:PRI.map(p=>p[0]),datasets:[{data:PRI.map(p=>round(sent*p[1])),backgroundColor:PRI.map(p=>p[2]),borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
   const FIRST=["J","M","A","S","R","D","K","L","P","T","C","B"],LAST=["Carter","Lopez","Nguyen","Patel","Johnson","Reed","Khan","Brooks","Diaz","Foster","Owens","Ramos"];
   const provs=sel.length?sel:PROV;
-  let seed=(region+clinic+provId).length*11+3;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  let seed=(region+(clinicLabel()||"all")+provId).length*11+3;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
   const n=Math.min(pend+4,12),rows=[];for(let i=0;i<n;i++){const pr=i<1?["STAT",C.red]:i<3?["Urgent",C.amber]:["Routine",C.peri];const days=pr[0]==="Routine"?6+((rnd()*22)|0):1+((rnd()*9)|0);const innet=rnd()>0.35;rows.push({pt:FIRST[(rnd()*12)|0]+". "+LAST[(rnd()*12)|0],prov:provs[(rnd()*provs.length)|0].name,spec:SPECS[(rnd()*8)|0][0],pr,days,innet});}
   rows.sort((a,b)=>b.days-a.days);
   document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.prov}</td><td>${r.spec}</td><td><span class="pill" style="background:${hexA(r.pr[1],.14)};color:${r.pr[1]}">${r.pr[0]}</span></td><td>${r.innet?'<span class="pill" style="background:'+hexA(C.greenD,.14)+';color:'+C.greenD+'">In-network</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Out</span>'}</td><td class="num">${r.days}</td><td>${r.days>7?'<span class="pill" style="background:'+hexA(C.red,.14)+';color:'+C.red+'">Awaiting note</span>':'<span class="pill" style="background:'+hexA(C.peri,.14)+';color:'+C.peri+'">Scheduled</span>'}</td></tr>`).join("");
@@ -116,8 +136,11 @@ window.AVANCE_AI={
 };
 window.startDashboard=function(){
   buildClinic();buildProvider();
-  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
-  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinic();buildProvider();render();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();

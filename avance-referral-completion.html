@@ -14,6 +14,16 @@
   .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--green-dark));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
   .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
   .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
   .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
   .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
   .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
@@ -39,7 +49,7 @@
   </div>
   <div class="controls">
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
-    <div class="ctrl"><label>Location</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
     <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
@@ -76,19 +86,29 @@ const PROV=[
  {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",vol:53,comp:77,days:10.6},
 ];
 const FAILREASONS=[["Patient declined",.26,C.amber],["Insurance / OON issue",.22,C.red],["Specialty unable to schedule",.20,C.peri],["Unable to reach patient",.18,C.periL],["Other / undocumented",.14,C.gray]];
-let region="all",clinic="all",provId="all",period="mtd",charts={};
+let region="all",clinicSel=[],provId="all",period="mtd",charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
 const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
 function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
 function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
-function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)&&(provId==="all"||p.id===provId));}
 function agg(){const rs=active();const vol=rs.reduce((a,p)=>a+p.vol,0)||1;return {vol:rs.reduce((a,p)=>a+p.vol,0),comp:rs.reduce((a,p)=>a+p.comp*p.vol,0)/vol,days:rs.reduce((a,p)=>a+p.days*p.vol,0)/vol};}
 function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
-function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Locations${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
-function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function buildClinic(){
+  clinicSel=clinicSel.filter(c=>clinics().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinics().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProvider();syncClinicBtn();render();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProvider();buildClinic();render();};
+  syncClinicBtn();
+}
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
   const d=agg(),f=PERIODS[period].f,sel=active();
   const vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT),completed=round(vol*d.comp/100),failed=round(vol*failPct/100),open=round(vol*OPEN_PCT/100);
-  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinic!=="all"?clinic : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
   document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
   const cards=[
     {l:"Referrals",n:fmt(vol),s:"in scope this period",ac:C.navy},
@@ -106,7 +126,7 @@ function render(){
   charts.fl&&charts.fl.destroy();
   charts.fl=new Chart(document.getElementById("cFail"),{type:"bar",data:{labels:FAILREASONS.map(r=>r[0]),datasets:[{data:FAILREASONS.map(r=>round(failed*r[1])),backgroundColor:FAILREASONS.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
   // trend
-  const rr=(seed=>()=>{seed=(seed*9301+49297)%233280;return seed/233280;})((region+clinic+provId).length*7+5);
+  const rr=(seed=>()=>{seed=(seed*9301+49297)%233280;return seed/233280;})((region+(clinicLabel()||"all")+provId).length*7+5);
   const tr=[];for(let i=0;i<6;i++){tr.push(round(clampC(d.comp+(rr()-0.5)*8)));}tr[5]=round(d.comp);
   charts.tr&&charts.tr.destroy();
   charts.tr=new Chart(document.getElementById("cTrend"),{data:{labels:["Jan","Feb","Mar","Apr","May","Jun"],datasets:[{type:"line",label:"Completion rate",data:tr,borderColor:C.green,backgroundColor:hexA(C.green,.1),fill:true,tension:.35,pointRadius:2},{type:"line",label:"Goal 80%",data:[80,80,80,80,80,80],borderColor:C.amber,borderDash:[5,4],borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{min:60,max:95,ticks:{callback:v=>v+'%'}}}}});
@@ -132,8 +152,11 @@ window.AVANCE_AI={
 };
 window.startDashboard=function(){
   buildClinic();buildProvider();
-  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
-  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinic();buildProvider();render();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
   render();

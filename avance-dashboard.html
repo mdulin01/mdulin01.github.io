@@ -31,6 +31,16 @@
   .ctrl{display:flex;flex-direction:column;gap:4px}
   .ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.8;font-weight:700}
   .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);color:var(--ink);font-weight:600;min-width:230px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
   .who{margin-left:auto;text-align:right}
   .who .nm{font-size:18px;font-weight:700}
   .who .sub{font-size:12px;opacity:.85}
@@ -215,7 +225,7 @@
       <option value="Triangle">Triangle (Raleigh–Durham)</option>
     </select>
   </div>
-  <div class="ctrl"><label>Clinic</label><select id="selClinic"></select></div>
+  <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Clinics</button><div class="msel-pop" id="mselPop"></div></div></div>
   <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
   <div class="ctrl"><label>Reporting Period</label>
     <select id="selPeriod">
@@ -462,13 +472,15 @@ function satDomains(d){
 }
 
 /* ---------- state ---------- */
-let provId="all", period="mtd", region="all", clinic="all", activeTab="productivity", charts={};
-function activeProviders(){return PROVIDERS.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic));}
+let provId="all", period="mtd", region="all", clinicSel=[], activeTab="productivity", charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
+function activeProviders(){return PROVIDERS.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic));}
 function baseMetrics(){
   if(provId!=="all"){return PROVIDERS.find(p=>p.id===provId);}
   const list=activeProviders(), agg=aggregate(list.length?list:PROVIDERS);
   agg.id="all"; agg.clinic=list.length+" provider"+(list.length!==1?"s":"");
-  agg.name = clinic!=="all" ? clinic+" — All Providers"
+  agg.name = clinicLabel() ? clinicLabel()+" — All Providers"
            : region!=="all" ? region+" Region — All Providers"
            : "Network — All Providers";
   return agg;
@@ -959,21 +971,28 @@ function renderAll(){
 }
 function clinicsInRegion(){const ps=region==="all"?PROVIDERS:PROVIDERS.filter(p=>p.region===region);return [...new Set(ps.map(p=>p.clinic))].sort();}
 function buildClinicSelect(){
-  const cs=document.getElementById("selClinic");
-  cs.innerHTML=`<option value="all">All Clinics${region==='all'?'':' — '+region}</option>`+clinicsInRegion().map(c=>`<option value="${c}">${c}</option>`).join("");
-  cs.value=clinic;
+  clinicSel=clinicSel.filter(c=>clinicsInRegion().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinicsInRegion().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProviderSelect();syncClinicBtn();renderAll();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProviderSelect();buildClinicSelect();renderAll();};
+  syncClinicBtn();
 }
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Clinics"+(region==="all"?"":" — "+region));}
 function buildProviderSelect(){
   const sp=document.getElementById("selProvider"),list=activeProviders();
-  const allLbl = clinic!=="all" ? clinic+" — All" : region!=="all" ? region+" — All Providers" : "Network — All Providers";
+  const allLbl = clinicLabel() ? clinicLabel()+" — All" : region!=="all" ? region+" — All Providers" : "Network — All Providers";
   sp.innerHTML=`<option value="all">${allLbl}</option>`+list.map(p=>`<option value="${p.id}">${p.name} — ${p.clinic}</option>`).join("");
   sp.value=provId;
 }
 function initControls(){
   buildClinicSelect(); buildProviderSelect();
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;renderAll();};
-  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinicSelect();buildProviderSelect();renderAll();};
-  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProviderSelect();renderAll();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinicSelect();buildProviderSelect();renderAll();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selPeriod").onchange=e=>{period=e.target.value;renderAll();};
   document.getElementById("mClose").onclick=closeModal;
   document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
