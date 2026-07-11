@@ -672,7 +672,13 @@
 
   // ---------- focus dashboard ----------
   const PRI_LABEL={p1:"P1",p2:"P2",p3:"P3"};
-  const priorityOf=(x)=>x.priority||"p2";
+  const priorityOf=(x)=>{
+    if(x.priority)return x.priority;
+    const title=(x.title||"").toLowerCase();
+    if(/overdue|firebase deploy|q3 tax/.test(title))return "p1";
+    if(x.status==="idea")return "p3";
+    return "p2";
+  };
   const dueText=(x)=>x.dueDate?"Due "+new Date(x.dueDate+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/New_York"}):"";
   const activeRank=(x)=>({doing:0,next:1,idea:2}[x.status]??3)*10+({p1:0,p2:1,p3:2}[priorityOf(x)]??1);
   function buildAgentBrief(){
