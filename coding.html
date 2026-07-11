@@ -265,7 +265,7 @@
       <div class="ctl"><div class="lr"><label for="autonomy">Agent autonomy</label><span class="val" id="autonomyV">Proactive</span></div>
         <input id="autonomy" type="range" min="1" max="5" value="4"><div class="hint">1 asks first · 5 makes reasonable calls and moves</div></div>
       <div class="ctl"><div class="lr"><label for="teaching">Explanation mode</label><span class="val" id="teachingV">Coach</span></div>
-        <input id="teaching" type="range" min="1" max="5" value="3"><div class="hint">1 just do it · 5 walk me through the thinking</div></div>
+        <input id="teaching" type="range" min="1" max="5" value="4"><div class="hint">1 just do it · 5 walk me through the thinking</div></div>
       <div class="ctl"><div class="lr"><label for="conf">Uncertainty threshold</label><span class="val" id="confV">70%</span></div>
         <input id="conf" type="range" min="50" max="95" step="5" value="70"><div class="hint">Below this confidence: ask, verify, or label the assumption</div></div>
       <div class="ctl"><label for="feedback">Feedback style</label>
@@ -737,7 +737,7 @@
 
   // ---------- AI context ----------
   const LB={detail:["Very brief","Concise","Balanced","Detailed","Deep dive"],autonomy:["Ask first","Low","Balanced","Proactive","High autonomy"],teaching:["Just do it","Explain","Guide","Coach","Socratic"]};
-  const DEF={detail:"3",autonomy:"4",teaching:"3",conf:"70",feedback:"Direct and kind",notes:""};
+  const DEF={detail:"3",autonomy:"4",teaching:"4",conf:"70",feedback:"Direct and kind",notes:""};
   function vlabel(id){ return LB[id][Number($(id).value)-1]; }
   function buildSummary(){
     const beh=[...document.querySelectorAll("[data-b]:checked")].map(x=>"- "+x.dataset.b).join("\n");
