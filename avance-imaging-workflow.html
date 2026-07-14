@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Imaging Workflow (Live Process Map)</title>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:150px}
+  .wrap{max-width:1380px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
+  .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  /* funnel */
+  .funnel{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding:4px 0}
+  .fstage{flex:1;min-width:118px;position:relative;padding:10px 14px 10px 20px;background:#fff;border:1px solid var(--line);border-left:none}
+  .fstage:first-child{border-left:1px solid var(--line);border-radius:10px 0 0 10px;padding-left:14px}
+  .fstage:last-child{border-radius:0 10px 10px 0}
+  .fstage::after{content:"";position:absolute;right:-9px;top:50%;transform:translateY(-50%) rotate(45deg);width:18px;height:18px;background:inherit;border-top:1px solid var(--line);border-right:1px solid var(--line);z-index:2}
+  .fstage:last-child::after{display:none}
+  .fstage .fl{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+  .fstage .fn{font-size:19px;font-weight:800;color:var(--navy);margin-top:3px}
+  .fstage .fs{font-size:10.5px;color:var(--muted);margin-top:2px}
+  .fstage .drop{color:var(--bad);font-weight:700}
+  /* process map */
+  .legend{display:flex;gap:16px;align-items:center;font-size:11.5px;color:var(--muted);margin:6px 2px 10px;flex-wrap:wrap}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+  .map{display:flex;gap:0;overflow-x:auto;padding:6px 2px 14px;align-items:stretch}
+  .lane{flex:1;min-width:210px;display:flex;flex-direction:column;gap:10px}
+  .lane+.lane{margin-left:26px;position:relative}
+  .lane+.lane::before{content:"➤";position:absolute;left:-22px;top:14px;color:var(--periL);font-size:15px}
+  .lhead{background:var(--navy);color:#fff;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:800;letter-spacing:.3px}
+  .lhead .ls{display:block;font-size:10px;font-weight:600;opacity:.75;margin-top:2px;letter-spacing:0}
+  .node{background:#fff;border:1px solid var(--line);border-left:5px solid var(--gray,#B8C0CC);border-radius:10px;padding:10px 12px;cursor:pointer;box-shadow:var(--shadow);transition:transform .1s,box-shadow .1s;position:relative}
+  .node:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(30,40,60,.14)}
+  .node.selected{outline:2px solid var(--navy);outline-offset:1px}
+  .node .nt{font-size:12.5px;font-weight:700;line-height:1.3}
+  .node .steps{font-size:9.5px;font-weight:800;color:var(--periL);letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px}
+  .node .nm2{display:flex;gap:10px;margin-top:8px}
+  .node .m{flex:1}.node .m .mv{font-size:16px;font-weight:800}.node .m .ml{font-size:9.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  .node .tgt{font-size:10px;color:var(--muted);margin-top:6px}
+  .node .badge{position:absolute;top:9px;right:10px;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:20px}
+  .b-red{background:#FBEAE8;color:var(--bad)}.b-amber{background:#FCF3DC;color:#9A6E00}.b-green{background:#E6F2E6;color:var(--green-dark)}
+  .node.leak{border-style:dashed;border-color:#E4B4AE}
+  /* detail panel */
+  .detail{margin-top:6px}
+  .dhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .dhead h3{font-size:15px;font-weight:800;color:var(--navy)}
+  .dhead .stepref{font-size:11px;font-weight:700;color:var(--periL)}
+  .ddesc{font-size:12.5px;color:#475059;line-height:1.55;max-width:920px}
+  .dstats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:13px 0}
+  .ds{background:#F7F9FC;border:1px solid var(--line);border-radius:9px;padding:9px 12px}
+  .ds .v{font-size:17px;font-weight:800}.ds .k{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+  table{width:100%;border-collapse:collapse}
+  thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:9px 10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);font-size:12.5px}
+  tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:10.5px}
+  .p-stat{background:#FBEAE8;color:var(--bad)}.p-rt{background:#EEF1FB;color:var(--peri)}
+  .age-hot{color:var(--bad);font-weight:800}.age-warm{color:#9A6E00;font-weight:700}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.dstats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Imaging Workflow — Live Process Map</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+
+    <div class="sec">Flow Health <span>— queue depth &amp; dwell time at every hand-off in the Alo imaging value-stream map</span></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="sec">Order-to-Closure Funnel <span>— where orders stall or fall out, this period</span></div>
+    <div class="card" style="padding:12px 14px"><div class="funnel" id="funnel"></div></div>
+
+    <div class="sec">Process Map <span>— click any stage to open its worklist · numbers are live queue depth &amp; median dwell</span></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--good)"></span>On target</span>
+      <span><span class="dot" style="background:var(--warn)"></span>Slipping (&gt; target)</span>
+      <span><span class="dot" style="background:var(--bad)"></span>Bottleneck (&gt; 1.4× target)</span>
+      <span><span class="dot" style="background:#fff;border:1px dashed #E4B4AE"></span>Leakage (referrals lost)</span>
+      <span style="margin-left:auto">Step numbers reference the Alo Imaging fax workflow diagram</span>
+    </div>
+    <div class="map" id="map"></div>
+
+    <div class="sec">Stage Detail <span id="dsub">— select a stage above</span></div>
+    <div class="card detail" id="detail"></div>
+
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+const PROV=[["Dr. Maya Ellison","Holly Springs","Triangle"],["Dr. James Okafor","Apex","Triangle"],["Dr. Priya Nair","Charlotte — SouthPark","Charlotte"],["Dr. Daniel Reyes","Midtown Charlotte","Charlotte"],["Dr. Sarah Chen","Chapel Hill","Triangle"],["Dr. Robert Hughes","Durham","Triangle"],["Dr. Michael Dulin","Rea Farms","Charlotte"],["Dr. Amanda Steventon","Fuquay-Varina","Triangle"],["Dr. Rhett Brown","Midtown Charlotte","Charlotte"]];
+const FAC=["UNC Radiology ⚡","Duke Imaging ⚡","Raleigh Radiology ⚡","Cardinal Points ⚡","Wake Radiology","Novant Imaging","Charlotte Radiology"];
+const MODAL=["X-ray","Ultrasound","CT","MRI","Mammography"];
+
+/* ---- Lanes & stages (steps reference the Alo diagram) ---- */
+const LANES=[
+ {name:"Imaging Order Intake",sub:"order fax · steps 1–11"},
+ {name:"Scheduling / Follow-up",sub:"steps 12–15"},
+ {name:"Appointment Outreach",sub:"steps 16–25"},
+ {name:"Appointment & Image",sub:"steps 26–31"},
+ {name:"Inbound Fax Queues",sub:"status & image faxes · steps 32–43"},
+];
+const NODES=[
+ {id:"intake",lane:0,steps:"Steps 1–2",title:"Order submitted → RC review queue",queue:38,dwell:6,unit:"h",target:24,
+  desc:"Provider submits the imaging referral order; it lands in the referral-coordinator queue for review. Dwell = time from order creation to an RC picking it up.",
+  action:"RC review"},
+ {id:"transmit",lane:0,steps:"Steps 3–6",title:"Transcribe & transmit (Carelink / fax)",queue:24,dwell:10,unit:"h",target:24,
+  desc:"If the facility is Carelink-integrated (UNC, Duke, Raleigh Radiology, Cardinal Points) the order goes electronically via HL7v2. Otherwise the RC transcribes into Carelink or Medlink and faxes the order to the facility — the first manual fax touch.",
+  action:"Transcribe / fax order",split:"57% HL7 · 43% fax"},
+ {id:"confirm",lane:0,steps:"Steps 7–11",title:"Confirm facility received the order",queue:61,dwell:3.2,unit:"d",target:4,
+  desc:"RC follows up with the facility until receipt is confirmed — same-day for STAT, every 4 days for routine — and documents each outreach in the referral order's communication → note section. Entirely manual phone/fax work today.",
+  action:"Call facility / re-fax"},
+ {id:"schedule",lane:1,steps:"Steps 12–14",title:"RC schedules on patient's behalf",queue:29,dwell:2.1,unit:"d",target:4,
+  desc:"Where the facility allows it, the referral coordinator calls and schedules the appointment for the patient, then updates the referral record with the appointment.",
+  action:"Schedule appointment"},
+ {id:"portal",lane:1,steps:"Step 15",title:"Portal checks until appt documented",queue:74,dwell:6.8,unit:"d",target:4,
+  desc:"Where scheduling isn't allowed, the RC re-checks facility portals every 4 days after the order until an appointment shows up. This is the single deepest queue in the workflow — pure polling that an interface or status feed would eliminate.",
+  action:"Re-check portal"},
+ {id:"outreach",lane:2,steps:"Steps 16–24",title:"Patient outreach — attempts 1–4",queue:52,dwell:18,unit:"d",target:14,
+  desc:"If no appointment is documented, outreach follows a cadence (weekly for STAT, every 2 weeks otherwise) by MyChart message when the patient is on MyChart, phone call when not, and mailed letters. Up to 4 attempts.",
+  action:"MyChart / call / letter"},
+ {id:"closure",lane:2,steps:"Steps 19–21",title:"Administrative closure — attempt 4 / 120 days",queue:41,dwell:null,unit:"",target:null,leak:true,
+  desc:"After attempt #4 or 120 days, letter 3 is mailed and the referral is closed unscheduled. These are lost referrals — patients who never got imaging. Count shown is closures this period; they should be reported separately from clinically-completed closures.",
+  action:"Review before closing"},
+ {id:"appt",lane:3,steps:"Steps 26–28",title:"Appt completed → 24-hr work queue",queue:33,dwell:1.4,unit:"d",target:1,
+  desc:"Once the appointment date passes, the referral re-enters the work queue after 24 hours so the coordinator can chase the result.",
+  action:"Enter results queue"},
+ {id:"image",lane:3,steps:"Steps 29–31",title:"Pull image, attach & close referral",queue:47,dwell:2.9,unit:"d",target:2,
+  desc:"Coordinator pulls the image from the facility portal (or the fax team retrieves it), attaches it to the referral order to send to the provider, and changes the referral status to Closed — true loop closure.",
+  action:"Pull image / close"},
+ {id:"statusfax",lane:4,steps:"Steps 32–37",title:"Status faxes → queue → Media Manager",queue:112,dwell:1.2,unit:"d",target:1,
+  desc:"Image status notes arrive by fax (~300/day), route to a queue, and the fax team manually pushes each update into Media Manager before the referral record updates via HL7v2. Absorbs ~8.5 FTE including rework and overtime — the #1 automation target.",
+  action:"Push to Media Manager",vol:"300/day · 8.5 FTE"},
+ {id:"imagefax",lane:4,steps:"Steps 38–43",title:"Image result faxes → download / upload",queue:36,dwell:0.8,unit:"d",target:1,
+  desc:"Image results that arrive by fax route to the image queue where the fax team reviews, downloads, and re-uploads each file — a download-and-re-upload loop that automation removes entirely.",
+  action:"Download / upload file",vol:"90/day · 1.5 FTE"},
+];
+const FUNNEL=[["Ordered",2840],["Transmitted",2760],["Receipt confirmed",2510],["Scheduled",2190],["Appt completed",1880],["Image returned",1690],["Loop closed",1540]];
+
+let region="all",period="mtd",selected="portal",charts={};
+const fmt=n=>Math.round(n).toLocaleString();
+function seeded(s){let x=s;return()=>{x=(x*1103515245+12345)&0x7fffffff;return x/0x7fffffff;};}
+function ratio(n){return n.dwell==null?null:n.dwell/n.target;}
+function toneOf(n){if(n.leak)return C.red;const r=ratio(n);return r<=1?C.greenD:r<=1.4?C.amber:C.red;}
+function badgeOf(n){if(n.leak)return["b-red","LEAKAGE"];const r=ratio(n);return r<=1?["b-green","ON TARGET"]:r<=1.4?["b-amber","SLIPPING"]:["b-red","BOTTLENECK"];}
+function rf(){return region==="all"?1:region==="Charlotte"?0.44:0.56;}
+
+function renderKPIs(){
+  const f=PERIODS[period].f,r=rf();
+  const inFlight=NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0);
+  const worst=NODES.filter(n=>!n.leak).reduce((a,n)=>ratio(n)>ratio(a)?n:a);
+  const leaked=Math.round(41*f*r);
+  const loopDays=16.4;
+  document.getElementById("kpis").innerHTML=[
+    {l:"Referrals In Flight",n:fmt(inFlight*r),s:"across all "+NODES.filter(n=>!n.leak).length+" workflow stages",ac:C.navy},
+    {l:"Current Bottleneck",n:worst.title.split("—")[0].split("until")[0].trim().slice(0,22),s:worst.dwell+worst.unit+" median vs "+worst.target+worst.unit+" target",ac:C.red,small:true},
+    {l:"Manual Fax Touches / day",n:"~450",s:"orders 150 · status 300 — 13.5 FTE",ac:C.amber},
+    {l:"Median Order → Loop Closed",n:loopDays+" d",s:leaked+" referrals leaked (120-day rule) this period",ac:tone2(loopDays,14,21)},
+  ].map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac};${c.small?'font-size:16px;line-height:1.3;margin-top:8px':''}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+}
+function tone2(v,t1,t2){return v<=t1?C.greenD:v<=t2?C.amber:C.red;}
+
+function renderFunnel(){
+  const f=PERIODS[period].f,r=rf();
+  document.getElementById("funnel").innerHTML=FUNNEL.map((s,i)=>{
+    const val=Math.round(s[1]*f*r);
+    const prev=i?Math.round(FUNNEL[i-1][1]*f*r):null;
+    const drop=prev?prev-val:null;
+    return `<div class="fstage"><div class="fl">${s[0]}</div><div class="fn">${fmt(val)}</div><div class="fs">${drop!=null?'<span class="drop">−'+fmt(drop)+'</span> vs prior stage':'entering this period'}</div></div>`;
+  }).join("");
+}
+
+function renderMap(){
+  const r=rf();
+  const laneHtml=LANES.map((l,li)=>{
+    const nodes=NODES.filter(n=>n.lane===li).map(n=>{
+      const t=toneOf(n),[bc,bt]=badgeOf(n);
+      const q=Math.round(n.queue*r);
+      return `<div class="node${n.leak?' leak':''}${selected===n.id?' selected':''}" style="border-left-color:${t}" onclick="selectNode('${n.id}')">
+        <div class="steps">${n.steps}</div><div class="badge ${bc}">${bt}</div>
+        <div class="nt">${n.title}</div>
+        <div class="nm2">
+          <div class="m"><div class="mv" style="color:${C.navy}">${fmt(q)}</div><div class="ml">${n.leak?"closed unsched.":"in queue"}</div></div>
+          ${n.dwell!=null?`<div class="m"><div class="mv" style="color:${t}">${n.dwell}${n.unit}</div><div class="ml">median dwell</div></div>`:""}
+        </div>
+        <div class="tgt">${n.dwell!=null?"target ≤ "+n.target+n.unit:"↳ reported separately from completions"}${n.split?" · "+n.split:""}${n.vol?" · "+n.vol:""}</div>
+      </div>`;
+    }).join("");
+    return `<div class="lane"><div class="lhead">${l.name}<span class="ls">${l.sub}</span></div>${nodes}</div>`;
+  }).join("");
+  document.getElementById("map").innerHTML=laneHtml;
+}
+
+function worklist(n){
+  const r=rf(),rows=[],rand=seeded(n.id.split("").reduce((a,c)=>a+c.charCodeAt(0),7));
+  const count=Math.min(8,Math.max(4,Math.round(n.queue*r/8)));
+  const provs=PROV.filter(p=>region==="all"||p[2]===region);
+  for(let i=0;i<count;i++){
+    const p=provs[Math.floor(rand()*provs.length)];
+    const stat=rand()<0.16;
+    const mult=n.unit==="h"?1.9:2.2;
+    const age=Math.max(n.unit==="h"?1:0.5,(rand()*(n.dwell||10)*mult)).toFixed(n.unit==="h"?0:1);
+    const over=n.target&&age>n.target*1.4?"age-hot":n.target&&age>n.target?"age-warm":"";
+    rows.push({id:"IMG-24"+String(300+Math.floor(rand()*650)).padStart(3,"0"),
+      pt:String.fromCharCode(65+Math.floor(rand()*26))+"."+String.fromCharCode(65+Math.floor(rand()*26))+".",
+      prov:p[0],clinic:p[1],fac:FAC[Math.floor(rand()*FAC.length)],mod:MODAL[Math.floor(rand()*MODAL.length)],
+      stat,age,over,next:n.action});
+  }
+  rows.sort((a,b)=>b.age-a.age);
+  return rows;
+}
+
+function selectNode(id){
+  selected=id;renderMap();
+  const n=NODES.find(x=>x.id===id),r=rf(),[bc,bt]=badgeOf(n),t=toneOf(n);
+  document.getElementById("dsub").textContent="— "+n.title;
+  const rows=worklist(n);
+  const stats=[
+    {k:n.leak?"Closed unscheduled":"In queue now",v:fmt(Math.round(n.queue*rf()))},
+    n.dwell!=null?{k:"Median dwell",v:n.dwell+n.unit}:null,
+    n.dwell!=null?{k:"90th percentile",v:(n.dwell*2.1).toFixed(n.unit==="h"?0:1)+n.unit}:null,
+    n.target!=null?{k:"Target",v:"≤ "+n.target+n.unit}:null,
+    {k:"Status",v:bt},
+  ].filter(Boolean);
+  document.getElementById("detail").innerHTML=`
+    <div class="dhead"><h3>${n.title}</h3><span class="stepref">${n.steps} · ${LANES[n.lane].name}</span><span class="badge ${bc}" style="position:static">${bt}</span></div>
+    <div class="ddesc">${n.desc}</div>
+    <div class="dstats">${stats.map(s=>`<div class="ds"><div class="v" style="color:${t}">${s.v}</div><div class="k">${s.k}</div></div>`).join("")}</div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin:2px 0 8px">Worklist — oldest first <span style="font-weight:600;text-transform:none;letter-spacing:0">(sample of ${fmt(Math.round(n.queue*rf()))})</span></div>
+    <div style="overflow-x:auto"><table><thead><tr><th>Order</th><th>Patient</th><th>Ordering Provider</th><th>Clinic</th><th>Facility</th><th>Modality</th><th>Priority</th><th class="num">Time in Stage</th><th>Next Action</th></tr></thead>
+    <tbody>${rows.map(w=>`<tr><td class="nm">${w.id}</td><td>${w.pt}</td><td>${w.prov}</td><td>${w.clinic}</td><td>${w.fac}</td><td>${w.mod}</td>
+      <td>${w.stat?'<span class="pill p-stat">STAT</span>':'<span class="pill p-rt">Routine</span>'}</td>
+      <td class="num ${w.over}">${w.age}${n.unit||"d"}</td><td>${w.next}</td></tr>`).join("")}</tbody></table></div>`;
+}
+
+function render(){
+  document.getElementById("who").textContent=region==="all"?"Network — All Regions":region+" Region";
+  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  renderKPIs();renderFunnel();renderMap();selectNode(selected);
+  document.getElementById("foot").innerHTML="Illustrative / synthetic data structured from the <b>Alo Imaging fax value-stream map</b> (lanes and step numbers match the diagram). Queue depths and dwell times are point-in-time; funnel counts scale with the selected period. A production version requires structured capture of facility-receipt confirmation, outreach attempts &amp; channel, and image-return timestamps — today several of these live only in the referral order's communication notes.";
+  if(window.renderAvanceAI)window.renderAvanceAI();
+}
+
+window.AVANCE_AI={
+ insight:function(){
+   const worst=NODES.filter(n=>!n.leak).reduce((a,n)=>ratio(n)>ratio(a)?n:a);
+   return '<b>'+(region==="all"?"Network":region)+'</b>: '+fmt(NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0)*rf())+' imaging referrals in flight. Biggest bottleneck: <b>'+worst.title+'</b> ('+worst.dwell+worst.unit+' median vs '+worst.target+worst.unit+' target) — manual portal polling. ~450 manual fax touches/day (~13.5 FTE) across the order, status and image queues; the 120-day rule closed '+Math.round(41*PERIODS[period].f*rf())+' referrals unscheduled this period.';
+ },
+ chips:['Where is the bottleneck?','How many referrals are we losing?','What should we automate first?'],
+ answer:function(q){const ql=q.toLowerCase();
+   if(/bottleneck|slow|stuck|dwell|queue/.test(ql))return '<h5>Bottleneck</h5>Portal follow-up (step 15) — RCs re-check facility portals every 4 days until an appointment appears: 74 referrals sitting at a 6.8-day median vs a 4-day target. Second: patient outreach (18d median vs 14d). Both are polling loops a status interface or scheduling integration would remove.';
+   if(/los|leak|close|120|unscheduled|abandon/.test(ql))return '<h5>Referral leakage</h5>'+Math.round(41*PERIODS[period].f*rf())+' referrals were closed unscheduled this period under the attempt-4 / 120-day rule (steps 19–21) — patients who never got imaging. Recommend reporting these separately from clinical completions and reviewing STAT leakage case-by-case.';
+   if(/automat|fax|fte|first|priorit/.test(ql))return '<h5>Automation sequence</h5>1) Status-fax queue → Media Manager (steps 32–37): 300/day, 8.5 FTE, pure document pushing. 2) Order-fax intake + receipt confirmation (steps 4–11): 150/day, ~5 FTE of transcription and phone confirmation. 3) Image-fax download/re-upload (steps 38–43): 90/day, 1.5 FTE. Portal polling (step 15) needs integration work rather than fax automation but has the biggest patient-facing payoff.';
+   return '<h5>Summary</h5>'+fmt(NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0)*rf())+' in flight · bottleneck at portal follow-up (6.8d vs 4d) · ~450 manual fax touches/day · '+Math.round(41*PERIODS[period].f*rf())+' leaked via the 120-day rule.';}
+};
+
+window.startDashboard=function(){
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>

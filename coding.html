@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f8fa">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Coding">
+<link rel="apple-touch-icon" href="/coding-icon-180.png">
+<link rel="manifest" href="/coding.webmanifest">
+<title>Coding Projects · Michael Dulin</title>
+<style>
+  :root{
+    --ink:#1e2932; --muted:#5c6876; --dim:#8a96a3; --line:#dce3ea; --paper:#f6f8fa;
+    --panel:#ffffff; --soft:#eef6f7; --accent:#126b76; --accent-dark:#0f4f58;
+    --bug:#c0392b; --bug-soft:#fdecea; --idea:#8a5a00; --idea-soft:#fff3d0;
+    --task:#1f7a55; --task-soft:#e4f4ed; --shadow:0 12px 34px rgba(31,41,51,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink);background:var(--paper);line-height:1.5;-webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font:inherit}
+  button{cursor:pointer}
+  a{color:var(--accent)}
+  .wrap{width:min(1120px,calc(100% - 28px));margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 0 96px}
+  /* login */
+  #login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(120deg,#0f4f58,#126b76 60%,#3a98a2);padding:20px;z-index:50}
+  #login .card{background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.35);max-width:400px;width:100%;padding:34px 30px;text-align:center}
+  #login h1{font-size:1.4rem;margin:6px 0 4px}
+  #login p{color:var(--muted);font-size:.92rem;margin:0 0 20px}
+  .gbtn{display:inline-flex;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;color:var(--ink);
+    border-radius:10px;padding:11px 18px;font-weight:650;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .gbtn:hover{border-color:var(--accent)}
+  #loginMsg{margin-top:14px;font-size:.85rem;color:var(--bug);min-height:18px}
+  /* header */
+  .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+  .head .ttl{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+  .head .ttl span{color:var(--accent)}
+  .head .who{font-size:.78rem;color:var(--dim);text-align:right}
+  .signout{background:none;border:none;color:var(--accent);font-size:.78rem;text-decoration:underline;padding:0}
+  /* tabs */
+  .tabs{display:flex;gap:4px;margin:14px 0 16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{background:none;border:none;padding:10px 12px;font-weight:650;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+  .tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .tabicon{margin-right:5px}
+  .view{display:none}
+  .view.on{display:block}
+  /* cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+  .card h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 12px;font-weight:800}
+  label{font-weight:650;font-size:.85rem;display:block;margin-bottom:5px}
+  input[type=text],input[type=date],select,textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);padding:10px 11px;font-size:15px}
+  textarea{min-height:64px;resize:vertical}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:130px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:9px;padding:10px 14px;font-weight:700}
+  .btn.sec{background:#fff;color:var(--accent)}
+  .btn.sm{padding:5px 9px;font-size:.8rem;border-radius:7px}
+  /* capture list */
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+  .chip{border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:5px 11px;font-size:.8rem;font-weight:600}
+  .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .item{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:none}
+  .item .tag{flex:0 0 auto;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:3px 7px;border-radius:6px;margin-top:2px}
+  .tag.bug{background:var(--bug-soft);color:var(--bug)} .tag.idea{background:var(--idea-soft);color:var(--idea)} .tag.task{background:var(--task-soft);color:var(--task)}
+  .item .body{flex:1;min-width:0}
+  .item .t{font-weight:650}
+  .item.done .t{text-decoration:line-through;opacity:.55}
+  .item .meta{font-size:.76rem;color:var(--dim);margin-top:2px}
+  .item .notes{font-size:.85rem;color:var(--muted);margin-top:4px;white-space:pre-wrap}
+  .item .acts{display:flex;gap:6px;flex:0 0 auto}
+  .iconbtn{background:none;border:1px solid var(--line);border-radius:7px;padding:4px 8px;font-size:.85rem;color:var(--muted)}
+  .empty{color:var(--dim);font-size:.9rem;padding:8px 0}
+  /* focus dashboard */
+  .hero{background:linear-gradient(135deg,#0f4f58,#126b76 58%,#258895);color:#fff;border:0;padding:22px}
+  .hero h1{font-size:clamp(1.45rem,4vw,2rem);line-height:1.15;margin:0 0 6px;letter-spacing:-.03em}
+  .hero p{margin:0;color:rgba(255,255,255,.78)}
+  .hero .btn{background:#fff;color:var(--accent-dark);border-color:#fff}
+  .metricgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+  .metric{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px;box-shadow:var(--shadow)}
+  .metric .n{font-size:1.55rem;font-weight:850;line-height:1;color:var(--accent-dark)}
+  .metric .l{font-size:.75rem;color:var(--muted);margin-top:5px}
+  .focusgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);gap:14px}
+  .focusitem{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:11px 0;border-bottom:1px solid var(--line)}
+  .focusitem:last-child{border:0}
+  .priority{font-size:.65rem;font-weight:850;border-radius:999px;padding:3px 7px;white-space:nowrap;background:#edf1f4;color:var(--muted)}
+  .priority.p1{background:var(--bug-soft);color:var(--bug)} .priority.p2{background:var(--idea-soft);color:var(--idea)} .priority.p3{background:var(--soft);color:var(--accent)}
+  .focusitem .ft{font-weight:720;line-height:1.3}.focusitem .fm{font-size:.76rem;color:var(--dim);margin-top:3px}
+  .signal{display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:.84rem}
+  .signal:last-child{border:0}.signal b{display:block}.signal span{color:var(--muted)}
+  /* projects */
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+  .pcard{border:1px solid var(--line);border-radius:10px;padding:13px;background:#fbfcfd}
+  .pcard .nm{font-weight:750;margin-bottom:3px}
+  .pcard .desc{font-size:.8rem;color:var(--muted);margin-bottom:8px}
+  .pcard .lnk{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem}
+  .pmeta{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0}.pbadge{font-size:.66rem;border-radius:999px;padding:2px 7px;background:#edf1f4;color:var(--muted);font-weight:750}.pbadge.ok{background:var(--task-soft);color:var(--task)}
+  .pnext{font-size:.76rem;color:var(--muted);border-top:1px solid var(--line);padding-top:7px;margin-top:7px}
+  /* ai context */
+  .ctl{padding:12px 0;border-top:1px solid var(--line)}
+  .ctl:first-of-type{border-top:none;padding-top:0}
+  .ctl .lr{display:flex;justify-content:space-between;align-items:baseline}
+  .ctl .val{color:var(--accent);font-weight:750}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .hint{color:var(--dim);font-size:.82rem;margin-top:3px}
+  .tg{display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start;padding:7px 0}
+  .tg input{margin-top:3px;accent-color:var(--accent)}
+  .out{min-height:160px;max-height:340px;overflow:auto;padding:13px;border:1px solid #bdd7dc;border-radius:8px;background:var(--soft);
+    color:#173f46;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;white-space:pre-wrap}
+  .status{min-height:18px;margin-top:8px;color:var(--task);font-size:.85rem;font-weight:700}
+  .note-amber{background:var(--idea-soft);border-left:4px solid var(--idea);border-radius:6px;padding:11px 13px;font-size:.85rem;color:#4d3900;margin-top:4px}
+  details.acc{border:1px solid var(--line);border-radius:10px;background:#fbfcfd;margin-bottom:10px}
+  details.acc>summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  details.acc>summary::-webkit-details-marker{display:none}
+  details.acc>summary::after{content:'▸';color:var(--dim);font-weight:400}
+  details.acc[open]>summary::after{content:'▾'}
+  details.acc .acc-body{padding:2px 14px 14px;font-size:.9rem;color:var(--muted)}
+  details.acc .acc-body b{color:var(--ink)}
+  .mermaid{overflow-x:auto;margin:8px 0;text-align:center;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
+  .atable{width:100%;border-collapse:collapse;font-size:.8rem;margin:6px 0}
+  .atable th,.atable td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  .atable th{background:var(--soft);color:var(--accent)}
+  .upd{display:inline-block;background:var(--task-soft);color:var(--task);font-weight:700;font-size:.68rem;padding:2px 7px;border-radius:6px;margin-left:6px}
+  .rmbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .rmbar input[type=text]{min-width:240px}.rmbar select,.rmbar input[type=date]{min-width:145px}.rmbar .btn{flex:0 0 auto}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:760px){.board{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.board{grid-template-columns:1fr}}
+  .col{background:#fbfcfd;border:1px solid var(--line);border-radius:10px;padding:8px;min-height:54px}
+  .colhead{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:2px 2px 8px;display:flex;justify-content:space-between}
+  .ritem{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px;margin-bottom:7px}
+  .appchip{display:inline-block;font-size:.6rem;font-weight:800;border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--muted)}
+  .ritem .rt{font-weight:600;font-size:.85rem;margin:5px 0 2px;line-height:1.3}
+  .ritem .rn{font-size:.76rem;color:var(--muted);white-space:pre-wrap;margin-top:2px}
+  .rmeta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px}.due{font-size:.65rem;color:var(--muted)}.due.late{color:var(--bug);font-weight:800}
+  .ritem .racts{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}
+  .movesel{width:100%;margin-top:6px;font-size:.75rem;padding:5px 6px}
+  .ritem input,.ritem textarea{width:100%;font-size:13px;padding:7px;border:1px solid var(--line);border-radius:7px;margin-bottom:6px}
+  .handoffgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.handoffgrid .wide{grid-column:1/-1}
+  .donebox{margin-top:12px}.donebox summary{cursor:pointer;color:var(--muted);font-weight:750;font-size:.85rem}.done-list{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;margin-top:8px}
+  @media(max-width:760px){.metricgrid{grid-template-columns:1fr 1fr}.focusgrid{grid-template-columns:1fr}.done-list{grid-template-columns:1fr}}
+  @media(max-width:560px){
+    .head .ttl{font-size:1.25rem}.wrap{width:min(100% - 20px,1120px);padding-bottom:96px}
+    .tabs{position:fixed;z-index:40;left:0;right:0;bottom:0;margin:0;padding:5px 4px calc(5px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);border-bottom:0;box-shadow:0 -8px 24px rgba(31,41,51,.08);justify-content:space-around}
+    .tab{min-width:0;flex:1;padding:7px 2px 5px;border:0;margin:0;font-size:.61rem;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1}.tabicon{font-size:1.15rem;margin:0}.tab.on{background:var(--soft);border-radius:9px}
+    .handoffgrid{grid-template-columns:1fr}.handoffgrid .wide{grid-column:auto}.item .acts{flex-direction:column}.card{padding:14px}.hero{padding:19px}
+  }
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="card">
+    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#126b76" stroke-width="2" stroke-linecap="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    <h1>Coding Projects</h1>
+    <p>Private workspace — sign in to continue.</p>
+    <button class="gbtn" id="signinBtn">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.8-6.8C35.6 2.4 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-2.8-.4-4.1H24v7.8h12.4c-.3 2-1.6 5-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.2z"/><path fill="#FBBC05" d="M10.5 28.4c-.5-1.5-.8-3.1-.8-4.4s.3-3 .8-4.4l-7.9-6.2C1 16.3 0 20 0 24s1 7.7 2.6 10.6l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.6 2.2-7.9 2.2-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+      Sign in with Google
+    </button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="head">
+    <div class="ttl">Coding <span>Projects</span></div>
+    <div class="who"><span id="whoami"></span><br><button class="signout" id="signoutBtn">Sign out</button></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="focus"><span class="tabicon">◎</span><span>Focus</span></button>
+    <button class="tab" data-tab="capture"><span class="tabicon">＋</span><span>Capture</span></button>
+    <button class="tab" data-tab="roadmap"><span class="tabicon">◫</span><span>Work</span></button>
+    <button class="tab" data-tab="projects"><span class="tabicon">▦</span><span>Projects</span></button>
+    <button class="tab" data-tab="context"><span class="tabicon">↗</span><span>Handoff</span></button>
+    <button class="tab" data-tab="secrets"><span class="tabicon">◇</span><span>Secrets</span></button>
+    <button class="tab" data-tab="architecture"><span class="tabicon">⌘</span><span>Map</span></button>
+  </div>
+
+  <!-- FOCUS -->
+  <section class="view on" id="v-focus">
+    <div class="card hero">
+      <h1>One clear next move.</h1>
+      <p>Priorities, project health, and the latest agent handoff in one place.</p>
+      <div class="row" style="margin-top:16px;align-items:center">
+        <input type="text" id="quickTitle" placeholder="Add the next task or idea…" style="background:rgba(255,255,255,.98)">
+        <select id="quickProject" style="max-width:190px;background:#fff"></select>
+        <select id="quickPriority" style="max-width:150px;background:#fff"><option value="p1">P1 · Urgent</option><option value="p2" selected>P2 · Important</option><option value="p3">P3 · Later</option></select>
+        <button class="btn" id="quickAdd">Add to Next</button>
+      </div>
+      <div class="status" id="quickStatus" style="color:#fff"></div>
+    </div>
+    <div class="metricgrid">
+      <div class="metric"><div class="n" id="statDoing">0</div><div class="l">In progress</div></div>
+      <div class="metric"><div class="n" id="statP1">0</div><div class="l">P1 priorities</div></div>
+      <div class="metric"><div class="n" id="statCapture">0</div><div class="l">Open captures</div></div>
+      <div class="metric"><div class="n" id="statLive">14/14</div><div class="l">Sites reachable · Jul 11</div></div>
+    </div>
+    <div class="focusgrid">
+      <div class="card"><h2>Recommended queue</h2><div id="focusQueue"></div></div>
+      <div>
+        <div class="card"><h2>Current handoff</h2><div id="focusHandoff" class="hint">No handoff saved yet.</div><button class="btn sec sm" id="focusCopy" style="margin-top:10px">Copy agent brief</button></div>
+        <div class="card"><h2>Workspace signals</h2>
+          <div class="signal"><div>✓</div><div><b>Production reachable</b><span>14 of 14 known live sites returned HTTP 200 on Jul 11.</span></div></div>
+          <div class="signal"><div>⚠</div><div><b>Local folders need cleanup</b><span>Duplicate/backup folders exist for the cruise app, Mike &amp; Adam, fitness, and this site.</span></div></div>
+          <div class="signal"><div>↗</div><div><b>GitHub is source of truth</b><span>Several local trees are stale or heavily modified. Start work from a fresh clone.</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPTURE -->
+  <section class="view" id="v-capture">
+    <div class="card">
+      <h2>Log a bug, idea, or task</h2>
+      <div class="row">
+        <input type="text" id="capTitle" placeholder="What's the bug / idea? (e.g. dock jumps on iOS)">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <select id="capType"><option value="bug">🐛 Bug</option><option value="idea">💡 Idea</option><option value="task">✅ Task</option></select>
+        <select id="capProject"></select>
+      </div>
+      <div style="margin-top:8px"><textarea id="capNotes" placeholder="Notes / steps to reproduce (optional)"></textarea></div>
+      <div style="margin-top:10px;text-align:right"><button class="btn" id="capAdd">Add</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Open items <span id="openCount" style="color:var(--dim)"></span></h2>
+      <div class="chips" id="filterChips"></div>
+      <div id="list"></div>
+    </div>
+  </section>
+
+  <!-- AI CONTEXT -->
+  <section class="view" id="v-context">
+    <div class="card">
+      <h2>Session handoff</h2>
+      <p class="hint" style="margin-top:-4px">Leave the next agent a compact state snapshot. Saving this also updates the AI context returned by the coding-board API.</p>
+      <div class="handoffgrid">
+        <div><label for="hoProject">Project</label><select id="hoProject"></select></div>
+        <div><label for="hoAgent">Last agent</label><select id="hoAgent"><option>Codex / ChatGPT</option><option>Claude</option><option>Gemini</option><option>Human / Mike</option></select></div>
+        <div class="wide"><label for="hoGoal">Current goal</label><input type="text" id="hoGoal" placeholder="What outcome are we driving toward?"></div>
+        <div class="wide"><label for="hoDone">What changed / last completed</label><textarea id="hoDone" placeholder="Commits, decisions, behavior now working…"></textarea></div>
+        <div><label for="hoNext">Exact next step</label><textarea id="hoNext" placeholder="The first action the next agent should take"></textarea></div>
+        <div><label for="hoBlockers">Blockers / decisions needed</label><textarea id="hoBlockers" placeholder="None, or the specific unresolved choice"></textarea></div>
+        <div><label for="hoFiles">Files / branch</label><textarea id="hoFiles" placeholder="main · src/App.jsx · api/…"></textarea></div>
+        <div><label for="hoVerify">Verification / deployment</label><textarea id="hoVerify" placeholder="Build passed, commit SHA, live check, manual deploy pending…"></textarea></div>
+      </div>
+      <pre class="out" id="agentBrief" aria-live="polite" style="margin-top:12px"></pre>
+      <div class="row" style="margin-top:10px"><button class="btn" id="saveHandoff">Save handoff</button><button class="btn sec" id="copyHandoff">Copy agent brief</button></div>
+      <div class="status" id="handoffStatus"></div>
+    </div>
+    <div class="card">
+      <h2>Working preferences</h2>
+      <p class="hint" style="margin-top:-4px">Tune how you want AI coding agents to work with you, then save or copy the summary to paste at the start of a session.</p>
+
+      <div class="ctl"><div class="lr"><label for="detail">Response detail</label><span class="val" id="detailV">Balanced</span></div>
+        <input id="detail" type="range" min="1" max="5" value="3"><div class="hint">1 brief · 5 deep dive</div></div>
+      <div class="ctl"><div class="lr"><label for="autonomy">Agent autonomy</label><span class="val" id="autonomyV">Proactive</span></div>
+        <input id="autonomy" type="range" min="1" max="5" value="4"><div class="hint">1 asks first · 5 makes reasonable calls and moves</div></div>
+      <div class="ctl"><div class="lr"><label for="teaching">Explanation mode</label><span class="val" id="teachingV">Coach</span></div>
+        <input id="teaching" type="range" min="1" max="5" value="4"><div class="hint">1 just do it · 5 walk me through the thinking</div></div>
+      <div class="ctl"><div class="lr"><label for="conf">Uncertainty threshold</label><span class="val" id="confV">70%</span></div>
+        <input id="conf" type="range" min="50" max="95" step="5" value="70"><div class="hint">Below this confidence: ask, verify, or label the assumption</div></div>
+      <div class="ctl"><label for="feedback">Feedback style</label>
+        <select id="feedback"><option>Direct and kind</option><option>Executive summary first</option><option>Step-by-step</option><option>Questions before recommendations</option></select></div>
+      <div class="ctl"><label>Behaviors I value</label>
+        <label class="tg"><input type="checkbox" data-b="Make a strong first draft before asking setup questions." checked><span>First draft before setup questions</span></label>
+        <label class="tg"><input type="checkbox" data-b="Verify the build (esbuild/vite) before pushing." checked><span>Verify build before pushing</span></label>
+        <label class="tg"><input type="checkbox" data-b="Explain the why behind technical choices, briefly." checked><span>Explain the why, briefly</span></label>
+        <label class="tg"><input type="checkbox" data-b="Tell me directly when I'm making an error — don't flatter." checked><span>Flag my errors directly</span></label>
+        <label class="tg"><input type="checkbox" data-b="Commit + push for me; Vercel auto-deploys." checked><span>Commit + push for me</span></label></div>
+      <div class="ctl"><label for="notes">Extra context for this session</label><textarea id="notes" placeholder="e.g. working on mikeslife brief; on mobile, no computer"></textarea></div>
+
+      <pre class="out" id="summary" aria-live="polite"></pre>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="saveCtx">Save</button>
+        <button class="btn sec" id="copyCtx">Copy</button>
+        <button class="btn sec" id="resetCtx">Reset</button>
+      </div>
+      <div class="status" id="ctxStatus"></div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section class="view" id="v-projects">
+    <div class="card">
+      <h2>Workspace audit <span class="upd">Jul 11, 2026</span></h2>
+      <div class="metricgrid" style="margin:0 0 12px">
+        <div class="metric"><div class="n">14</div><div class="l">Live apps reachable</div></div>
+        <div class="metric"><div class="n">4</div><div class="l">Duplicate / backup folder groups</div></div>
+        <div class="metric"><div class="n">0</div><div class="l">Open GitHub PRs / issues here</div></div>
+        <div class="metric"><div class="n">1</div><div class="l">Natural URL fixed: /coding</div></div>
+      </div>
+      <details class="acc"><summary>Folder cleanup candidates</summary><div class="acc-body">
+        <b>Do not delete automatically.</b> Compare and archive deliberately: <code>adam-the-cruise-guy/</code> vs <code>adamthecruiseguy/</code>; <code>mdulin01.github.io/</code> vs <code>mikedulinmd/</code>; <code>mikeandadam.broken/</code>; <code>mikesfitness-broken/</code>. Several mounted repositories are behind GitHub, so a fresh clone remains the safe starting point.
+      </div></details>
+    </div>
+    <div class="card">
+      <h2>Active projects</h2>
+      <div class="pgrid" id="pgrid"></div>
+    </div>
+    <div class="card">
+      <h2>Reference docs</h2>
+      <p class="hint" style="margin-top:-4px">Handoff + architecture live in the <code>Coding-Projects</code> folder (iCloud) and aren't web-hosted yet. Repos below are the source of truth.</p>
+      <div class="note-amber"><strong>Secrets:</strong> by design, no tokens or keys are stored here. Keep your GitHub PAT and API keys in a password manager (1Password / Apple Passwords) and app secrets in Vercel / Google Secret Manager. See the <b>🔐 Secrets</b> tab to track <em>where</em> each one lives and when it's due to rotate.</div>
+    </div>
+  </section>
+
+  <!-- SECRETS -->
+  <section class="view" id="v-secrets">
+    <div class="card">
+      <h2>Secrets index <span style="color:var(--dim);font-weight:600">— names &amp; locations only, never values</span></h2>
+      <div class="note-amber"><strong>No secret values are stored here.</strong> This is a rotation tracker: what exists, where it lives, and when it's due. Keep the actual values in a password manager / Secret Manager.</div>
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="secName" placeholder="Name (e.g. GitHub PAT)">
+        <input type="text" id="secLoc" placeholder="Where (e.g. Apple Passwords / Vercel mikeslife-a1qy)">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div><label>Last rotated</label><input type="date" id="secDate"></div>
+        <div><label>Rotate every (days)</label><input type="text" id="secEvery" inputmode="numeric" placeholder="90"></div>
+      </div>
+      <div style="margin-top:8px"><input type="text" id="secNotes" placeholder="Notes (optional)"></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="secAdd">Add</button><button class="btn sec" id="secSeed">Add my known secrets</button></div>
+      <p class="hint">Claude reads this whole workspace (Capture · Roadmap · AI context · this index) at session start via the mikeslife <code>/api/coding-board</code> endpoint — log things here and every session sees them.</p>
+    </div>
+    <div class="card"><h2>Tracked secrets</h2><div id="secList"></div></div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="view" id="v-architecture">
+    <div class="card">
+      <h2>LifeOS data architecture <span class="upd">updated 2026-07-06</span></h2>
+      <p class="hint" style="margin-top:-4px">A <b>hub-and-spoke</b>: many single-purpose apps (spokes), each its own Firebase project + source of truth, a strategic hub (<b>mikeslife</b>), and an agent (<b>Rupert</b>) that reads curated slices from the spokes, thinks, and writes guidance back. Spokes never talk to each other directly — Rupert is the connective tissue. Tap a section to expand.</p>
+
+      <details class="acc" open>
+        <summary>1 · The big picture</summary>
+        <div class="acc-body">
+          <pre class="mermaid">flowchart TB
+  USER["📱 Mike (iPhone) — installed PWAs + push"]
+  HUB["🦚 mikeslife hub<br/>doc: lifeos/uid"]
+  subgraph RUP["Rupert — agent / data engine"]
+    CLOUD["☁️ Vercel crons in mikeslife<br/>brief · context · banners · heartbeat<br/>travel · fitness-coach · updates · nutrition<br/>/api/rupert chat (OpenAI or Claude, auto-fallback)"]
+    MINI["🖥️ Mac mini (OpenClaw)<br/>adamjobs + social digests only"]
+  end
+  subgraph SPOKES["Spoke apps — each its own Firebase project"]
+    FIT["💪 fitness"]
+    HLTH["🫀 health"]
+    MON["💰 money"]
+    RENT["🏠 rentals"]
+    UPD["📡 updates"]
+    NUT["🥗 nutrition"]
+    TRAV["✈️ travel"]
+  end
+  USER -->|read/write| HUB
+  USER -->|read/write| SPOKES
+  USER -->|peacock chat| CLOUD
+  CLOUD <-->|read slices / write brief, content| HUB
+  CLOUD -->|read curated data via admin SAs| SPOKES
+  CLOUD -->|write banners + generated content| SPOKES
+  MINI -->|digest alerts| HUB
+  HUB -->|FCM push| USER</pre>
+          <p><b>Today's shift:</b> the Rupert banners for money &amp; rentals moved from the mini to cloud crons (<code>cron-finance-note</code>, <code>cron-rental-note</code>), joining <code>cron-fitness-note</code>. The mini is now down to the non-critical adamjobs/social digests.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>2 · App ↔ Firebase project map</summary>
+        <div class="acc-body">
+          <table class="atable"><thead><tr><th>App</th><th>Firebase project</th><th>Rupert key</th></tr></thead><tbody>
+            <tr><td>mikeslife (hub)</td><td>mikeslife-963c6</td><td>FIREBASE_SERVICE_ACCOUNT</td></tr>
+            <tr><td>mikesfitness</td><td>trip-planner-5cc84 (shared)</td><td>FIREBASE_SA_FITNESS</td></tr>
+            <tr><td>mikeshealth</td><td>mikeshealth-ad213</td><td>FIREBASE_SA_HEALTH</td></tr>
+            <tr><td>mikes-money</td><td>mikesmoney-91595</td><td>FIREBASE_SA_MONEY</td></tr>
+            <tr><td>rainbow-rentals</td><td>rainbow-rentals</td><td>FIREBASE_SA_RAINBOW</td></tr>
+            <tr><td>mikestravel</td><td>mikestravel</td><td>— (phase 2)</td></tr>
+            <tr><td>mikesupdates</td><td>mikesupdates-5f240</td><td>FIREBASE_SA_UPDATES (write)</td></tr>
+            <tr><td>mikesnutrition</td><td>mikesnutrition-4a6dc</td><td>FIREBASE_SA_NUTRITION (write)</td></tr>
+            <tr><td>mikedulinmd</td><td>mikedulinmd-cf65b</td><td>public site + this coding workspace</td></tr>
+          </tbody></table>
+          <p>One app = one project = one source of truth. Only shared project: <code>trip-planner-5cc84</code> (fitness + mikeandadam). Rupert reaches other projects with per-project admin service-account keys (Vercel env in the cloud).</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>3 · Rupert — the data engine (agentSlices)</summary>
+        <div class="acc-body">
+          <pre class="mermaid">flowchart LR
+  subgraph SRC["Spoke sources of truth"]
+    FIT["💪 fitness"]
+    HLTH["🫀 health"]
+    MON["💰 money"]
+    GOOG["📧 Google Cal + Gmail"]
+  end
+  subgraph CRONS["Vercel context crons (read)"]
+    CF["cron-fitness-context"]
+    CH["cron-health-context"]
+    CM["cron-finance-context"]
+    CG["cron-google (3d/30msg + delivery sweep)"]
+  end
+  SL["lifeos/uid slices:<br/>fitnessContext · healthContext<br/>financeContext · calendarText<br/>emailText (+snippets +deliveries)"]
+  subgraph THINK["Rupert thinks — OpenAI or Claude (settings.aiProvider)"]
+    BR["cron-brief → todayBrief"]
+    CHAT["/api/rupert chat"]
+  end
+  subgraph OUT["Write-out"]
+    WU["cron-updates → updates"]
+    WN["cron-nutrition → nutrition"]
+    WB["banners: fitness/finance/rental-note"]
+  end
+  FIT --> CF --> SL
+  HLTH --> CH --> SL
+  MON --> CM --> SL
+  GOOG --> CG --> SL
+  SL --> BR
+  SL --> CHAT
+  THINK --> OUT</pre>
+          <p><b>Read-in:</b> daily, just before the brief, cloud crons distill each spoke into a few lines in <code>lifeos/uid</code>. <b>Write-out:</b> other crons generate content + banners into the spokes' own Firestore. <b>New:</b> the brain is now provider-agnostic (<code>api/_llm.js</code>) — flip OpenAI↔Claude in Settings.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>4 · The morning-brief pipeline</summary>
+        <div class="acc-body">
+          <pre class="mermaid">sequenceDiagram
+  autonumber
+  participant G as Google
+  participant SP as Spokes
+  participant L as lifeos/uid
+  participant B as cron-brief
+  participant P as iPhone
+  Note over G,L: context syncs ~10:50 UTC
+  G->>L: cron-google → calendar, email(+deliveries)
+  SP->>L: fitness/finance/health-context → slices
+  Note over B: runs hourly, fires at settings.briefHour (def 7 ET)
+  L->>B: commitments, plans, slices, recent-focus, doneLedger
+  B->>B: Top of mind · Focus · Health · FYI · Delivery · Looking ahead
+  B->>L: write todayBrief (idempotent per ET day)
+  B->>P: FCM push (suppressed during quiet hours)
+  P->>L: tap ✓ handled → marks plan task done</pre>
+          <p><b>Today's changes:</b> the brief + check-in crons now run <b>hourly</b>, gated to <code>settings.briefHour</code> (so you can move your brief time); <b>quiet hours</b> suppress the push while still writing data; the Gemini-style brief adds <b>Delivery updates</b> + <b>Looking ahead</b>; and <code>doneLedger</code> stops completed items resurfacing.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>5 · External data ingestion</summary>
+        <div class="acc-body">
+          <pre class="mermaid">flowchart TB
+  HAE["Health Auto Export (iPhone)"] -->|POST webhook + token| HF["Cloud Function: mikeshealthHealthIngest"]
+  HF -->|normalize + write| HD["mikeshealth: dailyMetrics + biology/bio"]
+  HD -->|cron-health-context| L["lifeos.healthContext"]
+  PLAID["Plaid"] -->|syncItem Cloud Function| MD["mikes-money: accounts/transactions"]
+  MD -->|daily dashboardSnapshots| MS["snapshot"]
+  MS -->|cron-finance-context| L2["lifeos.financeContext"]
+  GAPI["Google APIs (OAuth)"] -->|cron-google| L3["lifeos.calendar / emailText"]</pre>
+          <p><b>Two-hop for health:</b> Apple Health → mikeshealth Cloud Function → Firestore → context cron → lifeos. That Cloud Function deploys <b>separately</b> (<code>firebase deploy --only functions</code>) — it does not ship with Vercel.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>6 · Observability &amp; notifications</summary>
+        <div class="acc-body">
+          <p><b>Heartbeat (NEW):</b> <code>cron-heartbeat</code> (14:00 UTC) checks that Google + the three context syncs + today's brief actually ran; if anything is &gt;26h stale it pushes one alert — so silent failures surface instead of hiding.</p>
+          <p><b>Banners:</b> a <code>rupert/note</code> doc in each spoke's Firestore (now written by cloud crons) drives the shared RupertBanner atop that app.</p>
+          <p><b>Push:</b> all notifications come from mikeslife via FCM. <b>Fix today:</b> only the latest FCM token is kept, ending the duplicate-morning-ping bug.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>7 · Design principles &amp; fragilities</summary>
+        <div class="acc-body">
+          <p><b>Principles:</b> loose coupling (per-project Firebase, one-directional cross-project access via Rupert's keys) · agentSlices not duplication · cloud-first (mini now nearly retired) · git push auto-deploys frontends + Vercel crons.</p>
+          <p><b>Watch out for:</b> Firebase Cloud Functions don't auto-deploy (separate <code>firebase deploy --only functions</code>) · local folders can drift behind GitHub (pull/clone fresh) · a new Rupert↔spoke link needs that project's admin SA in Vercel env (missing = 503) · Eastern-time everywhere (never UTC <code>toISOString().split()</code>).</p>
+        </div>
+      </details>
+    </div>
+  </section>
+  <!-- ROADMAP -->
+  <section class="view" id="v-roadmap">
+    <div class="card">
+      <h2>Roadmap <span class="upd" id="rmCount"></span></h2>
+      <p class="hint" style="margin-top:-4px">Kanban across all apps. Synced to your account, so add on your phone and it's here on the laptop. Use <b>Copy as Markdown</b> to hand the board to an AI session.</p>
+      <div class="rmbar">
+        <input type="text" id="rmTitle" placeholder="Add an item / idea… (Enter)" style="flex:2 1 220px">
+        <select id="rmApp" style="flex:1"></select>
+        <select id="rmStatus" style="flex:1"></select>
+        <select id="rmPriority" style="flex:1"><option value="p1">P1 · Urgent</option><option value="p2" selected>P2 · Important</option><option value="p3">P3 · Later</option></select>
+        <input type="date" id="rmDue" title="Due date" style="flex:1">
+        <button class="btn" id="rmAdd">Add</button>
+        <button class="btn sec" id="rmCopy">📋 Copy as Markdown</button>
+      </div>
+      <div class="chips" id="rmFilters"></div>
+      <div class="status" id="rmStatusMsg"></div>
+      <div class="board" id="rmBoard"></div>
+      <details class="donebox"><summary>Completed archive · <span id="rmDoneCount">0</span></summary><div class="done-list" id="rmDone"></div></details>
+    </div>
+  </section>
+</div>
+
+  <script type="application/json" id="roadmap-seed">{"items":[{"id":"h2","app":"health","status":"doing","title":"Add BP + Weight + Body Fat to the mikeshealth HAE automation (iPhone)","note":"VO2/RHR flow to mikeshealth (pipeline works) but BP/weight/bodyfat dont \u2014 that automation just isnt EXPORTING them. iPhone: HAE \u2192 Automations \u2192 mikeshealth \u2192 Metrics \u2192 enable Blood Pressure + Weight & Body Mass + Body Fat %. Function (7cb9f73) hardened (kg\u2192lb, bf %\u2192fraction); deploy via firebase deploy --only functions. Hand-enter meanwhile via \u270f\ufe0f on the tile."},{"id":"av1","app":"lifeos","status":"done","title":"Recurring availability for Rupert (Charlotte Wed/Thu = Rea Farms)","note":"6/13 709390d \u2014 lifeos.commitments read by /api/rupert + cron-brief (hard rule: never schedule over them); editable card on Home; defaults to Charlotte Wed/Thu."},{"id":"mm1","app":"money","status":"done","title":"Empower-style net-worth component breakdown","note":"6/13 5707d99 \u2014 composition bar + tap component to chart over time from snapshots.byType."},{"id":"mm2","app":"money","status":"done","title":"Apply overflow/janky-fit fix to mikesmoney","note":"6/13 5707d99 \u2014 global overflow-x guard."},{"id":"px1","app":"lifeos","status":"done","title":"Floating dock polish (all 6 apps)","note":"6/13 \u2014 safe-area lift (above iPhone home indicator) + larger tap targets (46-48px, 22px icons) + more bottom padding. mikeshealth 1a512ad \u00b7 mikeslife 3a2be3c \u00b7 mikestravel b05aa47 \u00b7 mikesmoney dc78837 \u00b7 mikesfitness 3a36cad \u00b7 rainbow-rentals a34c5a6."},{"id":"mm3","app":"money","status":"done","title":"Vanguard holdings via Plaid \u2014 LIVE (52 positions)","note":"6/13 047706a \u2014 re-linked Vanguard WITH Investments \u2192 live positions flow (incl ESGV/BOTZ). Built \u2a2f Unlink + one-click 'Clear duplicated manual holdings' (keeps TIAA, which Plaid cant reach). Mike: click Clear to drop the stale Empower set; totals correct from inflated $5.4M \u2192 ~$2.6M live. Backend deployed."},{"id":"d20","app":"health","status":"done","title":"Conditions rename + metrics\u2192Preventive layout + freshness stamps + pull-to-refresh","note":"6/12 c8dc9ce"},{"id":"d21","app":"fitness","status":"done","title":"Metric freshness stamps + Apple-sync-ago + pull-to-refresh","note":"6/12 26b2a7a"},{"id":"d22","app":"travel","status":"done","title":"TripIt-style UI (covers/hero/timeline) + 105-trip history import (TripIt+Airbnb)","note":"6/12 c5a6f4d+9eda294 \u2014 57 trips/38 places live"},{"id":"d23","app":"travel","status":"done","title":"Connect-the-dots: flag missing lodging + suggest past stays in same city","note":"6/13 61e0d2d \u2014 Needs-attention card + \u26a0\ufe0f badge; solves Amsterdam case"},{"id":"d24","app":"travel","status":"done","title":"Booking.com history (+35 stays, 140 total) \u2192 84 trips/56 places live","note":"6/13 3dd4168"},{"id":"d25","app":"lifeos","status":"done","title":"Push notifications fixed (Re-sync + test-push) + Today memory bug + overflow hardening","note":"6/13 8c6cd3c/e635136/0edc3ce/a8bdfb9"},{"id":"d26","app":"lifeos","status":"done","title":"Recurring availability \u2014 Rupert respects Charlotte Wed/Thu","note":"6/13 709390d"},{"id":"d27","app":"money","status":"done","title":"Net-worth component breakdown + overflow fix + dock polish","note":"6/13 5707d99 / dc78837"},{"id":"d28","app":"money","status":"done","title":"Insight 'forbidden' fixed (securetoken verify) + 'Empower Portfolio' \u2192 'Portfolio'","note":"6/13 4b7b6b9 \u2014 still needs OPENAI_API_KEY in Vercel"},{"id":"d29","app":"health","status":"done","title":"Manual vitals entry (\u270f\ufe0f tap a tile) + Import no longer clobbers live values","note":"6/13 4fdc21d / 1205e75"},{"id":"d30","app":"lifeos","status":"done","title":"Dock polish across all 6 apps (safe-area + larger targets)","note":"6/13"},{"id":"d31","app":"travel","status":"done","title":"Connect-the-dots: missing-lodging flag + past-stay suggestions","note":"6/13 61e0d2d"},{"id":"d32","app":"money","status":"done","title":"\u2728 Insight button VERIFIED working + miscategorization rules (Citi/Schwab/Guild/NC Health)","note":"6/13 14263e8/b5d6633 \u2014 run \ud83e\ude84 Auto-categorize to re-tag existing txns"},{"id":"d33","app":"health","status":"done","title":"Metric tiles mobile layout + manual \u270f\ufe0f entry + Import no-clobber","note":"6/13 6d5651c/4fdc21d/1205e75"},{"id":"d34","app":"rentals","status":"done","title":"Rupert banner width aligned + dock polish","note":"6/13 4a3c09c"},{"id":"d35","app":"lifeos","status":"done","title":"Inbox 'Do it' actually works (adds to Today + Home); genetics appt logged in mikeshealth Visit Prep","note":"6/13 95c30be / 8825b34"},{"id":"d36","app":"lifeos","status":"done","title":"Real Inbox proposals LIVE + verified (6 grounded from health data)","note":"6/13 cd72607 \u2014 cron-proposals ran, generated Lp(a)/homocysteine/kidney/weight/plans proposals from real context."},{"id":"d37","app":"mini","status":"done","title":"rupertQueue consumer wired to real OpenClaw skills + verified (social e2e)","note":"6/13 \u2014 run-openclaw-job.mjs bridge; JOB_CMD_ADAMJOBS/SOCIAL set; social tested queued\u2192done\u2192alert+push."},{"id":"d38","app":"mini","status":"done","title":"Mini housekeeping + health-sync + gog consent published","note":"6/13 \u2014 7-job roster green; health-sync writing healthContext; gog consent screen Testing\u2192Production (project mikeslifeos)."},{"id":"d39","app":"lifeos","status":"done","title":"Vault: emergency one-pager + mikeshealth Records index","note":"6/13 81381c6 / 4be34f0"},{"id":"d40","app":"health","status":"done","title":"Health ingest hardened (units + body-fat fraction)","note":"6/13 7cb9f73 \u2014 needs firebase deploy --only functions"},{"id":"d41","app":"health","status":"done","title":"BP syncing live (110/75 today) + genetic files filed + MET enriched","note":"6/13 68ce78e \u2014 all-metrics HAE export \u2192 BP/VO2/RHR live; Invitae report + counseling packet in Records."},{"id":"d42","app":"money","status":"done","title":"Scroll-lock fix + Holdings manual/last-edited clarity","note":"6/13 aa9414a \u2014 overflow-x clip; amber manual note."},{"id":"d43","app":"money","status":"done","title":"Plaid Unlink (per-institution) + holdings-sync diagnostic","note":"6/13 91008a3/c3c3ecb"},{"id":"d44","app":"money","status":"done","title":"Vanguard holdings LIVE via Plaid + 1-click clear duplicates","note":"6/13 047706a \u2014 52 positions; keeps TIAA."},{"id":"d45","app":"health","status":"done","title":"Nav consolidated: Meds&Vaccines, Providers&Visits (latest prep per provider), Records promoted","note":"6/13 d963242"},{"id":"d46","app":"lifeos","status":"done","title":"Quick capture + Patterns + check-in mood/energy sliders","note":"6/13 78d606b"},{"id":"d47","app":"travel","status":"done","title":"Phase 2 itinerary parsing (paste email \u2192 segments)","note":"6/13 6cdd501"},{"id":"d48","app":"lifeos","status":"done","title":"Design unification (IBM Plex + spectrum) on money/fitness/rentals","note":"6/13 d3a9fee/c3cb632/64a64d1"},{"id":"m1","app":"mini","status":"done","title":"Unload old brief/content/check-in/fitness-note/portal plists","note":"6/13 \u2014 mini-housekeeping.sh archived all 5 to ~/Library/LaunchAgents/_retired-2026-06-13/; duplicate pushes gone. fitness-sync revived (had stopped). Failing health-sync unloaded until key added."},{"id":"m2","app":"mini","status":"done","title":"mikeshealth-sa.json key + health-sync enabled","note":"6/13 \u2014 firebase-adminsdk key dropped in ~/.openclaw/keys/; health-sync loaded (3:50am) + verified writing healthContext (eGFR 63, ApoB 75, Lp(a)\u26a0, HPRC). Brief now sees labs/kidney/body-fat."},{"id":"m3","app":"mini","status":"doing","title":"gog re-auth \u2014 consent screen PUBLISHED, finish re-auth on mini","note":"6/13 found gog OAuth project=mikeslifeos; published consent screen Testing\u2192Production (stops weekly invalid_grant). REMAINING: on the mini run gog auth add mdulin@gmail.com --services gmail,calendar,drive,contacts,docs,sheets, click past the unverified-app screen once. NOTE: brief calendar/email is a SEPARATE cloud pipeline (/api/google-auth)."},{"id":"m4","app":"mini","status":"done","title":"rupertQueue consumer \u2014 LIVE (every 5 min)","note":"6/13 \u2014 loaded + healthy. Polls lifeos.rupertQueue \u2192 runs job \u2192 alert + push \u2192 marks done. REMAINING (minor): wire adamjobs/social to the real OpenClaw jobs via env JOB_CMD_ADAMJOBS/JOB_CMD_SOCIAL or job-<kind>.mjs \u2014 until then those mark 'skipped' (no loop)."},{"id":"h1","app":"health","status":"done","title":"Tap \"Import data\" in mikeshealth (loads echo + labs)","note":"DONE by Mike 6/13. Safe import \u2014 no longer clobbers live BP/weight (1205e75)."},{"id":"h3","app":"health","status":"doing","title":"Fix Withings\u2192Apple Health weight sharing (iPhone)","note":"Weight tile stuck at 192 (2026-05 seed) \u2014 Withings app \u2192 Settings \u2192 Export to Apple Health, enable Weight + Body Fat. Or just hand-enter via the new \u270f\ufe0f edit on the tile."},{"id":"n2","app":"money","status":"done","title":"\u2462 Per-page \u2728 insight button + Amazon email parsing","note":"6/12 \u2014 mikes-money 26ea923 + mikeslife cron-amazon 9b365aa; rules published. \u23f3 Mike: add OPENAI_API_KEY in mikes-money Vercel."},{"id":"m5","app":"money","status":"done","title":"Add OPENAI_API_KEY to mikes-money Vercel env (Mike)","note":"DONE by Mike 6/13 \u2014 \u2728 insight button should now work (auth fixed in 4b7b6b9)."},{"id":"n3","app":"lifeos","status":"done","title":"\u2463 Design system unification","note":"6/13 \u2014 IBM Plex + spectrum hairline on money(d3a9fee)/fitness(c3cb632)/rentals(64a64d1); home pillar-status row already existed. Full theme rewrite optional later."},{"id":"n4","app":"travel","status":"done","title":"mikestravel Phase 2 \u2014 itinerary parsing","note":"6/13 6cdd501 \u2014 \u2728 Parse from email: paste confirmation \u2192 OpenAI extracts segments. Needs OPENAI_API_KEY in mikestravel Vercel. (Auto Gmail-cron parse = future.)"},{"id":"n5","app":"lifeos","status":"next","title":"Real Inbox proposals","note":"Rupert writes lifeos.proposals so the Inbox has live items."},{"id":"n6","app":"lifeos","status":"next","title":"iOS Shortcuts location automations","note":"LOCATION_TOKEN is set; build Arrive Gym/Grocery/Clinic/Home \u2192 POST /api/location."},{"id":"n7","app":"security","status":"next","title":"Security rotation (OVERDUE)","note":"GitHub PAT (also sitting in plaintext in 4 local .git/config files), Telegram bot token, HEALTH_INGEST_TOKEN; delete orphaned \"Rupert Google sync\" client secret in mikeslife-963c6."},{"id":"n8","app":"docs","status":"next","title":"Add mikestravel CLAUDE.md entry (#13)","note":""},{"id":"n9","app":"money","status":"next","title":"Q3 tax true-up (7/15) + H2 money transition","note":"TPC ends 6/30; retirement draws start July; Cowork task q3-tax-true-up fires 7/15 9am."},{"id":"i1","app":"lifeos","status":"done","title":"Quick capture","note":"6/13 78d606b \u2014 Home card \u2192 lifeos.captures, send to Today / delete."},{"id":"i2","app":"lifeos","status":"done","title":"Cross-app correlations (Patterns v1)","note":"6/13 78d606b \u2014 Patterns tab: energy/mood/capacity trends (check-in now captures sliders \u2192 checkinHistory) + top energizing activities. Spend/training correlations accrue as series fill."},{"id":"i3","app":"lifeos","status":"done","title":"Vault + emergency one-pager","note":"6/13 DONE both halves: mikeslife Vault tab = editable emergency one-pager (contacts/providers/insurance + medical/legal) w/ Print/Save-PDF (81381c6); mikeshealth Records module = medical-doc index (4be34f0, tap Import). No passwords by design."},{"id":"i4","app":"lifeos","status":"idea","title":"Calendar timeboxing","note":"Auto-block focus/training/recovery on the calendar."},{"id":"i8","app":"health","status":"idea","title":"Log booked appointments from a preventive item","note":"When Mike completes/schedules a preventive item (e.g. genetic counseling 7/7), capture what/when/why as a linked appointment \u2014 not just edit the dueDate. The genetics appt was logged manually to Visit Prep for now (8825b34)."},{"id":"i9","app":"lifeos","status":"done","title":"Real Inbox proposals (Rupert-written)","note":"6/13 cd72607 \u2014 cron-proposals daily 11:30 UTC; grounded in email signals + finance/fitness/health context + stalled plans; dismiss-safe (dismissedProposalKeys). Replaces seed mock."},{"id":"i10","app":"money","status":"idea","title":"Holdings: live source vs Empower bulk import","note":"Holdings are a frozen Empower bulk-import (manual) \u2014 Plaid Update won't change them, so ESGV/BOTZ won't appear until re-import or Vanguard investments are Plaid-linked. Decide the live-source strategy."},{"id":"i5","app":"fitness","status":"idea","title":"mikesfitness ideas (add yours)","note":""},{"id":"i6","app":"health","status":"idea","title":"mikeshealth ideas (add yours)","note":""},{"id":"i7","app":"travel","status":"idea","title":"mikestravel ideas (add yours)","note":""},{"id":"d0","app":"lifeos","status":"done","title":"\u2461 Plan-step input dialogs","note":"Today one-liner \u2192 tap \u2192 step sheet; answer saved to plan task.note (Planning hub shows it). 6/12 \u00b7 1df2e73"},{"id":"dR","app":"lifeos","status":"done","title":"Roadmap moved out of mikeslife to this board","note":"Tab removed (fcf2b5b) 6/12; dev tracker \u2260 life cockpit."},{"id":"d1","app":"lifeos","status":"done","title":"Rupert chat brain (gpt-5.5) + voice","note":""},{"id":"d2","app":"lifeos","status":"done","title":"Planning hub (activate\u2192steps, Odyssey, mind-map, journal)","note":""},{"id":"d3","app":"lifeos","status":"done","title":"Alert history + ratings + global search","note":""},{"id":"d4","app":"lifeos","status":"done","title":"Wellness-first check-in (drag-to-rank)","note":""},{"id":"d5","app":"lifeos","status":"done","title":"Today engine (4\u20135/day, delay + roll-forward)","note":""},{"id":"d6","app":"lifeos","status":"done","title":"Google calendar + email pipeline (LIVE)","note":""},{"id":"d7","app":"lifeos","status":"done","title":"Cloud crons (brief/content/celebrate/google/finance/invoice)","note":""},{"id":"d8","app":"lifeos","status":"done","title":"Refresh + focus pages + location capture","note":""},{"id":"d9","app":"lifeos","status":"done","title":"Purpose Learning hub (courses + 2026 conferences)","note":""},{"id":"d10","app":"lifeos","status":"done","title":"Floating dock + peacocks on all 5 apps","note":""},{"id":"d12","app":"money","status":"done","title":"Business tab (income matrix + timesheet + invoices + GMA ledger)","note":"Portal retired to public site."},{"id":"d15","app":"travel","status":"done","title":"mikestravel born + live","note":"5 real trips, members/invites, domain attached."}]}</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const OWNER = "mdulin@gmail.com";
+  const app = initializeApp({
+    apiKey:"AIzaSyC5mOkljbkSMCMhRf-jrJ7TIpkESMTcxHY", authDomain:"mikedulinmd-cf65b.firebaseapp.com",
+    projectId:"mikedulinmd-cf65b", storageBucket:"mikedulinmd-cf65b.firebasestorage.app",
+    messagingSenderId:"714928483011", appId:"1:714928483011:web:dd1b266d77c6042c6f5076"
+  });
+  const auth = getAuth(app); const db = getFirestore(app);
+  const $ = (id)=>document.getElementById(id);
+  const LOCAL_PREVIEW=["127.0.0.1","localhost"].includes(location.hostname) && new URLSearchParams(location.search).has("preview");
+
+  // Project metadata (kept in sync by hand with Coding-Projects/CLAUDE.md).
+  const PROJECTS = [
+    ["mikeslife","LifeOS hub + Rupert","https://mikeslife.app","https://github.com/mdulin01/mikeslife"],
+    ["mikes-money","Personal finance","https://www.mikesmoney.app","https://github.com/mdulin01/mikes-money"],
+    ["mikeshealth","Health / longevity","https://mikeshealth.app","https://github.com/mdulin01/mikeshealth"],
+    ["mikeshealth-demo","WholeRecord synthetic product demo","https://demo.mikeshealth.app","https://github.com/mdulin01/mikeshealth"],
+    ["mikesfitness","Fitness tracker","https://mikesfitness.app","https://github.com/mdulin01/mikesfitness"],
+    ["mikesnutrition","Recipes / meal prep","https://mikesnutrition.app","https://github.com/mdulin01/mikesnutrition"],
+    ["mikesupdates","Content feed","https://mikesupdates.app","https://github.com/mdulin01/mikesupdates"],
+    ["mikestravel","Trips","https://www.mikestravel.app","https://github.com/mdulin01/mikestravel"],
+    ["mikeandadam","Shared life hub","https://mikeandadam.app","https://github.com/mdulin01/mikeandadam"],
+    ["rainbow-rentals","Rentals (Rainbow)","https://rainbowrentals.app","https://github.com/mdulin01/rainbow-rentals"],
+    ["dulinproperties","Rentals (Dulin)","https://dulinproperties.app","https://github.com/mdulin01/dulinproperties"],
+    ["lifedesigncourse","Course platform","https://lifedesigncourse.app","https://github.com/mdulin01/lifedesigncourse"],
+    ["downtownGSO","Community platform","https://downtownGSO.org","https://github.com/mdulin01/downtownGSO"],
+    ["adamthecruiseguy","Cruise CRM","","https://github.com/mdulin01/adam-the-cruise-guy"],
+    ["mikedulinmd","This site","https://mikedulinmd.app","https://github.com/mdulin01/mdulin01.github.io"],
+    ["rupert","Chief-of-staff agent","","" ],
+    ["avance-reporting","Avance reporting dashboards","https://mikedulinmd.app/avance/","https://github.com/mdulin01/mdulin01.github.io"],
+    ["kates-book","Book project / content","",""],
+    ["timeless-transitions","Planned company website","",""],
+    ["apple-native","Apple Developer · Capacitor · Wallet learning","",""],
+    ["other","Other / general","",""]
+  ];
+  const PROJECT_META={
+    "mikeslife":{folder:"mikeslife",branch:"main",kind:"hub",state:"active"},
+    "mikes-money":{folder:"mikes-money",branch:"main",kind:"spoke",state:"active"},
+    mikeshealth:{folder:"mikeshealth",branch:"main",kind:"spoke",state:"active"},
+    "mikeshealth-demo":{folder:"mikeshealth/demo",branch:"main",kind:"public demo",state:"active"},
+    mikesfitness:{folder:"mikesfitness",branch:"main",kind:"spoke",state:"active"},
+    mikesnutrition:{folder:"mikesnutrition",branch:"main",kind:"spoke",state:"active"},
+    mikesupdates:{folder:"mikesupdates",branch:"main",kind:"spoke",state:"active"},
+    mikestravel:{folder:"mikestravel",branch:"main",kind:"spoke",state:"active"},
+    mikeandadam:{folder:"mikeandadam",branch:"master",kind:"shared",state:"active"},
+    "rainbow-rentals":{folder:"rainbow-rentals",branch:"main",kind:"rental",state:"active"},
+    dulinproperties:{folder:"dulinproperties",branch:"main",kind:"rental",state:"maintenance"},
+    lifedesigncourse:{folder:"lifedesigncourse",branch:"main",kind:"course",state:"maintenance"},
+    downtownGSO:{folder:"downtowngso",branch:"main",kind:"community",state:"maintenance"},
+    adamthecruiseguy:{folder:"adamthecruiseguy",branch:"master",kind:"business",state:"maintenance"},
+    mikedulinmd:{folder:"mdulin01.github.io",branch:"main",kind:"workspace",state:"active"},
+    rupert:{folder:"rupert",branch:"—",kind:"agent",state:"active"},
+    "avance-reporting":{folder:"avance-reporting",branch:"main",kind:"internal",state:"active"},
+    "kates-book":{folder:"kates-book",branch:"—",kind:"content",state:"incubator"},
+    "timeless-transitions":{folder:"timeless-transitions",branch:"master",kind:"website",state:"planned"},
+    "apple-native":{folder:"learning track",branch:"—",kind:"learning",state:"planned"}
+  };
+
+  // ---------- auth ----------
+  $("signinBtn").onclick = async ()=>{
+    $("loginMsg").textContent="";
+    try{ await signInWithPopup(auth, new GoogleAuthProvider()); }
+    catch(e){ $("loginMsg").textContent = e.code==="auth/unauthorized-domain" ? "Add mikedulinmd.app to Firebase Auth → Authorized domains." : (e.message||"Sign-in failed"); }
+  };
+  $("signoutBtn").onclick = ()=>signOut(auth);
+  let unsub=null, unsub2=null, unsub3=null;
+  onAuthStateChanged(auth, (user)=>{
+    if(LOCAL_PREVIEW){$("login").style.display="none";$("app").style.display="block";$("whoami").textContent="Local preview";startApp();return;}
+    if(user && user.email===OWNER){
+      $("login").style.display="none"; $("app").style.display="block";
+      $("whoami").textContent=user.email;
+      startApp();
+    }else{
+      if(user){ $("loginMsg").textContent="That account isn't authorized."; signOut(auth); }
+      $("login").style.display="flex"; $("app").style.display="none";
+      if(unsub){unsub();unsub=null;} if(unsub2){unsub2();unsub2=null;} if(unsub3){unsub3();unsub3=null;}
+    }
+  });
+
+  // ---------- tabs ----------
+  function switchTab(name){
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    const t=document.querySelector('.tab[data-tab="'+name+'"]'); if(t)t.classList.add("on");
+    const v=$("v-"+name); if(v)v.classList.add("on");
+    if(name==="architecture") renderArch();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
+
+  // ---------- architecture (lazy Mermaid render) ----------
+  let mermaidMod=null;
+  async function runMermaidIn(root){
+    const nodes=[...root.querySelectorAll(".mermaid:not([data-processed])")];
+    if(!nodes.length) return;
+    try{
+      if(!mermaidMod){ mermaidMod=await import("https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"); mermaidMod.default.initialize({startOnLoad:false,theme:"neutral",securityLevel:"loose"}); }
+      await mermaidMod.default.run({nodes});
+    }catch(e){ console.error("mermaid",e); nodes.forEach(n=>{ n.innerHTML='<span style="color:var(--bug)">diagram failed to render — '+(e.message||e)+'</span>'; }); }
+  }
+  let archInit=false;
+  function renderArch(){
+    runMermaidIn(document.getElementById("v-architecture"));
+    if(archInit) return; archInit=true;
+    document.querySelectorAll("#v-architecture details.acc").forEach(d=>d.addEventListener("toggle",()=>{ if(d.open) runMermaidIn(d); }));
+  }
+
+  // ---------- capture ----------
+  const TYPE_LABEL={bug:"Bug",idea:"Idea",task:"Task"};
+  let items=[]; let filter={project:"all",status:"open"}; let handoff={}; let savedWorkingSummary="";
+
+  function fillProjectSelects(){
+    ["capProject","quickProject","hoProject"].forEach(sid=>{
+      const sel=$(sid); if(!sel)return; sel.innerHTML="";
+      PROJECTS.forEach(([id,desc])=>{ const o=document.createElement("option"); o.value=id; o.textContent=id; sel.appendChild(o); });
+      sel.value="mikeslife";
+    });
+  }
+  function projName(id){ const p=PROJECTS.find(x=>x[0]===id); return p?p[0]:id; }
+
+  $("capAdd").onclick = async ()=>{
+    const title=$("capTitle").value.trim(); if(!title) return;
+    $("capAdd").disabled=true;
+    try{
+      await addDoc(collection(db,"coding_items"),{
+        title, type:$("capType").value, project:$("capProject").value,
+        notes:$("capNotes").value.trim(), status:"open",
+        createdAt:serverTimestamp(), createdBy:OWNER
+      });
+      $("capTitle").value=""; $("capNotes").value="";
+    }catch(e){ alert("Couldn't save: "+(e.message||e)); }
+    $("capAdd").disabled=false;
+  };
+
+  function renderChips(){
+    const projs=["all",...new Set(items.map(i=>i.project))];
+    const c=$("filterChips"); c.innerHTML="";
+    const mk=(label,active,on)=>{ const b=document.createElement("button"); b.className="chip"+(active?" on":""); b.textContent=label; b.onclick=on; return b; };
+    c.appendChild(mk(filter.status==="open"?"Open":"Done", true, ()=>{filter.status=filter.status==="open"?"done":"open";render();}));
+    projs.forEach(p=>c.appendChild(mk(p==="all"?"All projects":p, filter.project===p, ()=>{filter.project=p;render();})));
+  }
+  function render(){
+    renderChips();
+    const fl=items.filter(i=>i.status===filter.status && (filter.project==="all"||i.project===filter.project));
+    $("openCount").textContent = "· "+items.filter(i=>i.status==="open").length+" open";
+    const L=$("list");
+    renderFocus();
+    if(!fl.length){ L.innerHTML='<div class="empty">Nothing here yet.</div>'; return; }
+    L.innerHTML="";
+    fl.forEach(i=>{
+      const row=document.createElement("div"); row.className="item"+(i.status==="done"?" done":"");
+      const dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate().toLocaleDateString():"";
+      row.innerHTML=`<span class="tag ${i.type}">${TYPE_LABEL[i.type]||i.type}</span>
+        <div class="body"><div class="t"></div><div class="meta">${i.project} · ${dt}</div>${i.notes?`<div class="notes"></div>`:""}</div>
+        <div class="acts"><button class="iconbtn" data-act="copy" title="Copy">📋</button><button class="iconbtn" data-act="toggle">${i.status==="done"?"↩︎":"✓"}</button><button class="iconbtn" data-act="del">🗑</button></div>`;
+      row.querySelector(".t").textContent=i.title;
+      if(i.notes) row.querySelector(".notes").textContent=i.notes;
+      const cbtn=row.querySelector('[data-act="copy"]'); cbtn.onclick=()=>{ const txt="["+i.project+"/"+(TYPE_LABEL[i.type]||i.type)+"] "+i.title+(i.notes?" — "+i.notes:""); navigator.clipboard.writeText(txt).then(()=>{ cbtn.textContent="✓"; setTimeout(()=>cbtn.textContent="📋",1200); }); };
+      row.querySelector('[data-act="toggle"]').onclick=()=>updateDoc(doc(db,"coding_items",i.id),{status:i.status==="done"?"open":"done",doneAt:i.status==="done"?null:serverTimestamp()});
+      row.querySelector('[data-act="del"]').onclick=()=>{ if(confirm("Delete this item?")) deleteDoc(doc(db,"coding_items",i.id)); };
+      L.appendChild(row);
+    });
+  }
+
+  // ---------- focus dashboard ----------
+  const PRI_LABEL={p1:"P1",p2:"P2",p3:"P3"};
+  const priorityOf=(x)=>{
+    if(x.priority)return x.priority;
+    const title=(x.title||"").toLowerCase();
+    if(/overdue|firebase deploy|q3 tax/.test(title))return "p1";
+    if(x.status==="idea")return "p3";
+    return "p2";
+  };
+  const dueText=(x)=>x.dueDate?"Due "+new Date(x.dueDate+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"America/New_York"}):"";
+  const activeRank=(x)=>({doing:0,next:1,idea:2}[x.status]??3)*10+({p1:0,p2:1,p3:2}[priorityOf(x)]??1);
+  function buildAgentBrief(){
+    const top=rmItems.filter(x=>x.status!=="done").sort((a,b)=>activeRank(a)-activeRank(b)).slice(0,7);
+    const lines=["# CODING HANDOFF — "+(handoff.project||"portfolio"),"",
+      "Last agent: "+(handoff.agent||"not recorded"),
+      "Current goal: "+(handoff.goal||"not recorded"),
+      "Last completed: "+(handoff.done||"not recorded"),
+      "Exact next step: "+(handoff.next||"not recorded"),
+      "Blockers / decisions: "+(handoff.blockers||"none recorded"),
+      "Files / branch: "+(handoff.files||"not recorded"),
+      "Verification / deployment: "+(handoff.verify||"not recorded"),"","## Portfolio priorities",""];
+    top.forEach(x=>lines.push("- ["+PRI_LABEL[priorityOf(x)]+"] ["+(RM_APPS[x.app]||x.app)+"] "+x.title+(x.dueDate?" · "+dueText(x):"")+(x.note?" — "+x.note:"")));
+    lines.push("","## Working preferences","",savedWorkingSummary||buildSummary());
+    return lines.join("\n");
+  }
+  function updateHandoffPreview(){ $("agentBrief").textContent=buildAgentBrief(); }
+  function readHandoffForm(){ return {project:$("hoProject").value,agent:$("hoAgent").value,goal:$("hoGoal").value.trim(),done:$("hoDone").value.trim(),next:$("hoNext").value.trim(),blockers:$("hoBlockers").value.trim(),files:$("hoFiles").value.trim(),verify:$("hoVerify").value.trim()}; }
+  function renderFocus(){
+    if(!$("focusQueue"))return;
+    const active=rmItems.filter(x=>x.status!=="done").sort((a,b)=>activeRank(a)-activeRank(b)||(a.dueDate||"9999").localeCompare(b.dueDate||"9999"));
+    $("statDoing").textContent=active.filter(x=>x.status==="doing").length;
+    $("statP1").textContent=active.filter(x=>priorityOf(x)==="p1").length;
+    $("statCapture").textContent=items.filter(x=>x.status==="open").length;
+    const q=$("focusQueue"); q.innerHTML="";
+    if(!active.length){q.innerHTML='<div class="empty">Your queue is clear. Add one meaningful next task above.</div>';}
+    active.slice(0,7).forEach(it=>{
+      const d=document.createElement("div");d.className="focusitem";
+      d.innerHTML='<span class="priority '+priorityOf(it)+'">'+PRI_LABEL[priorityOf(it)]+'</span><div><div class="ft"></div><div class="fm"></div></div><button class="iconbtn" title="Start / finish">'+(it.status==="doing"?"✓":"Start")+'</button>';
+      d.querySelector(".ft").textContent=it.title; d.querySelector(".fm").textContent=(RM_APPS[it.app]||it.app)+(it.dueDate?" · "+dueText(it):"");
+      d.querySelector("button").onclick=()=>updateDoc(doc(db,"coding_roadmap",it.id),{status:it.status==="doing"?"done":"doing",updatedAt:serverTimestamp()}); q.appendChild(d);
+    });
+    $("focusHandoff").innerHTML=handoff.goal?'<b>'+escapeHtml(handoff.project||"portfolio")+'</b><br>'+escapeHtml(handoff.goal)+'<br><span>Next: '+escapeHtml(handoff.next||"not recorded")+'</span>':'No handoff saved yet.';
+    updateHandoffPreview();
+  }
+  function escapeHtml(s){const d=document.createElement("div");d.textContent=s||"";return d.innerHTML;}
+  $("quickAdd").onclick=async()=>{
+    const title=$("quickTitle").value.trim();if(!title)return;
+    try{await addDoc(collection(db,"coding_roadmap"),{title,app:$("quickProject").value,status:"next",priority:$("quickPriority").value,note:"",dueDate:"",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});$("quickTitle").value="";$("quickStatus").textContent="Added to Next up.";}catch(e){$("quickStatus").textContent="Couldn’t add: "+(e.message||e);}
+  };
+  $("quickTitle").onkeydown=e=>{if(e.key==="Enter")$("quickAdd").click();};
+  $("focusCopy").onclick=()=>navigator.clipboard.writeText(buildAgentBrief());
+
+  // ---------- projects ----------
+  function renderProjects(){
+    const g=$("pgrid"); g.innerHTML="";
+    PROJECTS.filter(p=>p[0]!=="other").forEach(([id,desc,url,repo])=>{
+      const meta=PROJECT_META[id]||{};
+      const next=rmItems.filter(x=>x.app===id||({lifeos:"mikeslife",money:"mikes-money",health:"mikeshealth",fitness:"mikesfitness",travel:"mikestravel",rentals:"rainbow-rentals",mini:"rupert"}[x.app]===id)).filter(x=>x.status!=="done").sort((a,b)=>activeRank(a)-activeRank(b))[0];
+      const d=document.createElement("div"); d.className="pcard";
+      d.innerHTML=`<div class="nm">${id}</div><div class="desc">${desc}</div><div class="pmeta"><span class="pbadge ok">${url?"live":"local"}</span><span class="pbadge">${meta.state||"tracked"}</span><span class="pbadge">${meta.branch||"—"}</span></div><div class="lnk">
+        ${url?`<a href="${url}" target="_blank">Live ↗</a>`:""}${repo?`<a href="${repo}" target="_blank">Repo ↗</a>`:""}<span>${meta.folder||id}/</span></div><div class="pnext"><b>Next:</b> ${next?escapeHtml(next.title):"No queued work"}</div>`;
+      g.appendChild(d);
+    });
+  }
+
+  // ---------- AI context ----------
+  const LB={detail:["Very brief","Concise","Balanced","Detailed","Deep dive"],autonomy:["Ask first","Low","Balanced","Proactive","High autonomy"],teaching:["Just do it","Explain","Guide","Coach","Socratic"]};
+  const DEF={detail:"3",autonomy:"4",teaching:"4",conf:"70",feedback:"Direct and kind",notes:""};
+  function vlabel(id){ return LB[id][Number($(id).value)-1]; }
+  function buildSummary(){
+    const beh=[...document.querySelectorAll("[data-b]:checked")].map(x=>"- "+x.dataset.b).join("\n");
+    return `AI CODING CONTEXT — MICHAEL DULIN
+
+Working style:
+- Response detail: ${vlabel("detail")}
+- Agent autonomy: ${vlabel("autonomy")}
+- Explanation mode: ${vlabel("teaching")}
+- Feedback style: ${$("feedback").value}
+- Uncertainty threshold: below ${$("conf").value}% confidence, ask / verify / label the assumption.
+
+Behaviors I value:
+${beh}
+
+Stack & flow: React + Vite + Tailwind/plain CSS, Firebase, Vercel auto-deploy from GitHub (mdulin01). Edit → build-check → commit → push.
+
+Extra context:
+${$("notes").value.trim()||"- none"}`;
+  }
+  function updateCtx(){
+    $("detailV").textContent=vlabel("detail"); $("autonomyV").textContent=vlabel("autonomy");
+    $("teachingV").textContent=vlabel("teaching"); $("confV").textContent=$("conf").value+"%";
+    savedWorkingSummary=buildSummary(); $("summary").textContent=savedWorkingSummary; $("ctxStatus").textContent=""; renderFocus();
+  }
+  ["detail","autonomy","teaching","conf","feedback","notes"].forEach(id=>{$(id).addEventListener("input",updateCtx);$(id).addEventListener("change",updateCtx);});
+  document.querySelectorAll("[data-b]").forEach(x=>x.addEventListener("change",updateCtx));
+  ["hoProject","hoAgent","hoGoal","hoDone","hoNext","hoBlockers","hoFiles","hoVerify"].forEach(id=>{$(id).addEventListener("input",()=>{handoff=readHandoffForm();renderFocus();});$(id).addEventListener("change",()=>{handoff=readHandoffForm();renderFocus();});});
+  $("copyCtx").onclick=async()=>{ try{await navigator.clipboard.writeText($("summary").textContent);$("ctxStatus").textContent="Copied.";}catch{$("ctxStatus").textContent="Select + copy manually.";} };
+  $("resetCtx").onclick=()=>{ $("detail").value=DEF.detail;$("autonomy").value=DEF.autonomy;$("teaching").value=DEF.teaching;$("conf").value=DEF.conf;$("feedback").value=DEF.feedback;$("notes").value="";document.querySelectorAll("[data-b]").forEach(x=>x.checked=true);updateCtx(); };
+  $("saveCtx").onclick=async()=>{ try{ savedWorkingSummary=buildSummary(); await setDoc(doc(db,"coding_meta","aiContext"),{workingSummary:savedWorkingSummary,summary:buildAgentBrief(),savedAt:serverTimestamp(),savedBy:OWNER},{merge:true}); $("ctxStatus").textContent="Saved."; }catch(e){ $("ctxStatus").textContent="Save failed: "+(e.message||e); } };
+  $("copyHandoff").onclick=async()=>{try{await navigator.clipboard.writeText(buildAgentBrief());$("handoffStatus").textContent="Copied — paste into Codex, Claude, or Gemini.";}catch{$("handoffStatus").textContent="Copy failed.";}};
+  $("saveHandoff").onclick=async()=>{handoff=readHandoffForm();savedWorkingSummary=buildSummary();try{await setDoc(doc(db,"coding_meta","aiContext"),{handoff,workingSummary:savedWorkingSummary,summary:buildAgentBrief(),savedAt:serverTimestamp(),savedBy:OWNER},{merge:true});$("handoffStatus").textContent="Saved. New sessions will see this through the coding-board API.";renderFocus();}catch(e){$("handoffStatus").textContent="Save failed: "+(e.message||e);}};
+
+  // ---------- secrets index (NO values — names/locations/rotation only) ----------
+  let secrets=[];
+  const localYMD=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+  function rotStatus(x){
+    if(!x.lastRotated||!x.every) return {txt:"no schedule",cls:"task"};
+    const due=new Date(x.lastRotated); due.setDate(due.getDate()+Number(x.every));
+    const days=Math.round((due-Date.now())/86400000);
+    if(days<0) return {txt:"overdue "+(-days)+"d",cls:"bug"};
+    if(days<=14) return {txt:"due in "+days+"d",cls:"idea"};
+    return {txt:"ok · "+days+"d",cls:"task"};
+  }
+  $("secAdd").onclick=async()=>{
+    const name=$("secName").value.trim(); if(!name) return;
+    try{ await addDoc(collection(db,"coding_secrets"),{name,location:$("secLoc").value.trim(),lastRotated:$("secDate").value||"",every:$("secEvery").value.trim(),notes:$("secNotes").value.trim(),createdAt:serverTimestamp()});
+      $("secName").value="";$("secLoc").value="";$("secDate").value="";$("secEvery").value="";$("secNotes").value=""; }
+    catch(e){ alert("Couldn't save: "+(e.message||e)); }
+  };
+  const KNOWN=[
+    ["GitHub PAT (mdulin01)","Apple Passwords / 1Password (created 2026-07-04)","90"],
+    ["Telegram bot token (Rupert)","Mac mini ~/.openclaw + password manager","180"],
+    ["HEALTH_INGEST_TOKEN","Vercel mikeshealth + iOS Shortcuts","180"],
+    ["OPENAI_API_KEY","Vercel mikeslife-a1qy","180"],
+    ["OPENAI_API_KEY (insights)","Vercel mikes-money","180"],
+    ["OPEN_API_Key (email parse)","Vercel mikestravel","180"],
+    ["ANTHROPIC_API_KEY (mikeslife-rupert)","Vercel mikeslife-a1qy + Anthropic Console (created 2026-07-06)","180"],
+    ["GMAIL_REFRESH_TOKEN (invoice drafts)","Vercel mikes-money (gmail.compose, set 2026-06-30)","365"],
+    ["CRON_SECRET","Vercel mikeslife-a1qy","365"],
+    ["CODING_BOARD_TOKEN","Vercel mikeslife-a1qy + Coding-Projects/CLAUDE.md","365"],
+    ["FIREBASE_SERVICE_ACCOUNT + FIREBASE_SA_* (fitness/money/health/rainbow/updates/nutrition/travel/mikedulinmd)","Vercel mikeslife-a1qy","365"],
+    ["Google OAuth client secret (Rupert Google sync)","Vercel + GCP mikeslife-963c6","365"],
+    ["Google OAuth client secret (invoice email)","Vercel + GCP mikesmoney-91595","365"],
+    ["LOCATION_TOKEN","Vercel mikeslife-a1qy + iOS Shortcuts","365"]
+  ];
+  $("secSeed").onclick=async()=>{
+    if(secrets.length && !confirm("Add the known starter secrets anyway? (may duplicate)")) return;
+    try{ for(const [name,location,every] of KNOWN){ await addDoc(collection(db,"coding_secrets"),{name,location,lastRotated:"",every,notes:"",createdAt:serverTimestamp()}); } }
+    catch(e){ alert("Couldn't seed: "+(e.message||e)); }
+  };
+  function renderSecrets(){
+    const L=$("secList");
+    if(!secrets.length){ L.innerHTML='<div class="empty">No secrets tracked yet — add one or tap "Add my known secrets".</div>'; return; }
+    L.innerHTML="";
+    secrets.forEach(x=>{
+      const st=rotStatus(x);
+      const row=document.createElement("div"); row.className="item";
+      row.innerHTML=`<span class="tag ${st.cls}">${st.txt}</span>
+        <div class="body"><div class="t"></div><div class="meta"></div>${x.notes?'<div class="notes"></div>':''}</div>
+        <div class="acts"><button class="iconbtn" data-act="rot" title="Mark rotated today">rotated ✓</button><button class="iconbtn" data-act="del">🗑</button></div>`;
+      row.querySelector(".t").textContent=x.name;
+      row.querySelector(".meta").textContent=(x.location||"—")+(x.every?" · every "+x.every+"d":"")+(x.lastRotated?" · last "+x.lastRotated:" · never rotated");
+      if(x.notes) row.querySelector(".notes").textContent=x.notes;
+      row.querySelector('[data-act="rot"]').onclick=()=>updateDoc(doc(db,"coding_secrets",x.id),{lastRotated:localYMD()});
+      row.querySelector('[data-act="del"]').onclick=()=>{ if(confirm("Remove from index?")) deleteDoc(doc(db,"coding_secrets",x.id)); };
+      L.appendChild(row);
+    });
+  }
+
+  // ---------- roadmap (Firestore-backed kanban; seeded from embed) ----------
+  const RM_APPS={lifeos:"LifeOS",money:"Money",fitness:"Fitness",health:"Health",travel:"Travel",rentals:"Rentals",mini:"Mini/Rupert",security:"Security",docs:"Docs",learning:"Learning",native:"Apple / Native",other:"Other",...Object.fromEntries(PROJECTS.filter(p=>p[0]!=="other").map(p=>[p[0],p[0]]))};
+  const RM_COLS=[["doing","In progress"],["next","Next up"],["idea","Ideas"],["done","Done"]];
+  let rmItems=[], rmFilter="all", rmEditing=null, rmSeedTried=false;
+  function rmFillSelects(){
+    const a=$("rmApp"); if(a && !a.options.length){ Object.entries(RM_APPS).forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;a.appendChild(o);}); a.value="lifeos"; }
+    const st=$("rmStatus"); if(st && !st.options.length){ RM_COLS.forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k==="next")o.selected=true;st.appendChild(o);}); }
+  }
+  function rmRender(){
+    const board=$("rmBoard"); if(!board) return;
+    rmFillSelects();
+    $("rmCount").textContent="· "+rmItems.length+" items";
+    const apps=["all",...Array.from(new Set(rmItems.map(i=>i.app)))];
+    const fc=$("rmFilters"); fc.innerHTML="";
+    apps.forEach(a=>{const b=document.createElement("button");b.className="chip"+(rmFilter===a?" on":"");b.textContent=a==="all"?"All":(RM_APPS[a]||a);b.onclick=()=>{rmFilter=a;rmRender();};fc.appendChild(b);});
+    const shown=rmItems.filter(i=>rmFilter==="all"||i.app===rmFilter);
+    board.innerHTML="";
+    RM_COLS.filter(([sname])=>sname!=="done").forEach(([sname,label])=>{
+      const col=document.createElement("div"); col.className="col";
+      const list=shown.filter(i=>i.status===sname).sort((a,b)=>activeRank(a)-activeRank(b)||(a.dueDate||"9999").localeCompare(b.dueDate||"9999"));
+      const head=document.createElement("div"); head.className="colhead"; head.innerHTML="<span>"+label+"</span><span>"+list.length+"</span>"; col.appendChild(head);
+      if(!list.length){ const e=document.createElement("div"); e.className="empty"; e.textContent="—"; col.appendChild(e); }
+      list.forEach(it=>{
+        const d=document.createElement("div"); d.className="ritem";
+        if(rmEditing===it.id){
+          d.innerHTML='<input type="text" id="rmET"><textarea id="rmEN" rows="3"></textarea><select id="rmEA"></select><select id="rmEP"><option value="p1">P1 · Urgent</option><option value="p2">P2 · Important</option><option value="p3">P3 · Later</option></select><input type="date" id="rmED"><div class="racts"><button class="btn sm" data-a="save">Save</button><button class="btn sm sec" data-a="cancel">Cancel</button></div>';
+          d.querySelector("#rmET").value=it.title; d.querySelector("#rmEN").value=it.note||"";
+          d.querySelector("#rmEP").value=priorityOf(it);d.querySelector("#rmED").value=it.dueDate||"";
+          const sel=d.querySelector("#rmEA"); Object.entries(RM_APPS).forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k===it.app)o.selected=true;sel.appendChild(o);});
+          d.querySelector('[data-a="save"]').onclick=()=>{ updateDoc(doc(db,"coding_roadmap",it.id),{title:d.querySelector("#rmET").value.trim()||it.title,note:d.querySelector("#rmEN").value.trim(),app:sel.value,priority:d.querySelector("#rmEP").value,dueDate:d.querySelector("#rmED").value,updatedAt:serverTimestamp()}); rmEditing=null; };
+          d.querySelector('[data-a="cancel"]').onclick=()=>{ rmEditing=null; rmRender(); };
+        }else{
+          const chip=document.createElement("span"); chip.className="appchip"; chip.textContent=RM_APPS[it.app]||it.app; d.appendChild(chip);
+          const t=document.createElement("div"); t.className="rt"; t.textContent=it.title; d.appendChild(t);
+          if(it.note){ const n=document.createElement("div"); n.className="rn"; n.textContent=it.note; d.appendChild(n); }
+          const meta=document.createElement("div");meta.className="rmeta";meta.innerHTML='<span class="priority '+priorityOf(it)+'">'+PRI_LABEL[priorityOf(it)]+'</span>'+(it.dueDate?'<span class="due '+(it.dueDate<localYMD()?"late":"")+'">'+dueText(it)+'</span>':'');d.appendChild(meta);
+          const ms=document.createElement("select"); ms.className="movesel"; RM_COLS.forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k===it.status)o.selected=true;ms.appendChild(o);}); ms.onchange=()=>updateDoc(doc(db,"coding_roadmap",it.id),{status:ms.value,updatedAt:serverTimestamp()}); d.appendChild(ms);
+          const acts=document.createElement("div"); acts.className="racts";
+          const cb=document.createElement("button"); cb.className="iconbtn"; cb.title="Copy this item"; cb.textContent="📋"; cb.onclick=()=>{ const txt="["+(RM_APPS[it.app]||it.app)+"] "+it.title+(it.note?" — "+it.note:""); navigator.clipboard.writeText(txt).then(()=>{ cb.textContent="✓"; setTimeout(()=>cb.textContent="📋",1200); }); };
+          const eb=document.createElement("button"); eb.className="iconbtn"; eb.textContent="✏️"; eb.onclick=()=>{rmEditing=it.id;rmRender();};
+          const db_=document.createElement("button"); db_.className="iconbtn"; db_.textContent="🗑"; db_.onclick=()=>{ if(confirm("Delete this item?")) deleteDoc(doc(db,"coding_roadmap",it.id)); };
+          acts.appendChild(cb); acts.appendChild(eb); acts.appendChild(db_); d.appendChild(acts);
+        }
+        col.appendChild(d);
+      });
+      board.appendChild(col);
+    });
+    const done=shown.filter(i=>i.status==="done");$("rmDoneCount").textContent=done.length;const dl=$("rmDone");dl.innerHTML="";
+    done.slice(0,30).forEach(it=>{const d=document.createElement("div");d.className="item done";d.innerHTML='<div class="body"><div class="t"></div><div class="meta"></div></div><button class="iconbtn">Reopen</button>';d.querySelector(".t").textContent=it.title;d.querySelector(".meta").textContent=RM_APPS[it.app]||it.app;d.querySelector("button").onclick=()=>updateDoc(doc(db,"coding_roadmap",it.id),{status:"next",updatedAt:serverTimestamp()});dl.appendChild(d);});
+    if(done.length>30){const more=document.createElement("div");more.className="empty";more.textContent="Showing the 30 most recent of "+done.length+" completed items.";dl.appendChild(more);}
+    renderFocus();renderProjects();
+  }
+  function rmBindControls(){
+    $("rmAdd").onclick=async()=>{ const t=$("rmTitle").value.trim(); if(!t) return; try{ await addDoc(collection(db,"coding_roadmap"),{title:t,app:$("rmApp").value,status:$("rmStatus").value,priority:$("rmPriority").value,dueDate:$("rmDue").value,note:"",createdAt:serverTimestamp(),updatedAt:serverTimestamp()}); $("rmTitle").value="";$("rmDue").value=""; }catch(e){ alert("Couldn't add: "+(e.message||e)); } };
+    $("rmTitle").onkeydown=(e)=>{ if(e.key==="Enter") $("rmAdd").click(); };
+    $("rmCopy").onclick=()=>{ const md=["# Roadmap — LifeOS + spoke apps",""]; RM_COLS.forEach(([sname,label])=>{ md.push("## "+label,""); rmItems.filter(i=>i.status===sname).sort((a,b)=>activeRank(a)-activeRank(b)).forEach(it=>md.push("- "+(sname==="done"?"[x]":"[ ]")+" ["+PRI_LABEL[priorityOf(it)]+"] ["+(RM_APPS[it.app]||it.app)+"] "+it.title+(it.dueDate?" · "+dueText(it):"")+(it.note?" — "+it.note:""))); md.push(""); }); navigator.clipboard.writeText(md.join("\n")).then(()=>{ $("rmStatusMsg").textContent="Copied as Markdown — paste it into a chat."; },()=>{ $("rmStatusMsg").textContent="Copy failed."; }); };
+  }
+  async function rmSeedIfEmpty(count){
+    if(count>0 || rmSeedTried) return; rmSeedTried=true;
+    try{
+      const g=await getDoc(doc(db,"coding_meta","roadmap"));
+      if(g.exists() && g.data().seeded) return;
+      const seed=JSON.parse(document.getElementById("roadmap-seed").textContent).items||[];
+      $("rmStatusMsg").textContent="Setting up your roadmap…";
+      await Promise.all(seed.map(it=>addDoc(collection(db,"coding_roadmap"),{app:it.app||"other",status:it.status||"idea",title:it.title||"",note:it.note||"",createdAt:serverTimestamp()})));
+      await setDoc(doc(db,"coding_meta","roadmap"),{seeded:true,seededAt:serverTimestamp()},{merge:true});
+      $("rmStatusMsg").textContent="Seeded "+seed.length+" items from your board.";
+    }catch(e){ console.error("roadmap seed",e); }
+  }
+
+  // ---------- boot ----------
+  let started=false;
+  async function startApp(){
+    if(started) return; started=true;
+    fillProjectSelects(); rmFillSelects(); renderProjects(); updateCtx();
+    try{ const s=await getDoc(doc(db,"coding_meta","aiContext")); if(s.exists()){
+      const data=s.data();savedWorkingSummary=data.workingSummary||data.summary||buildSummary();handoff=data.handoff||{};
+      if(handoff.project)$("hoProject").value=handoff.project;if(handoff.agent)$("hoAgent").value=handoff.agent;
+      $("hoGoal").value=handoff.goal||"";$("hoDone").value=handoff.done||"";$("hoNext").value=handoff.next||"";$("hoBlockers").value=handoff.blockers||"";$("hoFiles").value=handoff.files||"";$("hoVerify").value=handoff.verify||"";
+      $("summary").textContent=savedWorkingSummary;$("ctxStatus").textContent="Loaded your saved context.";renderFocus();
+    } }catch{}
+    unsub = onSnapshot(query(collection(db,"coding_items"),orderBy("createdAt","desc")), (snap)=>{
+      items = snap.docs.map(d=>({id:d.id,...d.data()})); render();
+    }, (err)=>{ $("list").innerHTML='<div class="empty">Can’t load items: '+(err.message||err)+'</div>'; });
+    unsub2 = onSnapshot(query(collection(db,"coding_secrets"),orderBy("name","asc")), (snap)=>{
+      secrets = snap.docs.map(d=>({id:d.id,...d.data()})); renderSecrets();
+    }, (err)=>{ $("secList").innerHTML='<div class="empty">Can’t load secrets: '+(err.message||err)+'</div>'; });
+    rmBindControls();
+    unsub3 = onSnapshot(query(collection(db,"coding_roadmap"),orderBy("createdAt","desc")), (snap)=>{
+      rmItems = snap.docs.map(d=>({id:d.id,...d.data()})); rmRender(); rmSeedIfEmpty(rmItems.length);
+    }, (err)=>{ const b=$("rmBoard"); if(b) b.innerHTML='<div class="empty">Can’t load roadmap: '+(err.message||err)+'</div>'; });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Leadership Dashboards</title>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--green:#4CB749;--green-dark:#2F9E45;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--shadow:0 1px 3px rgba(30,40,60,.08),0 1px 2px rgba(30,40,60,.04);--shadow-lg:0 12px 34px rgba(30,40,60,.16);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .wordmark{font-size:22px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .who{font-size:12px;color:var(--muted)}.who a{color:var(--peri);font-weight:700;text-decoration:none;margin-left:8px;cursor:pointer}
+  .hero{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 55%,var(--peri));color:#fff;padding:30px 28px}
+  .hero h1{font-size:23px;font-weight:800}.hero p{font-size:13.5px;opacity:.9;margin-top:6px;max-width:760px;line-height:1.5}
+  .wrap{max-width:1100px;margin:0 auto;padding:26px 28px 60px}
+  .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .lbl::after{content:"";flex:1;height:1px;background:var(--line)}
+  .lbl.mt{margin-top:30px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .tile{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:14px;box-shadow:var(--shadow);padding:20px 22px;transition:transform .12s,box-shadow .12s}
+  .tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+  .trow{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .tic{width:40px;height:40px;border-radius:10px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;flex:none}
+  .tt{font-size:17px;font-weight:800;color:var(--navy)}
+  .tag{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:2px 8px;border-radius:20px;margin-left:auto}
+  .tag.live{background:#E6F2E6;color:var(--green-dark)}.tag.demo{background:#EEF1FB;color:var(--peri)}
+  .td{font-size:13px;color:#475059;line-height:1.5}
+  .tgo{margin-top:14px;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--peri);display:flex;align-items:center;gap:5px}
+  .tile:hover .tgo{color:var(--navy)}
+  .foot{margin-top:30px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand">
+      <svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg>
+      <div class="wordmark"><b>Avance</b>Care</div>
+    </div>
+    <div class="who">Signed in as <span id="whoami">—</span><a onclick="window.avanceSignOut&&window.avanceSignOut()">Sign out</a></div>
+  </div>
+  <div class="hero">
+    <h1>Leadership Dashboards</h1>
+    <p>A staging hub for Avance Care operational and value-based-care dashboards. Select a dashboard below. All views currently run on illustrative/synthetic data and are restricted to authorized leadership.</p>
+  </div>
+  <div class="wrap">
+
+    <div class="lbl">Referrals &amp; Imaging</div>
+    <div class="grid">
+      <a class="tile" href="/avance-referrals-outgoing.html" style="--accent:#0E8A6E">
+        <div class="trow"><span class="tic">⇱</span><span class="tt">Outgoing Referrals</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Referrals to high-value specialists — volume by specialist type/name, submission turnaround (receive → fax out), routine (≤4d) / urgent (≤24h) TAT, status snapshot, redirection &amp; OON, and closure reasons.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+      <a class="tile" href="/avance-referrals-internal.html" style="--accent:#5C6CB8">
+        <div class="trow"><span class="tic">⇄</span><span class="tt">Internal Referrals</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Avance service lines — Behavioral Health, Nutrition, Neurology &amp; Psychiatry. Volume, who is referring, time-to-schedule (≤7d) &amp; time-to-first-appointment (≤14d), specialist open-schedule availability, status, and internal capture.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+      <a class="tile" href="/avance-referral-completion.html" style="--accent:#2F9E45">
+        <div class="trow"><span class="tic">✔</span><span class="tt">Referral Completion</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Loop closure &amp; completion rate (≥80%), days to close, reasons for failure, and closure drill-downs by specialty (with high-value flags) and by facility.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+      <a class="tile" href="/avance-referrals-inbound.html" style="--accent:#2F9E45">
+        <div class="trow"><span class="tic">⇲</span><span class="tt">Inbound Referrals</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Referrals received into Avance — volume by source, intake status, time-to-schedule, conversion to established patients, and a pending-intake worklist.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+      <a class="tile" href="/avance-imaging.html" style="--accent:#0E8A6E">
+        <div class="trow"><span class="tic">◎</span><span class="tt">Diagnostic Imaging</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Imaging orders &amp; turnaround — volume by modality, interfaced (Raleigh Radiology · Cardinal Points) vs. fax, receipt confirmation &amp; scheduling TAT, image return by priority, by-facility, plus a Fax-Box Automation panel. Screening studies excluded.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+      <a class="tile" href="/avance-imaging-workflow.html" style="--accent:#D97706">
+        <div class="trow"><span class="tic">⇶</span><span class="tt">Imaging Workflow — Live Process Map</span><span class="tag demo">Draft — Phase 2</span></div>
+        <div class="td">Future-state draft (per 7/10 review): the Alo imaging value-stream map, live — queue depth &amp; dwell per stage, bottleneck highlighting, order-to-closure funnel, stage worklists. Revisit as the automation vendor work lands.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+      <a class="tile" href="/avance-referral-review.html" style="--accent:#6D28D9">
+        <div class="trow"><span class="tic">⚖</span><span class="tt">Referral Clinical Review</span><span class="tag live">Review tool</span></div>
+        <div class="td">Clinical-appropriateness review of questionable urgent/STAT referrals — calibrated against completed gold-standard reviews, with a reviewer worklist, priority rubric, and decision capture.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+    </div>
+
+    <div class="lbl mt">Primary Care</div>
+    <div class="grid">
+      <a class="tile" href="/avance-dashboard.html" style="--accent:#2B2C6B">
+        <div class="trow"><span class="tic">↗</span><span class="tt">Provider Performance</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Per-provider productivity, quality, revenue/coding, and patient satisfaction — with editable benchmarks, drill-downs, region/clinic filters, and the Avance AI insight bar.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+    </div>
+
+    <div class="lbl mt">Financial</div>
+    <div class="grid">
+      <a class="tile" href="/avance-billing.html" style="--accent:#0E8A6E">
+        <div class="trow"><span class="tic">$</span><span class="tt">Professional Billing Report</span><span class="tag demo">Demo data</span></div>
+        <div class="td">Revenue cycle — production &amp; charge lag, clean paid rate, errors &amp; work-queue backlog with aging, A/R aging (30/60/90), and Practice-vs-Central-Office drill-downs.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+    </div>
+
+    <div class="lbl mt">Operations &amp; Analytics</div>
+    <div class="grid">
+      <a class="tile" href="/avance-analytics-requests.html" style="--accent:#B5651D">
+        <div class="trow"><span class="tic">▦</span><span class="tt">Analytics &amp; Reporting Requests</span><span class="tag demo">Demo data</span></div>
+        <div class="td">The data &amp; reporting request portfolio — triage by priority, owner, department, and status; analyst workload and resource allocation for the CMO review.</div>
+        <div class="tgo">Open dashboard ▸</div>
+      </a>
+    </div>
+
+    <div class="foot">Restricted to authorized Avance Care leadership · illustrative / synthetic data — no patient information.</div>
+  </div>
+</div>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>

@@ -1,10 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  // mikedulinmd.app + michaeldulinmd.com both serve the public site (portal retired 2026-06 → mikes-money Business tab).
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Michael Dulin, MD, PhD — Healthcare AI Expert</title>
     <meta name="description" content="Physician, researcher, and consultant helping healthcare organizations harness AI to improve care. Robert Wood Johnson Health Policy Fellow. Harvard Business School case study.">
+    
+    <!-- Open Graph / Social Sharing -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mikedulinmd.app/">
+    <meta property="og:title" content="Michael Dulin, MD, PhD — Healthcare AI Expert">
+    <meta property="og:description" content="Physician, executive, and consultant helping healthcare organizations harness AI, build analytics, and navigate value-based care. Fractional CMO/CCO.">
+    <meta property="og:image" content="https://mikedulinmd.app/headshot-main.jpg">
+    <meta property="og:image:width" content="800">
+    <meta property="og:image:height" content="800">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Michael Dulin, MD, PhD — Healthcare AI Expert">
+    <meta name="twitter:description" content="Physician, executive, and consultant helping healthcare organizations harness AI, build analytics, and navigate value-based care.">
+    <meta name="twitter:image" content="https://mikedulinmd.app/headshot-main.jpg">
+
+    <!-- Additional SEO -->
+    <link rel="canonical" href="https://mikedulinmd.app/">
+    <meta name="author" content="Michael Dulin, MD, PhD">
+    <meta name="robots" content="index, follow">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
@@ -501,8 +525,41 @@
             .recognition-grid { grid-template-columns: 1fr; gap: 24px; }
             .contact-grid { grid-template-columns: 1fr; }
             .timeline-item { grid-template-columns: 1fr; gap: 8px; }
-            .nav-links { display: none; }
+            .nav-links { gap: 1rem; font-size: 0.85rem; }
+            .nav-links li.nav-anchor { display: none; }
+            .nav-name { font-size: 1.05rem; }
             .featured-banner { flex-direction: column; text-align: center; }
+        }
+
+        /* Contact form states */
+        .form-status {
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .form-status.success {
+            display: block;
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .form-status.error {
+            display: block;
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fca5a5;
+        }
+        .form-status.sending {
+            display: block;
+            background: var(--accent-subtle);
+            color: var(--accent);
+            border: 1px solid #bfdbfe;
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
 
         .fade-in {
@@ -523,11 +580,10 @@
         <div class="container-wide">
             <a href="#" class="nav-name">Michael Dulin, MD</a>
             <ul class="nav-links">
-                <li><a href="#work">Services</a></li>
-                <li><a href="#media">Media</a></li>
-                <li><a href="#contact">Contact</a></li>
-                <li><a href="portal.html" style="color: var(--accent);">Portal →</a></li>
-            </ul>
+                <li class="nav-anchor"><a href="#work">Services</a></li>
+                <li class="nav-anchor"><a href="#media">Media</a></li>
+                <li class="nav-anchor"><a href="#contact">Contact</a></li>
+                            </ul>
         </div>
     </nav>
 
@@ -547,7 +603,7 @@
                     <h1>Michael Dulin</h1>
                     <p class="tagline">Physician. Executive. Healthcare AI & Innovation.</p>
                     <p>I'm a family physician, former Chief Clinical Officer, and consultant helping healthcare organizations harness AI, build analytics capabilities, and navigate value-based care. I've spent 25+ years at the intersection of medicine, data science, and policy—including building analytics teams at Atrium Health that became a Harvard Business School case study.</p>
-                    <p>Currently, I practice medicine, serve as a <strong>Fractional CMO/CCO</strong> for healthcare and health tech companies, and teach—including an upcoming course for the National Academy of Medicine on using AI to design your life.</p>
+                    <p>Currently, I practice medicine, serve as a <strong>Fractional CMO/CCO</strong> for healthcare and health tech companies, and teach—including a course for the National Academy of Medicine on using AI to design your life.</p>
 
                     <div class="credentials">
                         <span class="credential"><span class="credential-icon">🎓</span> MD, PhD — UT Houston</span>
@@ -562,8 +618,8 @@
             <div class="featured-banner fade-in">
                 <div class="icon">🤖</div>
                 <div class="featured-banner-content">
-                    <h3>Upcoming: AI for Designing Your Life</h3>
-                    <p>April 2025 — Teaching RWJF Health Policy Fellows at the National Academy of Medicine how to leverage AI tools for personal and professional growth.</p>
+                    <h3>Now Available: AI for Designing Your Life</h3>
+                    <p>An interactive course teaching healthcare leaders how to leverage AI tools for personal and professional growth. <a href="https://lifedesigncourse.app" style="font-weight: 600;">Learn more →</a></p>
                 </div>
             </div>
         </div>
@@ -635,7 +691,31 @@
         </div>
     </section>
 
-    <!-- Media & Speaking -->
+    <!-- Testimonials -->
+    <section id="testimonials" style="padding: 60px 0; border-top: 1px solid var(--gray-200);">
+        <div class="container">
+            <h2>What People Say</h2>
+            <div class="fade-in" style="margin-top: 2rem; display: flex; flex-direction: column; gap: 24px;">
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 28px 32px;">
+                    <p style="font-family: 'Newsreader', Georgia, serif; font-size: 1.15rem; font-style: italic; color: var(--gray-700); margin-bottom: 16px; line-height: 1.7;">&ldquo;Mike brings a rare combination of clinical depth, data science expertise, and executive leadership. His ability to translate complex analytics into actionable strategy is unmatched.&rdquo;</p>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--black);">Healthcare Executive</span>
+                        <span style="font-size: 0.85rem; color: var(--gray-400);">&mdash; Health System CMO</span>
+                    </div>
+                </div>
+                <div style="background: var(--gray-100); border-radius: 12px; padding: 28px 32px;">
+                    <p style="font-family: 'Newsreader', Georgia, serif; font-size: 1.15rem; font-style: italic; color: var(--gray-700); margin-bottom: 16px; line-height: 1.7;">&ldquo;Working with Dr. Dulin transformed our approach to value-based care. He helped us build an analytics infrastructure that continues to drive results years later.&rdquo;</p>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 8px; height: 8px; background: var(--accent); border-radius: 50%;"></div>
+                        <span style="font-size: 0.9rem; font-weight: 600; color: var(--black);">ACO Director</span>
+                        <span style="font-size: 0.85rem; color: var(--gray-400);">&mdash; Regional Health Network</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="media" style="padding: 60px 0;">
         <div class="container">
             <h2>Media & Speaking</h2>
@@ -719,11 +799,11 @@
                     </div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-date">Apr 2025</div>
+                    <div class="timeline-date">2025</div>
                     <div class="timeline-content">
                         <h4>AI Training Faculty</h4>
                         <div class="org">National Academy of Medicine & RWJF</div>
-                        <p>Teaching health policy fellows to use AI for life design</p>
+                        <p>Taught health policy fellows to use AI for life design</p>
                     </div>
                 </div>
                 <div class="timeline-item">
@@ -731,7 +811,7 @@
                     <div class="timeline-content">
                         <h4>Fractional CMO</h4>
                         <div class="org">Gray Matter Analytics</div>
-                        <p>8+ years as fractional executive — product strategy, client relations, VBC analytics</p>
+                        <p>9+ years as fractional executive — product strategy, client relations, VBC analytics</p>
                     </div>
                 </div>
                 <div class="timeline-item">
@@ -785,7 +865,8 @@
                         <span>Greensboro & Davidson, NC</span>
                     </div>
                 </div>
-                <form class="contact-form" onsubmit="handleContact(event)">
+                <form class="contact-form" id="contactForm" onsubmit="handleContact(event)">
+                    <div class="form-status" id="formStatus"></div>
                     <input type="text" id="name" placeholder="Name" required>
                     <input type="email" id="email" placeholder="Email" required>
                     <select id="inquiry">
@@ -796,7 +877,7 @@
                         <option value="Other">Other</option>
                     </select>
                     <textarea id="message" placeholder="Your message..." required></textarea>
-                    <button type="submit" class="btn">Send Message</button>
+                    <button type="submit" class="btn" id="submitBtn">Send Message</button>
                 </form>
             </div>
         </div>
@@ -805,7 +886,7 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            <p>© 2025 Michael Dulin, MD, PhD · <a href="portal.html">Client Portal</a> · <a href="rentals.html">Rental Properties</a></p>
+            <p>© 2026 Michael Dulin, MD, PhD · <a href="rentals.html">Rental Properties</a> · <a href="coding.html">Coding Projects</a></p>
             <p style="margin-top: 8px; font-size: 0.8rem; color: var(--gray-300);">Try the Konami Code ↑↑↓↓←→←→BA</p>
         </div>
     </footer>
@@ -824,19 +905,59 @@
         </div>
     </div>
 
-    <script>
-        function handleContact(e) {
+    <!-- Firebase SDK for contact form -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const app = initializeApp({
+            apiKey: "AIzaSyC5mOkljbkSMCMhRf-jrJ7TIpkESMTcxHY",
+            authDomain: "mikedulinmd-cf65b.firebaseapp.com",
+            projectId: "mikedulinmd-cf65b",
+            storageBucket: "mikedulinmd-cf65b.firebasestorage.app",
+            messagingSenderId: "714928483011",
+            appId: "1:714928483011:web:dd1b266d77c6042c6f5076"
+        });
+        const db = getFirestore(app);
+
+        window.handleContact = async function(e) {
             e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
+            const statusEl = document.getElementById('formStatus');
+            const submitBtn = document.getElementById('submitBtn');
+            const form = document.getElementById('contactForm');
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
             const inquiry = document.getElementById('inquiry').value;
-            const message = document.getElementById('message').value;
+            const message = document.getElementById('message').value.trim();
 
-            const subject = `${inquiry} Inquiry from ${name}`;
-            const body = `From: ${name}\nEmail: ${email}\nInquiry Type: ${inquiry}\n\n${message}`;
+            // Show sending state
+            statusEl.className = 'form-status sending';
+            statusEl.textContent = 'Sending your message...';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
 
-            window.location.href = `mailto:mdulin@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        }
+            try {
+                await addDoc(collection(db, "contact_submissions"), {
+                    name, email, inquiry, message,
+                    createdAt: serverTimestamp(),
+                    status: "new"
+                });
+                statusEl.className = 'form-status success';
+                statusEl.textContent = 'Message sent\! I\'ll get back to you soon.';
+                form.reset();
+            } catch (err) {
+                console.error("Contact form error:", err);
+                statusEl.className = 'form-status error';
+                statusEl.textContent = 'Something went wrong. Please email mdulin@gmail.com directly.';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
+            }
+        };
+    </script>
+
+    <script>
 
         // Scroll animations
         const observer = new IntersectionObserver((entries) => {
@@ -908,4 +1029,5 @@
         });
     </script>
 </body>
-</html>
+
+    </html>

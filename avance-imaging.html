@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Diagnostic Imaging Referrals</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--teal));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:150px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
+  .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 0}.g3{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:230px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700}.pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .cl{display:inline-block;font-size:10px;font-weight:800;padding:1px 6px;border-radius:5px;background:#E6EEFB;color:#2B2C6B;margin-left:5px}
+  .autobar{background:linear-gradient(120deg,#FFF7ED,#FEF3E7);border:1px solid #FBD9A8;border-left:4px solid var(--warn);border-radius:12px;padding:14px 18px;margin-top:8px}
+  .autobar .at{font-size:13px;font-weight:800;color:#9A5B00}.autobar p{font-size:12.5px;color:#6b4a1a;margin-top:4px;line-height:1.5}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid,.g3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Diagnostic Imaging Referrals</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Modality</label><select id="selMod"><option value="all">All Modalities</option><option>X-ray</option><option>Ultrasound</option><option>CT</option><option>MRI</option><option value="Mammography">Mammography (dx)</option></select></div>
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
+    <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
+    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+    <div class="sec">Orders &amp; Turnaround <span>— scheduling: routine ≤4 d · STAT ≤24 h · receipt confirmation: STAT ≤24 h, all ≤4 d (orders transmit on provider signature)</span></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid g3">
+      <div class="card"><h3>Transmission Path</h3><div class="h">Interfaced — bidirectional (Raleigh Radiology · Cardinal Points) vs. manual fax</div><div class="cb"><canvas id="cPath"></canvas></div></div>
+      <div class="card"><h3>Volume by Modality</h3><div class="h">Imaging orders by modality</div><div class="cb"><canvas id="cMod"></canvas></div></div>
+      <div class="card"><h3>Status Snapshot</h3><div class="h">Pending / Scheduled / Closed</div><div class="cb"><canvas id="cStatus"></canvas></div></div>
+    </div>
+    <div class="sec">By Imaging Facility <span>— ⚡ = bidirectional interface (Raleigh Radiology · Cardinal Points Imaging) · Aura/Epic interfaces under investigation for others</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Facility</th><th>Path</th><th class="num">Orders</th><th class="num">% Scheduled</th><th class="num">Sched TAT</th><th class="num">Image Return</th></tr></thead><tbody id="facBody"></tbody></table></div>
+
+    <div class="sec">Fax Box — Automation Opportunity <span>— Phase 1 target: automate the fax box (manual document pushing)</span></div>
+    <div class="kpis" id="kFax" style="grid-template-columns:repeat(4,1fr)"></div>
+    <div class="autobar"><div class="at">⚡ Automation opportunity</div><p id="autoTxt"></p></div>
+    <div class="grid">
+      <div class="card"><h3>Receipt-Confirmation Cadence</h3><div class="h">STAT confirmed ≤24 hrs · all orders ≤4 days (per the imaging workflow)</div><div class="cb"><canvas id="cCad"></canvas></div></div>
+      <div class="card"><h3>Image Return by Priority</h3><div class="h">Hours from appointment to result back — STAT ≤12h · urgent ≤24h · routine ≤48h</div><div class="cb"><canvas id="cPrio"></canvas></div></div>
+      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Fax Queue</th><th class="num">Volume/day</th><th class="num">FTE</th><th>Automatable</th></tr></thead><tbody id="faxBody"></tbody></table></div>
+    </div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",orders:44,carelink:31,subTAT:10,sched:3.7,stat:20,pending:20,schedP:55,ret:30},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",orders:56,carelink:28,subTAT:14,sched:4.4,stat:26,pending:24,schedP:50,ret:40},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",orders:40,carelink:25,subTAT:20,sched:5.2,stat:30,pending:27,schedP:46,ret:46},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",orders:49,carelink:27,subTAT:15,sched:4.6,stat:27,pending:25,schedP:48,ret:42},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",orders:41,carelink:33,subTAT:7,sched:3.3,stat:18,pending:16,schedP:58,ret:26},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",orders:51,carelink:26,subTAT:17,sched:4.9,stat:28,pending:26,schedP:47,ret:44},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",orders:43,carelink:32,subTAT:8,sched:3.5,stat:19,pending:17,schedP:56,ret:28},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",orders:42,carelink:34,subTAT:7,sched:3.2,stat:17,pending:15,schedP:58,ret:25},
+ {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",orders:47,carelink:29,subTAT:12,sched:4.2,stat:25,pending:22,schedP:51,ret:36},
+];
+const MODS=[["X-ray",.30],["Ultrasound",.20],["CT",.18],["MRI",.16],["Mammography (dx)",.10],["Other",.06]];
+const FACIL=[["UNC Radiology",0,.16],["Raleigh Radiology",1,.15],["Duke Imaging",0,.14],["Cardinal Points Imaging",1,.12],["Wake Radiology",0,.13],["Novant Imaging",0,.12],["Charlotte Radiology",0,.10],["Other (fax)",0,.08]];
+const FAXQ=[["Inbound imaging order faxes",150,3.0,"High"],["Order receipt confirmation",120,2.0,"High"],["Referral status update faxes",300,8.5,"Partial"],["Image return / result faxes",90,1.5,"Partial"]];
+let mod="all",region="all",clinicSel=[],provId="all",period="mtd",charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
+const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function modShare(){if(mod==="all")return 1;const m=MODS.find(x=>x[0]===mod||x[0].startsWith(mod));return m?m[1]:1;}
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)&&(provId==="all"||p.id===provId));}
+function agg(){const rs=active();const o=rs.reduce((a,p)=>a+p.orders,0)||1;const w=k=>rs.reduce((a,p)=>a+p[k]*p.orders,0)/o;
+  return {orders:rs.reduce((a,p)=>a+p.orders,0),carelink:w("carelink"),subTAT:w("subTAT"),sched:w("sched"),stat:w("stat"),pending:w("pending"),schedP:w("schedP"),ret:w("ret")};}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildClinic(){
+  clinicSel=clinicSel.filter(c=>clinics().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinics().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProvider();syncClinicBtn();render();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProvider();buildClinic();render();};
+  syncClinicBtn();
+}
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function render(){
+  const d=agg(),f=PERIODS[period].f,sel=active();
+  const orders=round(d.orders*f*modShare()),closed=100-d.pending-d.schedP;
+  document.getElementById("who").textContent=(mod==="all"?"":mod+" · ")+(provId!=="all"?sel[0].name:clinicLabel()?clinicLabel():region!=="all"?region+" Region":"Network — All Regions");
+  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  const cards=[
+    {l:"Imaging Orders",n:fmt(orders),s:round(orders*0.14)+" STAT",ac:C.navy},
+    {l:"Interfaced (bidirectional)",n:Math.round(d.carelink)+"%",s:"Raleigh Rad · CPI — orders transmit on signature",ac:tone(d.carelink,true,30,20)},
+    {l:"Receipt Confirmed",n:Math.round(100-d.pending*0.4)+"%",s:"STAT ≤24 hrs · all orders ≤4 days",ac:tone(100-d.pending*0.4,true,92,85)},
+    {l:"Scheduling TAT (routine)",n:d.sched.toFixed(1)+" d",s:"goal ≤4 d · STAT "+d.stat.toFixed(0)+"h",ac:tone(d.sched,false,4,5.5)},
+    {l:"% Scheduled",n:Math.round(d.schedP)+"%",s:Math.round(closed)+"% closed",ac:tone(d.schedP,true,55,48)},
+    {l:"% Pending",n:Math.round(d.pending)+"%",s:"awaiting scheduling",ac:tone(d.pending,false,18,24)},
+    {l:"Image Return (routine)",n:(d.ret*1.15).toFixed(0)+" hrs",s:"result back to provider · goal ≤48h",ac:tone(d.ret*1.15,false,48,72)},
+    {l:"Image Return (STAT)",n:(d.ret*0.4).toFixed(0)+" hrs",s:"goal ≤12h · urgent "+(d.ret*0.7).toFixed(0)+"h (≤24h)",ac:tone(d.ret*0.4,false,12,18)},
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  // path donut
+  charts.pa&&charts.pa.destroy();
+  charts.pa=new Chart(document.getElementById("cPath"),{type:"doughnut",data:{labels:["Interfaced (bidirectional)","Manual fax"],datasets:[{data:[round(d.carelink),round(100-d.carelink)],backgroundColor:[C.teal,C.amber],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
+  // modality
+  charts.mo&&charts.mo.destroy();
+  charts.mo=new Chart(document.getElementById("cMod"),{type:"bar",data:{labels:MODS.map(m=>m[0]),datasets:[{data:MODS.map(m=>round(d.orders*f*m[1])),backgroundColor:C.navy,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // status
+  charts.st&&charts.st.destroy();
+  charts.st=new Chart(document.getElementById("cStatus"),{type:"doughnut",data:{labels:["Pending","Scheduled","Closed"],datasets:[{data:[round(d.pending),round(d.schedP),round(closed)],backgroundColor:[C.amber,C.peri,C.green],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
+  // facility table
+  document.getElementById("facBody").innerHTML=FACIL.map(fac=>{const v=round(orders*fac[2]/FACIL.reduce((a,x)=>a+x[2],0));return `<tr>
+    <td class="nm">${fac[0]}${fac[1]?'<span class="cl">⚡ Interfaced</span>':''}</td>
+    <td>${fac[1]?'<span class="pill" style="background:'+hexA(C.teal,.14)+';color:'+C.teal+'">Electronic</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Fax</span>'}</td>
+    <td class="num">${fmt(v)}</td><td class="num">${Math.round(d.schedP)}%</td><td class="num">${d.sched.toFixed(1)} d</td><td class="num">${fac[1]?round(d.ret*0.7):round(d.ret*1.2)} h</td></tr>`;}).join("");
+  // ---- fax box ----
+  const orderFaxMo=round(150*21.7*f),statusFaxMo=round(300*21.7*f),totalTouch=orderFaxMo+statusFaxMo+round(120*21.7*f)+round(90*21.7*f);
+  const autoPct=64, fteNow=3+2+8.5+1.5, fteSave=Math.round(fteNow*autoPct/100*10)/10;
+  document.getElementById("kFax").innerHTML=[
+    {l:"Order Faxes / day",n:"150",s:"3.0 FTE (manual)",ac:C.amber},
+    {l:"Status Faxes / day",n:"300",s:"8.5 FTE (rework / OT)",ac:C.red},
+    {l:"Manual Fax Touches",n:fmt(totalTouch),s:"this period",ac:C.navy},
+    {l:"Automatable (Phase 1)",n:autoPct+"%",s:"≈ "+fteSave+" FTE opportunity",ac:C.greenD},
+  ].map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  document.getElementById("autoTxt").innerHTML="The fax box is the Phase-1 automation target: <b>~450 faxes/day</b> pushed manually by <b>~15 contractors/FTE</b> (order intake, receipt confirmation, status updates, image return), much of it rework and overtime. Auto-routing inbound faxes, auto-transcribing orders, and status polling could remove an estimated <b>"+autoPct+"%</b> of the manual load (≈ <b>"+fteSave+" FTE</b>). Phase 2: referral follow-up automations (the 4-day / same-day cadence below).";
+  // cadence chart
+  charts.ca&&charts.ca.destroy();
+  charts.ca=new Chart(document.getElementById("cCad"),{type:"bar",data:{labels:["All orders ≤4 days","STAT ≤24 hrs"],datasets:[{label:"Adherence",data:[78,88],backgroundColor:[tone(78,true,90,80),tone(88,true,90,80)],borderRadius:6},{label:"Goal 90%",type:"line",data:[90,90],borderColor:C.greenD,borderDash:[5,4],borderWidth:2,pointRadius:0}]},options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}});
+  charts.pr&&charts.pr.destroy();
+  charts.pr=new Chart(document.getElementById("cPrio"),{type:"bar",data:{labels:["STAT","Urgent","Routine"],datasets:[{label:"Actual",data:[round(d.ret*0.4),round(d.ret*0.7),round(d.ret*1.15)],backgroundColor:[tone(d.ret*0.4,false,12,18),tone(d.ret*0.7,false,24,36),tone(d.ret*1.15,false,48,72)],borderRadius:6},{label:"Goal",type:"line",data:[12,24,48],borderColor:C.greenD,borderDash:[6,4],pointRadius:3}]},options:{plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true,title:{display:true,text:"hours"}}}}});
+  // fax queue table
+  const autoc=a=>a==="High"?C.greenD:a==="Partial"?C.amber:C.gray;
+  document.getElementById("faxBody").innerHTML=FAXQ.map(q=>`<tr><td class="nm">${q[0]}</td><td class="num">${q[1]}</td><td class="num">${q[2]}</td><td><span class="pill" style="background:${hexA(autoc(q[3]),.14)};color:${autoc(q[3])}">${q[3]}</span></td></tr>`).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic imaging-referral data, structured from the Alo Imaging fax value-stream map. Interfaced facilities (Raleigh Radiology, Cardinal Points Imaging) have a bidirectional interface — orders transmit on provider signature and results return to the chart; Aura/Epic-to-Epic interfaces with other systems (e.g. Atrium) are under investigation. All other facilities are manual fax. <b>Screening studies are excluded</b> (screening mammography, DEXA, other preventive screeners — tracked under preventive care, where turnaround KPIs don't apply); diagnostic mammography is included. Fax-box volumes (150 order + 300 status faxes/day) per the workflow annotations.";
+  if(window.renderAvanceAI)window.renderAvanceAI();
+}
+window.AVANCE_AI={
+ insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent,orders=round(d.orders*f*modShare());
+   return '<b>'+scope+'</b>: <b>'+fmt(orders)+'</b> imaging orders. '+Math.round(d.carelink)+'% go via the bidirectional interface (Raleigh Radiology · CPI) and transmit on signature; the rest are manual fax. Receipt confirmation is the intake KPI (STAT ≤24h, all ≤4d). Routine scheduling '+d.sched.toFixed(1)+' d (goal ≤4); image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h. The fax box (~450 faxes/day, ~15 FTE) remains the Phase-1 automation target; expanding interfaces (Aura/Epic) is the structural fix.';},
+ chips:['Where is the fax-box automation opportunity?','How interfaced are we?','Where are we missing turnaround?'],
+ answer:function(q){const d=agg(),ql=q.toLowerCase();
+   if(/fax|automat|fte|contractor|manual|opportunit/.test(ql))return '<h5>Fax-box automation</h5>~450 faxes/day handled manually (150 order + 300 status) by ~15 FTE, with rework and overtime. Highest-ROI: auto-route inbound order faxes and auto-confirm receipt (High), then templated status updates and auto-attach image returns (Partial). Estimated ~64% automatable ≈ 9.6 FTE opportunity. Phase 2 automates the 4-day / same-day follow-up cadence.';
+   if(/carelink|electronic|hl7|integrat|interfac|aura/.test(ql))return '<h5>Interfaced vs. fax</h5>'+Math.round(d.carelink)+'% of imaging orders go through the bidirectional interface — currently two partners, Raleigh Radiology and Cardinal Points Imaging (orders transmit on provider signature; results return to the chart). Everything else is manual fax. Aura (Epic-to-Epic interface) is under investigation — an Atrium build is the kind of red-tape collaboration required. Each interfaced facility removes fax-box touches on both the order and the result.';
+   if(/turnaround|tat|slow|goal|schedul|return/.test(ql))return '<h5>Turnaround</h5>Receipt confirmation: STAT ≤24h / all ≤4d (orders transmit on signature, so there is no submission lag to manage). Routine scheduling '+d.sched.toFixed(1)+'d (goal ≤4), STAT '+d.stat.toFixed(0)+'h (goal ≤24). Image return by priority: STAT '+(d.ret*0.4).toFixed(0)+'h (goal ≤12), urgent '+(d.ret*0.7).toFixed(0)+'h (≤24), routine '+(d.ret*1.15).toFixed(0)+'h (≤48). Fax-path facilities run slower on returns than interfaced ones.';
+   return '<h5>Summary</h5>'+fmt(round(d.orders*PERIODS[period].f*modShare()))+' orders · '+Math.round(d.carelink)+'% interfaced · routine sched '+d.sched.toFixed(1)+'d · image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h.';}
+};
+window.startDashboard=function(){
+  buildClinic();buildProvider();
+  document.getElementById("selMod").onchange=e=>{mod=e.target.value;render();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinic();buildProvider();render();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>

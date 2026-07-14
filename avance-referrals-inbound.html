@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Inbound Referrals</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--green:#4CB749;--green-dark:#2F9E45;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--green-dark));padding:14px 26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:175px}
+  .msel{position:relative}
+  .msel-btn{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:170px;text-align:left;cursor:pointer;color:#26303A;display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:inherit}
+  .msel-btn::after{content:"\25BE";font-size:10px;color:#6B7A80}
+  .msel-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:60;background:#fff;border:1px solid #E4E8EE;border-radius:10px;box-shadow:0 12px 34px rgba(30,40,60,.22);min-width:235px;padding:8px;color:#26303A;display:none}
+  .msel-pop.open{display:block}
+  .msel-pop label.opt{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:7px 9px;border-radius:7px;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1;color:#26303A}
+  .msel-pop label.opt:hover{background:#F2F5FA}
+  .msel-pop input{accent-color:#2B2C6B;width:15px;height:15px;flex:none}
+  .msel-clear{width:100%;margin-top:6px;border:none;background:#EEF1FB;color:#2B2C6B;font-size:12px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;font-family:inherit}
+  .msel-clear:hover{background:#DDE3F7}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:6px 2px 12px}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:24px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:230px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Inbound Referrals</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
+    <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+    <div class="sec">Intake Performance</div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card"><h3>Referrals by Source</h3><div class="h">Where inbound referrals originate</div><div class="cb"><canvas id="cSource"></canvas></div></div>
+      <div class="card"><h3>Intake Status Mix</h3><div class="h">Pipeline from received → seen</div><div class="cb"><canvas id="cStatus"></canvas></div></div>
+    </div>
+    <div class="sec">Pending Intake Worklist <span style="font-weight:600;text-transform:none;color:var(--peri)">— referrals awaiting scheduling, oldest first</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Patient</th><th>Source</th><th>Reason</th><th>Assigned Provider</th><th>Received</th><th class="num">Days waiting</th><th>Status</th></tr></thead><tbody id="tbody"></tbody></table></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",recv:50,sched:86,seen:67,days:4.1,conv:78},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",recv:64,sched:83,seen:64,days:4.7,conv:75},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",recv:44,sched:78,seen:60,days:5.6,conv:71},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",recv:49,sched:82,seen:64,days:4.8,conv:74},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",recv:47,sched:88,seen:69,days:3.6,conv:80},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",recv:55,sched:82,seen:63,days:4.9,conv:73},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",recv:50,sched:87,seen:68,days:3.9,conv:79},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",recv:48,sched:88,seen:70,days:3.7,conv:80},
+ {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",recv:46,sched:84,seen:65,days:4.6,conv:76},
+];
+const SOURCES=[["Primary care / community MD",.34],["ED / hospital discharge",.22],["Health-system / Epic",.18],["Self / web scheduling",.16],["Insurance directory",.10]];
+const STATUS=[["New / unworked",.14,C.red],["Contacted",.17,C.amber],["Scheduled",.34,C.peri],["Seen",.30,C.green],["Declined / no-show",.05,C.gray]];
+let region="all",clinicSel=[],provId="all",period="mtd",charts={};
+const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
+function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
+const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
+function active(){return PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)&&(provId==="all"||p.id===provId));}
+function agg(){const rs=active();const recv=rs.reduce((a,r)=>a+r.recv,0)||1;const w=k=>rs.reduce((a,r)=>a+r[k]*r.recv,0)/recv;return {recv:rs.reduce((a,r)=>a+r.recv,0),sched:w("sched"),seen:w("seen"),days:w("days"),conv:w("conv")};}
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildClinic(){
+  clinicSel=clinicSel.filter(c=>clinics().includes(c));
+  const pop=document.getElementById("mselPop");
+  pop.innerHTML=clinics().map(c=>`<label class="opt"><input type="checkbox" value="${c}" ${clinicSel.includes(c)?"checked":""}> ${c}</label>`).join("")+'<button type="button" class="msel-clear" id="mselClear">Clear — all</button>';
+  pop.querySelectorAll("input").forEach(i=>i.onchange=()=>{clinicSel=[...pop.querySelectorAll("input:checked")].map(x=>x.value);provId="all";buildProvider();syncClinicBtn();render();});
+  document.getElementById("mselClear").onclick=()=>{clinicSel=[];provId="all";buildProvider();buildClinic();render();};
+  syncClinicBtn();
+}
+function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
+function buildProvider(){const s=document.getElementById("selProvider"),list=active();const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+function render(){
+  const d=agg(),f=PERIODS[period].f,recv=round(d.recv*f),pend=round(recv*0.31);
+  const sel=active();
+  document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
+  document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+PERIODS[period].l+" · illustrative data";
+  const cards=[
+    {l:"Referrals Received",n:fmt(recv),s:"inbound this period",ac:C.navy},
+    {l:"Scheduled",n:Math.round(d.sched)+"%",s:"target ≥85%",ac:tone(d.sched,true,85,78)},
+    {l:"Seen / Completed",n:Math.round(d.seen)+"%",s:"of received",ac:tone(d.seen,true,70,60)},
+    {l:"Avg Days to Schedule",n:d.days.toFixed(1),s:"target ≤4 days",ac:tone(d.days,false,4,6)},
+    {l:"Pending / Unworked",n:fmt(pend),s:"awaiting scheduling",ac:tone(pend,false,recv*0.25,recv*0.4)},
+    {l:"30-day Conversion",n:Math.round(d.conv)+"%",s:"to established patient",ac:tone(d.conv,true,75,65)},
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  charts.s&&charts.s.destroy();
+  charts.s=new Chart(document.getElementById("cSource"),{type:"bar",data:{labels:SOURCES.map(s=>s[0]),datasets:[{data:SOURCES.map(s=>round(recv*s[1])),backgroundColor:C.peri,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  charts.st&&charts.st.destroy();
+  charts.st=new Chart(document.getElementById("cStatus"),{type:"doughnut",data:{labels:STATUS.map(s=>s[0]),datasets:[{data:STATUS.map(s=>round(recv*s[1])),backgroundColor:STATUS.map(s=>s[2]),borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
+  const FIRST=["J","M","A","S","R","D","K","L","P","T","C","B"],LAST=["Carter","Lopez","Nguyen","Patel","Johnson","Reed","Khan","Brooks","Diaz","Foster","Owens","Ramos"];
+  const REASON=["New patient — PCP","Post-ED follow-up","Hospital discharge","Behavioral health","Annual physical","Chronic care transfer","Pediatric intake"];
+  const provs=sel.length?sel:PROV;
+  let seed=(region+(clinicLabel()||"all")+provId).length*7+5;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+  const n=Math.min(pend,12),rows=[];for(let i=0;i<n;i++){const days=1+Math.floor(rnd()*16);const st=days>7?["Unworked",C.red]:days>3?["Contacted",C.amber]:["New",C.peri];rows.push({pt:FIRST[(rnd()*12)|0]+". "+LAST[(rnd()*12)|0],src:SOURCES[(rnd()*SOURCES.length)|0][0].split(" / ")[0],reason:REASON[(rnd()*REASON.length)|0],prov:provs[(rnd()*provs.length)|0].name,recd:"6/"+(1+((rnd()*16)|0)),days,st});}
+  rows.sort((a,b)=>b.days-a.days);
+  document.getElementById("tbody").innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r.pt}</td><td>${r.src}</td><td>${r.reason}</td><td>${r.prov}</td><td>${r.recd}</td><td class="num">${r.days}</td><td><span class="pill" style="background:${hexA(r.st[1],.14)};color:${r.st[1]}">${r.st[0]}</span></td></tr>`).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic inbound-referral data, drillable Region → Clinic → Provider. Targets are placeholders — replace with Avance Care intake SLAs.";
+}
+window.AVANCE_AI={
+ insight:function(){var d=agg(),f=PERIODS[period].f,recv=Math.round(d.recv*f),pend=Math.round(recv*0.31);var scope=document.getElementById('who').textContent;var t='<b>'+scope+'</b>: <b>'+recv+'</b> inbound referrals this period. '+Math.round(d.sched)+'% scheduled (target \u226585%), '+Math.round(d.conv)+'% 30-day conversion. ';if(d.sched<85){t+='Scheduling is below target. ';}t+='About <b>'+pend+'</b> referrals are unworked \u2014 clearing them is the biggest lever on conversion.';return t;},
+ chips:['What should the intake team focus on?','Why is conversion below target?','Where are referrals coming from?'],
+ answer:function(q){var d=agg(),f=PERIODS[period].f,recv=Math.round(d.recv*f),pend=Math.round(recv*0.31),ql=q.toLowerCase();
+  if(/focus|priorit|work|pending|today|week/.test(ql))return '<h5>Focus</h5>Clear the ~'+pend+' unworked referrals first \u2014 they drive both scheduling % ('+Math.round(d.sched)+'%, target \u226585%) and 30-day conversion ('+Math.round(d.conv)+'%). Prioritize the oldest-waiting and ED/discharge referrals.';
+  if(/conver/.test(ql))return '<h5>Conversion</h5>30-day conversion is '+Math.round(d.conv)+'% (target \u226575%). The main drags are time-to-schedule ('+d.days.toFixed(1)+' days) and unworked referrals \u2014 faster outreach lifts conversion.';
+  if(/source|coming|where|leak/.test(ql))return '<h5>Sources</h5>Largest inbound sources are community PCPs (~34%) and ED/hospital discharge (~22%). ED/discharge referrals are the most time-sensitive to work.';
+  return '<h5>Summary</h5>'+recv+' received \u00b7 '+Math.round(d.sched)+'% scheduled \u00b7 '+Math.round(d.seen)+'% seen \u00b7 '+d.days.toFixed(1)+' days to schedule \u00b7 '+Math.round(d.conv)+'% conversion.';}
+};
+window.startDashboard=function(){
+  buildClinic();buildProvider();
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinicSel=[];provId="all";buildClinic();buildProvider();render();};
+  const mBtn=document.getElementById("mselBtn"),mPop=document.getElementById("mselPop");
+  mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
+  mPop.onclick=e=>e.stopPropagation();
+  document.addEventListener("click",()=>mPop.classList.remove("open"));
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+  if(window.renderAvanceAI)window.renderAvanceAI();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>

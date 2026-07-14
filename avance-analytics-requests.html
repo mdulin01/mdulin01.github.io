@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Reporting &amp; Analytics Request Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --brand-green:#4CB749;
+    --brand-green-dark:#2F9E45;
+    --brand-green-light:#5BC24E;
+    --ink:#26303A;
+    --navy:#2B2C6B;
+    --navy-deep:#232456;
+    --periwinkle:#5C6CB8;
+    --care-gray:#6D6E71;
+    --teal-deep:#232456;
+    --teal-mid:#3A4A9E;
+    --bg:#F4F6F5;
+    --card:#FFFFFF;
+    --line:#E3E8E6;
+    --muted:#6B7A80;
+    --crit:#C0392B;
+    --high:#E67E22;
+    --med:#D4A017;
+    --low:#2F9E45;
+    --st-done:#2E7D32;
+    --st-prog:#2563EB;
+    --st-new:#7C3AED;
+    --st-open:#0E8A9E;
+    --st-hold:#B91C1C;
+    --st-back:#6B7280;
+    --shadow:0 1px 3px rgba(20,40,40,.08),0 1px 2px rgba(20,40,40,.04);
+    --shadow-lg:0 4px 16px rgba(20,40,40,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+  a{color:var(--brand-green-dark)}
+
+  /* ---------- Top bar ---------- */
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo-mark{width:38px;height:30px;flex:none}
+  .wordmark{font-size:22px;font-weight:300;letter-spacing:.2px;color:var(--care-gray)}
+  .wordmark b{font-weight:700;color:#4A5BA8}
+  .topbar .meta{text-align:right;font-size:12px;color:var(--muted)}
+  .topbar .meta .title{font-size:15px;font-weight:700;color:var(--ink)}
+
+  /* ---------- Hero / true north ---------- */
+  .hero{background:linear-gradient(120deg,var(--teal-deep) 0%,var(--teal-mid) 55%,var(--brand-green-dark) 100%);color:#fff;padding:22px 28px}
+  .hero h1{font-size:21px;font-weight:700;margin-bottom:4px}
+  .hero .sub{font-size:13px;opacity:.85;max-width:780px;margin-bottom:16px}
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:920px}
+  .pillar{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:12px 14px}
+  .pillar .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;opacity:.8;font-weight:700}
+  .pillar .txt{font-size:13px;margin-top:3px;line-height:1.35}
+  .mission{font-size:12.5px;opacity:.9;margin-top:14px;border-left:3px solid var(--brand-green-light);padding-left:10px;max-width:920px}
+  .mission b{font-weight:700}
+
+  /* ---------- Layout ---------- */
+  .wrap{padding:22px 28px 60px;max-width:1500px;margin:0 auto}
+  .section-title{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:24px 2px 12px}
+
+  /* ---------- KPI cards ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .num{font-size:30px;font-weight:700;line-height:1}
+  .kpi .lbl{font-size:12px;color:var(--muted);margin-top:6px;font-weight:600}
+  .kpi .accent{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .kpi.clickable{cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .kpi.clickable:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .kpi.active{outline:2px solid var(--brand-green);outline-offset:-1px}
+
+  /* ---------- Charts ---------- */
+  .grid-charts{display:grid;grid-template-columns:1.1fr 1.1fr 1.4fr;gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700;margin-bottom:2px}
+  .card .hint{font-size:11px;color:var(--muted);margin-bottom:10px}
+  .chart-box{position:relative;height:210px}
+  .chart-box.tall{height:240px}
+
+  /* ---------- Resource allocation ---------- */
+  .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+  .analyst{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow)}
+  .analyst .nm{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--teal-mid);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex:none}
+  .analyst .cnt{font-size:12px;color:var(--muted);margin:6px 0 10px}
+  .loadbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#eef1f0}
+  .loadbar span{display:block;height:100%}
+  .mini-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px;font-size:11px;color:var(--muted)}
+  .mini-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+  /* ---------- Filters ---------- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);margin-bottom:14px}
+  .toolbar input[type=text],.toolbar select{font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+  .toolbar input[type=text]{flex:1;min-width:200px}
+  .toolbar label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-right:-4px}
+  .btn-clear{font-size:12px;padding:8px 12px;border:1px solid var(--line);background:#fff;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:600}
+  .btn-clear:hover{background:#f6f8f7;color:var(--ink)}
+  .count-pill{font-size:12px;color:var(--muted);font-weight:600;margin-left:auto}
+
+  /* ---------- Table ---------- */
+  .tablecard{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  thead th{background:#F0F3F2;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:11px 12px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0;z-index:2}
+  thead th:hover{color:var(--ink)}
+  thead th .arr{font-size:9px;opacity:.5;margin-left:3px}
+  tbody td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+  tbody tr:hover{background:#FAFBFA}
+  tbody tr.flagged{background:#FCF6F4}
+  tbody tr.flagged:hover{background:#FBF0ED}
+  .pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+  .badge{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap}
+  .cat{font-weight:700;font-size:13px}
+  .desc{color:#33444b;max-width:430px;font-size:12.5px;line-height:1.4}
+  .notes{color:var(--muted);font-size:11.5px;max-width:300px;line-height:1.35;margin-top:4px;display:none}
+  .desc.show .notes{display:block}
+  .owner-cell{white-space:nowrap;font-weight:600}
+  .owner-cell.un{color:var(--crit);font-weight:700}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:5px;background:#EEF3EE;color:var(--brand-green-dark);white-space:nowrap}
+  .flag-dot{color:var(--crit);font-weight:700;margin-left:5px;cursor:help}
+  .toggle{font-size:11px;color:var(--brand-green-dark);cursor:pointer;font-weight:700;margin-top:4px;display:inline-block}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .footer{margin-top:30px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}.grid-charts{grid-template-columns:1fr}.pillars{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+
+<div class="topbar">
+  <div class="brand">
+    <svg class="logo-mark" viewBox="0 0 120 96" xmlns="http://www.w3.org/2000/svg" aria-label="Avance Care">
+      <polygon points="34,14 56,90 8,90" fill="#5FBE57"/>
+      <polygon points="64,8 98,90 38,90" fill="#4A5BA8"/>
+    </svg>
+    <div class="wordmark"><b>Avance</b>Care</div>
+  </div>
+  <div class="meta">
+    <div class="title">Reporting &amp; Analytics Request Tracker</div>
+    <div>Prepared for Dr. Amanda Steventon, CMO &nbsp;·&nbsp; Draft v1 &nbsp;·&nbsp; June 2026</div>
+  </div>
+</div>
+
+<div class="hero">
+  <h1>Data &amp; Reporting Portfolio — Operations Command View</h1>
+  <div class="sub">A single place for leadership to triage every reporting and dashboard request across the network — by priority, owner, department, and status — and to see how analyst capacity is allocated against our highest-impact work.</div>
+  <div class="pillars">
+    <div class="pillar"><div class="lbl">Simplify Healthcare</div><div class="txt">Usable provider &amp; manager dashboards that cut clicks and surface the right metric.</div></div>
+    <div class="pillar"><div class="lbl">Generate Better Outcomes</div><div class="txt">Close quality gaps — AWVs, care gaps, ED/TOC, behavioral health outcomes.</div></div>
+    <div class="pillar"><div class="lbl">Reduce Cost</div><div class="txt">Capture every charge, recoup leakage, and keep value-based contracts profitable.</div></div>
+  </div>
+  <div class="mission"><b>Our mission:</b> Build a comprehensive primary care-centric healthcare system that simplifies healthcare, generates better outcomes, and reduces cost. <b>Every request below is tagged to the operational impact it serves.</b></div>
+</div>
+
+<div class="wrap">
+
+  <div id="aiBar"></div>
+  <!-- KPI summary -->
+  <div class="section-title">Portfolio at a Glance · click a card to filter</div>
+  <div class="kpis" id="kpis"></div>
+
+  <!-- Charts -->
+  <div class="section-title">Distribution</div>
+  <div class="grid-charts">
+    <div class="card"><h3>By Priority</h3><div class="hint">Where leadership attention is concentrated</div><div class="chart-box"><canvas id="cPriority"></canvas></div></div>
+    <div class="card"><h3>By Status</h3><div class="hint">Pipeline health across the portfolio</div><div class="chart-box"><canvas id="cStatus"></canvas></div></div>
+    <div class="card"><h3>By Department</h3><div class="hint">Demand by requesting team</div><div class="chart-box tall"><canvas id="cDept"></canvas></div></div>
+  </div>
+
+  <!-- Resource allocation -->
+  <div class="section-title">Resource Allocation · analyst workload &amp; priority mix</div>
+  <div class="res-grid" id="resGrid"></div>
+
+  <!-- Filters + table -->
+  <div class="section-title">All Requests</div>
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search description, category, notes…">
+    <label>Priority</label><select id="fPriority"></select>
+    <label>Dept</label><select id="fDept"></select>
+    <label>Owner</label><select id="fOwner"></select>
+    <label>Status</label><select id="fStatus"></select>
+    <label>Impact</label><select id="fImpact"></select>
+    <button class="btn-clear" id="clear">Clear</button>
+    <span class="count-pill" id="countPill"></span>
+  </div>
+
+  <div class="tablecard">
+    <table>
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">No requests match the current filters.</div>
+  </div>
+
+  <div class="footer" id="footer"></div>
+</div>
+
+</div><!-- /appShell -->
+<script>
+/* ============================================================
+   DATA — 34 reporting/dashboard requests from the
+   "Data and Reporting Needs Prioritization — June 2026" sheet.
+   status "Backlog" = no triage status recorded on source sheet.
+   ============================================================ */
+const DATA = [
+ {id:1, pr:"Critical", dept:"RCM", cat:"Ancillary Charges Dashboard", impact:"Revenue", owner:"Michael Parks", status:"In Progress",
+  desc:"Add report to review all billable ancillary charges to ensure charges are dropping at the clinic level. To be used by OMs/APMs/RODs.", notes:"Already in development with Michael."},
+ {id:2, pr:"Critical", dept:"Medical/Clinical Ops", cat:"Controlled Substance Report", impact:"Compliance", owner:"", status:"Open", aging:true,
+  desc:"Add report for APPs/Supervising Physicians to show patients prescribed controlled substances that have or have not had SP review. Include UDS/CSA / open-order info.", notes:"Andrea Sandoval submitted ticket 2–3 months ago. Unassigned."},
+ {id:3, pr:"Critical", dept:"Medical/Clinical Ops", cat:"APP Chart Cosign Auditing", impact:"Compliance", owner:"Michael Parks", status:"In Progress",
+  desc:"Create a regular report or dashboard to audit whether APP visits are being appropriately cosigned by collaborating physicians.", notes:"Reviewing current SLG work to determine dashboard requirements."},
+ {id:4, pr:"Critical", dept:"Medical/Clinical Ops", cat:"Provider Dashboards", impact:"Clinical Workflow", owner:"Fahima Yasmin", status:"In Progress",
+  desc:"Update the base set of dashboards at the provider level to be more applicable / user-friendly for our specific needs.", notes:"In PRD."},
+ {id:5, pr:"Critical", dept:"Medical/Clinical Ops", cat:"PSA Dashboards", impact:"Clinical Workflow", owner:"Christopher Walling", status:"Completed",
+  desc:"Give providers access to clinical reporting and financial reporting.", notes:"Updated security templates and applied to PSA Owners/Lead Clinicians. Announce through appropriate channels."},
+ {id:6, pr:"Critical", dept:"RCM", cat:"Charge Capture", impact:"Revenue", owner:"", status:"In Progress",
+  desc:"Create charge capture report to identify gaps between orders placed, charges dropped and the resulting claim.", notes:"Ticket 76021. Unassigned."},
+ {id:7, pr:"Critical", dept:"Medical/Clinical Ops", cat:"Charge Capture (OM one-stop)", impact:"Revenue", owner:"Michael Parks", status:"Completed",
+  desc:"Create a 'one-stop-shop' dashboard for all OMs to view outstanding/uncompleted charges for in-office ancillary services (EKGs, etc.).", notes:"Kayla noted report is usable. MP to confirm ticket can be closed."},
+ {id:8, pr:"High", dept:"ACO/CIN", cat:"BCBS Quality Measures", impact:"Quality/Outcomes", owner:"Michael Parks", status:"In Progress",
+  desc:"Add a BCBS data extract to push quality measure data points to BCBS while the gap is still open.", notes:"Extract in testing. May need updates and yearly revisions."},
+ {id:9, pr:"High", dept:"Medical/Clinical Ops", cat:"Billable CCM Hours", impact:"Revenue", owner:"", status:"In Progress",
+  desc:"Add Clinic Nurse Dashboard with billable CCM, weekly AWV counts, and patients due for AWVs so nurses can outreach. Monitors billable CCM time and AWV volume to stay profitable.", notes:"Service Request 64663: AWV report. Unassigned."},
+ {id:10, pr:"High", dept:"Medical/Clinical Ops", cat:"ED/TOC", impact:"Quality/Outcomes", owner:"", status:"New",
+  desc:"Add ED/TOC dashboard to improve clinical workflow, drive patient revenue and improve patient outcomes.", notes:"Unassigned."},
+ {id:11, pr:"High", dept:"Pop Health", cat:"Attribution Rosters", impact:"Quality/Outcomes", owner:"", status:"New",
+  desc:"Add attribution rosters for each VBC contract into Epic with Cheers, My Panel Metrics and HCC tools. Add TOC/ED dashboards with denominators, AWVs by clinic/provider, myPanel metrics per roster, TCM per clinic/provider.", notes:"Current ED/TOC limited without a denominator per clinic. Unassigned."},
+ {id:12, pr:"High", dept:"Behavioral Health", cat:"Schedule Status", impact:"Clinical Workflow", owner:"Michael Parks", status:"Open",
+  desc:"Add BH schedule metrics: visits completed MTD, future visits scheduled this month, future unfilled openings this month, average monthly volume YTD, projected volume this month.", notes:""},
+ {id:13, pr:"High", dept:"Medical/Clinical Ops", cat:"Clinic Collect via Lab Collect", impact:"Revenue", owner:"Christopher Walling", status:"In Progress",
+  desc:"Investigate Durham Broad Street workflow where lab techs cancel 'clinic-collected' orders and re-enter as 'lab-collected,' causing note-closure blocks and potential loss of specimen handling fees. Determine if a report can identify these order-state changes.", notes:"Meeting with Epic on feasibility. Complexity auditing canceled vs. replaced orders."},
+ {id:14, pr:"High", dept:"Medical/Clinical Ops", cat:"Service Line Dashboards", impact:"Clinical Workflow", owner:"Michael Parks", status:"In Progress",
+  desc:"Create dashboards for BH and Nutrition service lines plus individual therapist dashboards. Default BH users to the BH-specific dashboard (currently mis-routed to Nurse Manager dashboard).", notes:"Dashboards approved; finalizing therapist dashboard with referrals update."},
+ {id:15, pr:"High", dept:"Medical/Clinical Ops", cat:"AWV Dashboard", impact:"Quality/Outcomes", owner:"Fahima Yasmin", status:"In Progress", aging:true,
+  desc:"Create dashboard for clinic nurses to identify Medicare patients due for AWV, tracking IPPE and subsequent wellness visits.", notes:"Original report request >130 days old; converted to dashboard request 5/7 for visibility."},
+ {id:16, pr:"High", dept:"Medical/Clinical Ops", cat:"MA Rooming", impact:"Clinical Workflow", owner:"", status:"Backlog",
+  desc:"Operations request to track which specific MA roomed a patient and corresponding wait times (check-in to 'Start Rooming').", notes:"Not yet triaged. Unassigned."},
+ {id:17, pr:"High", dept:"Medical/Clinical Ops", cat:"TCM Billing", impact:"Revenue", owner:"Fahima Yasmin", status:"In Progress",
+  desc:"Data report for TCM billing: encounter report showing patients with code 1111F who lack codes 99495/99496 (regular E/M instead), excluding commercial BCBS.", notes:"Build/run SQL Reporting Workbench query on the specified CPT codes and insurance exclusion."},
+ {id:18, pr:"High", dept:"VBC", cat:"BCNC Care Gap Extract", impact:"Quality/Outcomes", owner:"Michael Parks", status:"In Progress",
+  desc:"Develop SQL extract for the BCNC care gap initiative.", notes:"After Lizz/Epic guidance, provide draft extract for validation; build stored procedure + MFT job to automate delivery."},
+ {id:19, pr:"Medium", dept:"CCM", cat:"CCM Financial Reports", impact:"Revenue", owner:"", status:"New",
+  desc:"Need more info on open denials, closed denials, money received. Reports use different patient identifiers — hard to cross-reference. Each needs Patient Name, MRN and DOS; open + closed denials in one report ideal.", notes:"Unassigned."},
+ {id:20, pr:"Medium", dept:"Medical/Clinical Ops", cat:"Staff Oversight", impact:"Compliance", owner:"", status:"Open", aging:true,
+  desc:"Need staff oversight report for auditing to track staff footprint inside Epic.", notes:"Ticket 67175 submitted in February. Unassigned."},
+ {id:21, pr:"Medium", dept:"Behavioral Health", cat:"Schedule Utilization (UX)", impact:"Clinical Workflow", owner:"", status:"New",
+  desc:"Add ability to sort/save direct reports by teams on Schedule and Provider Utilization dashboards (fewer clicks). Add ability to edit the date range.", notes:"Unassigned."},
+ {id:22, pr:"Medium", dept:"Behavioral Health", cat:"Schedule Utilization (therapist data)", impact:"Clinical Workflow", owner:"", status:"In Progress",
+  desc:"View therapist data by individual/team: visits MTD, future pts this month, open slots, projected visits, max visits possible, weekly/monthly avg YTD, future avg to meet annual quota. Currently split across three places with no calculations.", notes:""},
+ {id:23, pr:"Medium", dept:"Behavioral Health", cat:"Signed Notes", impact:"Clinical Workflow", owner:"", status:"New",
+  desc:"Convert team metrics into averages to be meaningful as benchmarks (e.g., team-average hours to complete a note vs. individual performance).", notes:"Unassigned."},
+ {id:24, pr:"Medium", dept:"Behavioral Health", cat:"Openings", impact:"Clinical Workflow", owner:"", status:"New",
+  desc:"Openings data is not useful — aggregated for the whole team rather than calculated as an average per team member.", notes:"Unassigned."},
+ {id:25, pr:"Medium", dept:"Behavioral Health", cat:"BH Patient Outcomes", impact:"Quality/Outcomes", owner:"Fahima Yasmin", status:"In Progress",
+  desc:"Comprehensive report comparing health outcomes (PHQ-9, GAD-7, A1C, BP) and PCP attendance between patients seeing Behavioral Health vs. those who are not.", notes:"Analyst reviewing data requirements and establishing reporting cadence."},
+ {id:26, pr:"Medium", dept:"All", cat:"Retiring Locations / DEPs", impact:"Compliance", owner:"", status:"Backlog",
+  desc:"Review all HRX and IDM items that list retiring departments and remove them as needed.", notes:"Tedious — significant number of items per department. Unassigned."},
+ {id:27, pr:"Medium", dept:"RCM", cat:"Reveleer & Curation Health Extracts", impact:"Quality/Outcomes", owner:"Michael Parks", status:"In Progress",
+  desc:"Develop practice, practitioner, and patient SQL extracts.", notes:"Pending Curation/Reveleer feedback after ingesting agreed matching ID and validation."},
+ {id:28, pr:"Medium", dept:"Medical/Clinical Ops", cat:"Vaccine Reports", impact:"Compliance", owner:"", status:"New",
+  desc:"Vaccine reports by CPT code broken out by week, month, quarter and year (full code list provided).", notes:"Unassigned."},
+ {id:29, pr:"Low", dept:"Nutrition", cat:"Denials", impact:"Revenue", owner:"", status:"New",
+  desc:"Add a section to the manager dashboard highlighting Nutrition claim denials so managers can monitor trends, verify claim status, and ensure correct diagnosis codes. Data exists in Charges w/ Open Denials slicer-dicer report.", notes:"Unassigned."},
+ {id:30, pr:"Low", dept:"Finance", cat:"Additional PB Data", impact:"Revenue", owner:"Fahima Yasmin", status:"In Progress",
+  desc:"Add contractual adjustment, payer withheld, and write-off adjustment fields to the Professional Billing (PB) SlicerDicer data model.", notes:"Add requested columns to the data model when capacity allows."},
+ {id:31, pr:"Low", dept:"CCM", cat:"Oversight Reporting", impact:"Compliance", owner:"Christopher Walling", status:"In Progress",
+  desc:"Develop reporting tools to monitor remote staff productivity and activities per Care Management and leadership requirements.", notes:"Meeting with Epic TS on technical feasibility of oversight metrics."},
+ {id:32, pr:"Low", dept:"Medical/Clinical Ops", cat:"Telehealth & No-Show Metrics", impact:"Clinical Workflow", owner:"Fahima Yasmin", status:"On Hold", aging:true,
+  desc:"Telehealth vs. in-office volumes, no-show rate, and patient volume by insurance for the past 12 months.", notes:"Difficulty connecting with requestor (Deborah Stoia) to clarify parameters and TE/Rx volume tracking."},
+ {id:33, pr:"Low", dept:"All", cat:"Epic Gold Star Initiative", impact:"Clinical Workflow", owner:"Michael Parks", status:"In Progress",
+  desc:"Ongoing work with Epic TS on Epic best practices: review/approve 50% of top-100 dashboards, automated batch reporting cleanup, threshold number of SlicerDicer data models, etc.", notes:"Next: implement automated batch reporting content cleanup and other best practices."},
+ {id:34, pr:"Low", dept:"Medical/Clinical Ops", cat:"Cogito Report Training", impact:"Clinical Workflow", owner:"Fahima Yasmin", status:"In Progress",
+  desc:"Ongoing end-user training and support: group sessions/classes, 1-on-1s, and ad-hoc training as requested by operations.", notes:""},
+];
+
+/* ---------- palettes ---------- */
+const PR_ORDER={Critical:0,High:1,Medium:2,Low:3};
+const PR_COLOR={Critical:"#C0392B",High:"#E67E22",Medium:"#D4A017",Low:"#5C9A2E"};
+const ST_COLOR={"Completed":"#2E7D32","In Progress":"#2563EB","New":"#7C3AED","Open":"#0E8A9E","On Hold":"#B91C1C","Backlog":"#6B7280"};
+const ST_BG={"Completed":"#E6F2E6","In Progress":"#E5EDFD","New":"#F0E9FC","Open":"#E2F2F5","On Hold":"#FBE7E7","Backlog":"#EEF0F1"};
+const IMPACT_COLOR={"Revenue":"#1E8E6E","Quality/Outcomes":"#5C9A2E","Compliance":"#B07A1E","Clinical Workflow":"#2563EB","Patient Safety":"#C0392B"};
+
+const norm = r => ({...r, owner: r.owner && r.owner.trim() ? r.owner : "Unassigned"});
+const ROWS = DATA.map(norm);
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const uniq = (arr) => [...new Set(arr)];
+const countBy = (arr, key) => arr.reduce((m,r)=>(m[r[key]]=(m[r[key]]||0)+1,m),{});
+
+/* ---------- state ---------- */
+let state = {q:"", pr:"", dept:"", owner:"", status:"", impact:"", sortKey:"pr", sortDir:1};
+
+/* ============================================================ KPIs ============================================================ */
+function renderKPIs(){
+  const total=ROWS.length;
+  const crit=ROWS.filter(r=>r.pr==="Critical").length;
+  const prog=ROWS.filter(r=>r.status==="In Progress").length;
+  const done=ROWS.filter(r=>r.status==="Completed").length;
+  const unassigned=ROWS.filter(r=>r.owner==="Unassigned").length;
+  const blocked=ROWS.filter(r=>r.status==="On Hold"||r.aging).length;
+  const cards=[
+    {num:total,lbl:"Total Requests",color:"#2B2C6B",filter:()=>clearAll()},
+    {num:crit,lbl:"Critical Priority",color:PR_COLOR.Critical,filter:()=>setFilter("pr","Critical")},
+    {num:prog,lbl:"In Progress",color:ST_COLOR["In Progress"],filter:()=>setFilter("status","In Progress")},
+    {num:done,lbl:"Completed",color:ST_COLOR.Completed,filter:()=>setFilter("status","Completed")},
+    {num:unassigned,lbl:"Unassigned — needs owner",color:"#C0392B",filter:()=>setFilter("owner","Unassigned")},
+    {num:blocked,lbl:"At Risk (on hold / aging)",color:"#B07A1E",filter:()=>flagFilter()},
+  ];
+  $("#kpis").innerHTML = cards.map((c,i)=>`
+    <div class="kpi clickable" data-i="${i}">
+      <div class="accent" style="background:${c.color}"></div>
+      <div class="num" style="color:${c.color}">${c.num}</div>
+      <div class="lbl">${c.lbl}</div>
+    </div>`).join("");
+  document.querySelectorAll("#kpis .kpi").forEach(el=>{
+    el.addEventListener("click",()=>{cards[+el.dataset.i].filter();document.querySelectorAll("#kpis .kpi").forEach(k=>k.classList.remove("active"));el.classList.add("active");const t=document.querySelector(".tablecard");if(t)t.scrollIntoView({behavior:"smooth",block:"start"});});
+  });
+}
+let showFlaggedOnly=false;
+function flagFilter(){ showFlaggedOnly=true; state={...state,pr:"",dept:"",owner:"",status:"",impact:"",q:""}; syncControls(); render(); }
+
+/* ============================================================ CHARTS ============================================================ */
+let charts={};
+function renderCharts(){
+  // priority
+  const prC=countBy(ROWS,"pr");
+  const prLabels=["Critical","High","Medium","Low"];
+  charts.pr&&charts.pr.destroy();
+  charts.pr=new Chart($("#cPriority"),{type:"doughnut",
+    data:{labels:prLabels,datasets:[{data:prLabels.map(l=>prC[l]||0),backgroundColor:prLabels.map(l=>PR_COLOR[l]),borderWidth:2,borderColor:"#fff"}]},
+    options:{plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}},cutout:"58%",onClick:(e,el)=>{if(el.length)setFilter("pr",prLabels[el[0].index]);}}});
+  // status
+  const stC=countBy(ROWS,"status");
+  const stLabels=Object.keys(ST_COLOR).filter(l=>stC[l]);
+  charts.st&&charts.st.destroy();
+  charts.st=new Chart($("#cStatus"),{type:"bar",
+    data:{labels:stLabels,datasets:[{data:stLabels.map(l=>stC[l]),backgroundColor:stLabels.map(l=>ST_COLOR[l]),borderRadius:5}]},
+    options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{ticks:{font:{size:10}}}},onClick:(e,el)=>{if(el.length)setFilter("status",stLabels[el[0].index]);}}});
+  // dept
+  const dpC=countBy(ROWS,"dept");
+  const dpLabels=Object.keys(dpC).sort((a,b)=>dpC[b]-dpC[a]);
+  charts.dp&&charts.dp.destroy();
+  charts.dp=new Chart($("#cDept"),{type:"bar",
+    data:{labels:dpLabels,datasets:[{data:dpLabels.map(l=>dpC[l]),backgroundColor:"#5C6CB8",borderRadius:5}]},
+    options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{precision:0}},y:{ticks:{font:{size:11}}}},onClick:(e,el)=>{if(el.length)setFilter("dept",dpLabels[el[0].index]);}}});
+}
+
+/* ============================================================ RESOURCE ALLOCATION ============================================================ */
+function renderResource(){
+  const owners = uniq(ROWS.map(r=>r.owner));
+  // order: named analysts by load desc, Unassigned last
+  const assigned = owners.filter(o=>o!=="Unassigned").sort((a,b)=>ROWS.filter(r=>r.owner===b).length-ROWS.filter(r=>r.owner===a).length);
+  const ordered = [...assigned, "Unassigned"];
+  const prLabels=["Critical","High","Medium","Low"];
+  $("#resGrid").innerHTML = ordered.map(o=>{
+    const items=ROWS.filter(r=>r.owner===o);
+    const n=items.length;
+    const initials=o==="Unassigned"?"?":o.split(" ").map(x=>x[0]).join("").slice(0,2);
+    const open=items.filter(r=>r.status!=="Completed").length;
+    const seg=prLabels.map(l=>({l,c:items.filter(r=>r.pr===l).length})).filter(s=>s.c);
+    const bar=seg.map(s=>`<span style="width:${s.c/n*100}%;background:${PR_COLOR[s.l]}" title="${s.l}: ${s.c}"></span>`).join("");
+    const legend=seg.map(s=>`<span><i style="background:${PR_COLOR[s.l]}"></i>${s.l} ${s.c}</span>`).join("");
+    const avBg = o==="Unassigned" ? "#C0392B" : "#2B2C6B";
+    return `<div class="analyst" style="${o==='Unassigned'?'border-color:#F1C9C2':''}">
+      <div class="nm"><span class="avatar" style="background:${avBg}">${initials}</span>${o}</div>
+      <div class="cnt"><b style="color:var(--ink);font-size:14px">${n}</b> request${n!==1?'s':''} · ${open} active</div>
+      <div class="loadbar">${bar}</div>
+      <div class="mini-legend">${legend}</div>
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================ FILTERS ============================================================ */
+function buildSelect(id,label,values){
+  const el=$(id);
+  el.innerHTML = `<option value="">All ${label}</option>` + values.map(v=>`<option value="${v}">${v}</option>`).join("");
+}
+function initControls(){
+  buildSelect("#fPriority","Priorities",["Critical","High","Medium","Low"]);
+  buildSelect("#fDept","Depts",uniq(ROWS.map(r=>r.dept)).sort());
+  buildSelect("#fOwner","Owners",uniq(ROWS.map(r=>r.owner)).sort((a,b)=>a==="Unassigned"?1:b==="Unassigned"?-1:a.localeCompare(b)));
+  buildSelect("#fStatus","Statuses",Object.keys(ST_COLOR).filter(s=>ROWS.some(r=>r.status===s)));
+  buildSelect("#fImpact","Impact",uniq(ROWS.map(r=>r.impact)).sort());
+  $("#search").addEventListener("input",e=>{state.q=e.target.value.toLowerCase();showFlaggedOnly=false;render();});
+  $("#fPriority").addEventListener("change",e=>{state.pr=e.target.value;showFlaggedOnly=false;render();});
+  $("#fDept").addEventListener("change",e=>{state.dept=e.target.value;showFlaggedOnly=false;render();});
+  $("#fOwner").addEventListener("change",e=>{state.owner=e.target.value;showFlaggedOnly=false;render();});
+  $("#fStatus").addEventListener("change",e=>{state.status=e.target.value;showFlaggedOnly=false;render();});
+  $("#fImpact").addEventListener("change",e=>{state.impact=e.target.value;showFlaggedOnly=false;render();});
+  $("#clear").addEventListener("click",clearAll);
+}
+function setFilter(key,val){ showFlaggedOnly=false; state[key]= state[key]===val?"":val; syncControls(); render(); }
+function clearAll(){ showFlaggedOnly=false; state={...state,q:"",pr:"",dept:"",owner:"",status:"",impact:""}; syncControls(); render(); }
+function syncControls(){
+  $("#search").value=state.q; $("#fPriority").value=state.pr; $("#fDept").value=state.dept;
+  $("#fOwner").value=state.owner; $("#fStatus").value=state.status; $("#fImpact").value=state.impact;
+}
+
+/* ============================================================ TABLE ============================================================ */
+const COLS=[
+  {k:"pr",label:"Priority"},
+  {k:"cat",label:"Category"},
+  {k:"dept",label:"Department"},
+  {k:"impact",label:"Impact"},
+  {k:"owner",label:"Owner / Analyst"},
+  {k:"status",label:"Status"},
+  {k:"desc",label:"Request"},
+];
+function renderHead(){
+  $("#headRow").innerHTML = COLS.map(c=>{
+    const arr = state.sortKey===c.k ? (state.sortDir>0?"▲":"▼") : "";
+    return `<th data-k="${c.k}">${c.label}<span class="arr">${arr}</span></th>`;
+  }).join("");
+  document.querySelectorAll("#headRow th").forEach(th=>{
+    th.addEventListener("click",()=>{
+      const k=th.dataset.k;
+      if(state.sortKey===k) state.sortDir*=-1; else {state.sortKey=k;state.sortDir=1;}
+      render();
+    });
+  });
+}
+function filtered(){
+  return ROWS.filter(r=>{
+    if(showFlaggedOnly && !(r.status==="On Hold"||r.aging)) return false;
+    if(state.pr && r.pr!==state.pr) return false;
+    if(state.dept && r.dept!==state.dept) return false;
+    if(state.owner && r.owner!==state.owner) return false;
+    if(state.status && r.status!==state.status) return false;
+    if(state.impact && r.impact!==state.impact) return false;
+    if(state.q){
+      const hay=(r.cat+" "+r.desc+" "+r.notes+" "+r.dept+" "+r.owner+" "+r.impact).toLowerCase();
+      if(!hay.includes(state.q)) return false;
+    }
+    return true;
+  });
+}
+function sortRows(rows){
+  const k=state.sortKey, d=state.sortDir;
+  return [...rows].sort((a,b)=>{
+    let av,bv;
+    if(k==="pr"){av=PR_ORDER[a.pr];bv=PR_ORDER[b.pr];}
+    else {av=(a[k]||"").toString().toLowerCase();bv=(b[k]||"").toString().toLowerCase();}
+    if(av<bv) return -1*d; if(av>bv) return 1*d; return a.id-b.id;
+  });
+}
+function renderTable(){
+  const rows=sortRows(filtered());
+  const tb=$("#tbody");
+  $("#countPill").textContent = `${rows.length} of ${ROWS.length} requests`;
+  if(!rows.length){ tb.innerHTML=""; $("#empty").style.display="block"; return; }
+  $("#empty").style.display="none";
+  tb.innerHTML = rows.map(r=>{
+    const flag = (r.status==="On Hold"||r.aging);
+    const flagTip = r.aging ? "Aging / stalled — see notes" : "On hold";
+    const ownerCls = r.owner==="Unassigned" ? "owner-cell un" : "owner-cell";
+    return `<tr class="${flag?'flagged':''}">
+      <td><span class="pill" style="background:${PR_COLOR[r.pr]}">${r.pr}</span></td>
+      <td class="cat">${r.cat}${flag?`<span class="flag-dot" title="${flagTip}">⚑</span>`:""}</td>
+      <td>${r.dept}</td>
+      <td><span class="tag" style="background:${hexA(IMPACT_COLOR[r.impact],.12)};color:${IMPACT_COLOR[r.impact]}">${r.impact}</span></td>
+      <td class="${ownerCls}">${r.owner}</td>
+      <td><span class="badge" style="background:${ST_BG[r.status]};color:${ST_COLOR[r.status]}">${r.status}</span></td>
+      <td><div class="desc"><div>${r.desc}</div>${r.notes?`<div class="notes">📝 ${r.notes}</div><span class="toggle">notes ▾</span>`:""}</div></td>
+    </tr>`;
+  }).join("");
+  document.querySelectorAll("#tbody .toggle").forEach(t=>{
+    t.addEventListener("click",()=>{const d=t.closest(".desc");d.classList.toggle("show");t.textContent=d.classList.contains("show")?"notes ▴":"notes ▾";});
+  });
+}
+function hexA(hex,a){const n=hex.replace('#','');const r=parseInt(n.substring(0,2),16),g=parseInt(n.substring(2,4),16),b=parseInt(n.substring(4,6),16);return `rgba(${r},${g},${b},${a})`;}
+
+/* ============================================================ RENDER ============================================================ */
+function render(){
+  document.querySelectorAll("#kpis .kpi").forEach(el=>el.classList.remove("active"));
+  renderHead();
+  renderTable();
+}
+function renderFooter(){
+  const upd=ROWS.filter(r=>r.aging).map(r=>r.cat).join(", ");
+  $("#footer").innerHTML = `Source: <i>Data and Reporting Needs Prioritization — June 2026</i> (working sheet) and CMO reporting-needs thread. `+
+    `${ROWS.length} requests · ${ROWS.filter(r=>r.owner==="Unassigned").length} unassigned · ${ROWS.filter(r=>r.aging).length} flagged as aging/stalled (${upd}). `+
+    `"Backlog" status = no triage status recorded on the source sheet. Impact tags are mapped to Avance Care's mission pillars and are editable in the data block. `+
+    `Draft v1 for CMO review — connect to Epic/Cogito for live refresh.`;
+}
+
+/* ---------- init ---------- */
+window.AVANCE_AI={
+ insight:function(){var total=ROWS.length,un=ROWS.filter(function(r){return r.owner==='Unassigned';}).length,crit=ROWS.filter(function(r){return r.pr==='Critical';}).length,prog=ROWS.filter(function(r){return r.status==='In Progress';}).length,critUn=ROWS.filter(function(r){return r.pr==='Critical'&&r.owner==='Unassigned';}).length;return '<b>'+total+'</b> reporting requests \u00b7 <b>'+crit+'</b> critical, <b>'+prog+'</b> in progress, <b>'+un+'</b> unassigned. Top watch-out: <b>'+critUn+'</b> critical item'+(critUn!==1?'s':'')+' with no owner. Biggest lever: assign owners to the '+un+' unscoped requests so they start moving.';},
+ chips:['What needs an owner?','What is stalled or aging?','How is analyst workload distributed?'],
+ answer:function(q){var ql=q.toLowerCase(),un=ROWS.filter(function(r){return r.owner==='Unassigned';});
+  if(/owner|assign|unassigned/.test(ql))return '<h5>Needs an owner</h5>'+un.length+' requests are unassigned, including '+un.filter(function(r){return r.pr==='Critical'||r.pr==='High';}).length+' Critical/High. Start with the 2 Critical: Controlled Substance Report and RCM Charge Capture.';
+  if(/stall|aging|overdue|hold|old/.test(ql)){var ag=ROWS.filter(function(r){return r.aging;});return '<h5>Stalled / aging</h5>'+ag.length+' items are flagged aging or on hold: '+ag.map(function(r){return r.cat;}).join(', ')+'. These need a nudge or a decision.';}
+  if(/workload|analyst|distribut|capacity/.test(ql)){var by={};ROWS.forEach(function(r){by[r.owner]=(by[r.owner]||0)+1;});var named=Object.keys(by).filter(function(k){return k!=='Unassigned';}).map(function(k){return k+': '+by[k];});return '<h5>Analyst workload</h5>'+named.join(' \u00b7 ')+' \u00b7 Unassigned: '+(by['Unassigned']||0)+'.';}
+  return '<h5>Summary</h5>'+ROWS.length+' requests \u00b7 '+ROWS.filter(function(r){return r.status==='Completed';}).length+' completed \u00b7 '+ROWS.filter(function(r){return r.status==='In Progress';}).length+' in progress \u00b7 '+ROWS.filter(function(r){return r.owner==='Unassigned';}).length+' unassigned.';}
+};
+let _started=false;
+window.startDashboard=function(){if(_started)return;_started=true;renderKPIs();renderCharts();renderResource();initControls();renderFooter();render();if(window.renderAvanceAI)window.renderAvanceAI();};
+</script>
+<script src="/avance-ai.js"></script>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>
