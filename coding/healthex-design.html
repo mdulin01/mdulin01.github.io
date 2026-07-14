@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>HealthEx → Folio · Ingestion Architecture (working doc)</title>
+<style>
+  :root{
+    --ink:#04202a; --ink2:#063845; --teal:#00707f; --cyan:#0e7490; --line:#dce8ea;
+    --paper:#fbfaf6; --card:#ffffff; --soft:#f0f6f7; --muted:#52707a; --faint:#84989f;
+    --good:#1c7c4b; --goodbg:#ecf8f0; --goodline:#bfe3cd;
+    --warn:#92500c; --warnbg:#fdeeda; --warnline:#f0cf9e;
+    --r:14px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:var(--paper);color:#172a30;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--teal)}
+  .wrap{max-width:880px;margin:0 auto;padding:0 22px 90px}
+  header.doc{background:linear-gradient(130deg,#063845,#0a4a5c 55%,#0e6076);color:#f3efe6;padding:46px 0 34px;margin-bottom:34px}
+  header.doc .wrap{padding-bottom:0}
+  .eyebrow{font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:#7fd6e6}
+  header.doc h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(26px,4vw,36px);line-height:1.2;margin:10px 0 10px;color:#fff}
+  header.doc p{color:#b8d2d9;font-size:14.5px;max-width:60ch}
+  .toolbar{position:sticky;top:0;z-index:20;background:rgba(251,250,246,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin-bottom:28px}
+  .toolbar .wrap{display:flex;align-items:center;gap:10px;padding:10px 22px;flex-wrap:wrap}
+  .toolbar .note{font-size:12px;color:var(--faint);margin-right:auto}
+  button{font:inherit;cursor:pointer}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 15px;font-size:13px;font-weight:700;color:var(--ink2)}
+  .btn:hover{border-color:var(--cyan)}
+  .btn.primary{background:var(--ink2);border-color:var(--ink2);color:#fff}
+  .btn.small{padding:4px 12px;font-size:12px}
+  section.block{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px 28px;margin-bottom:22px;position:relative}
+  section.block h2{font-family:Georgia,serif;font-size:22px;color:var(--ink2);margin-bottom:12px;padding-right:110px}
+  section.block h3{font-size:15px;color:var(--ink2);margin:18px 0 6px}
+  section.block p{margin:0 0 10px;font-size:14.5px}
+  section.block ul,section.block ol{margin:0 0 12px 20px;font-size:14.5px}
+  section.block li{margin-bottom:6px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0}
+  th,td{text-align:left;padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+  th{background:var(--soft);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+  code,pre{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--soft);border-radius:6px}
+  code{padding:1.5px 6px}
+  pre{padding:14px 16px;overflow-x:auto;border:1px solid var(--line);margin:12px 0;line-height:1.55}
+  .edit-controls{position:absolute;top:20px;right:20px;display:flex;gap:7px}
+  .editable[contenteditable="true"]{outline:2px dashed var(--cyan);outline-offset:8px;border-radius:8px;background:#fdfefe}
+  .edited-tag{display:none;font-size:10.5px;font-weight:800;letter-spacing:.08em;color:var(--warn);background:var(--warnbg);border:1px solid var(--warnline);border-radius:999px;padding:2px 9px;vertical-align:3px;margin-left:8px}
+  section.block.is-edited .edited-tag{display:inline-block}
+
+  /* decision cards */
+  .decision{border:1px solid var(--warnline);background:#fffdf8;border-radius:var(--r);padding:20px 22px;margin:18px 0}
+  .decision.decided{border-color:var(--goodline);background:#fbfefc}
+  .decision .d-head{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .decision .d-num{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--warn)}
+  .decision.decided .d-num{color:var(--good)}
+  .decision h4{font-size:15.5px;color:var(--ink2);flex:1}
+  .d-status{font-size:11px;font-weight:800;letter-spacing:.06em;border-radius:999px;padding:3px 11px;background:var(--warnbg);color:var(--warn);border:1px solid var(--warnline);white-space:nowrap}
+  .decision.decided .d-status{background:var(--goodbg);color:var(--good);border-color:var(--goodline)}
+  .decision .d-why{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .d-options{display:grid;gap:7px;margin-bottom:12px}
+  .d-options label{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+  .d-options label:has(input:checked){border-color:var(--cyan);background:var(--soft)}
+  .d-options input{margin-top:3px;accent-color:var(--teal)}
+  .d-options b{color:var(--ink2)}
+  .d-options .rec{font-size:10.5px;font-weight:800;color:var(--good);background:var(--goodbg);border:1px solid var(--goodline);border-radius:999px;padding:1px 8px;margin-left:6px}
+  .decision textarea{width:100%;min-height:56px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:13.5px;resize:vertical;background:#fff}
+  .decision textarea:focus{outline:2px solid var(--cyan);outline-offset:-1px}
+  .d-foot{display:flex;justify-content:space-between;align-items:center;margin-top:9px;gap:10px;flex-wrap:wrap}
+  .d-stamp{font-size:11.5px;color:var(--faint)}
+
+  /* checklist answers */
+  .qa{border:1px solid var(--line);border-radius:12px;padding:15px 17px;margin:11px 0;background:#fff}
+  .qa.answered{border-color:var(--goodline);background:#fbfefc}
+  .qa .q-row{display:flex;gap:10px;align-items:baseline}
+  .qa .q-num{font-size:11px;font-weight:800;color:var(--teal)}
+  .qa .q-text{flex:1;font-size:14px;font-weight:600;color:var(--ink2)}
+  .qa .q-mark{font-size:11px;font-weight:800;border-radius:999px;padding:2.5px 10px;border:1px solid var(--warnline);background:var(--warnbg);color:var(--warn);white-space:nowrap}
+  .qa.answered .q-mark{border-color:var(--goodline);background:var(--goodbg);color:var(--good)}
+  .qa .q-why{font-size:12px;color:var(--faint);margin:3px 0 8px}
+  .qa textarea{width:100%;min-height:44px;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font:inherit;font-size:13px;resize:vertical}
+  .qa textarea:focus{outline:2px solid var(--cyan);outline-offset:-1px}
+  footer{font-size:12px;color:var(--faint);text-align:center;padding:10px 0 40px}
+  @media print{.toolbar,.edit-controls{display:none}}
+</style>
+</head>
+<body>
+
+<header class="doc">
+  <div class="wrap">
+    <div class="eyebrow">Folio · Working document · Jul 14, 2026</div>
+    <h1>HealthEx → Folio: Ingestion Architecture</h1>
+    <p>Automating record sync via TEFCA Individual Access Services — first for the mikeshealth.app prototype, then as the onboarding backbone for clients on foliohealth.app. Edit any section, record decisions, and capture answers from the HealthEx call as you get them.</p>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="wrap">
+    <span class="note" id="save-note">Edits &amp; answers save automatically in this browser.</span>
+    <button class="btn" onclick="exportState()">Export JSON</button>
+    <button class="btn" onclick="importState()">Import</button>
+    <button class="btn" onclick="window.print()">Print</button>
+    <button class="btn" onclick="resetAll()">Reset all edits</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+<section class="block" data-sec="goals">
+  <div class="edit-controls"><span class="edited-tag">EDITED</span><button class="btn small" onclick="toggleEdit(this)">✎ Edit</button></div>
+  <h2>1 · Goals and non-goals</h2>
+  <div class="editable">
+    <h3>Goals</h3>
+    <ul>
+      <li>Replace manual record gathering on mikeshealth.app with automated IAS sync through HealthEx.</li>
+      <li>Define one ingestion pipeline that serves both the prototype and, later, multi-patient client onboarding.</li>
+      <li>Preserve Folio's core differentiator end to end: <b>provenance-first</b> — every datum keeps its source, date, and original document; nothing is merged silently.</li>
+    </ul>
+    <h3>Non-goals</h3>
+    <ul>
+      <li>The foliohealth.app demo stays frozen as a synthetic sales asset — it is not the substrate for this work.</li>
+      <li>No clinical decision support; the AI layer stays organizational and preparatory, as pitched.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block" data-sec="healthex">
+  <div class="edit-controls"><span class="edited-tag">EDITED</span><button class="btn small" onclick="toggleEdit(this)">✎ Edit</button></div>
+  <h2>2 · What HealthEx actually provides</h2>
+  <div class="editable">
+    <p><b>Patient flow:</b> identity proofing via <b>CLEAR</b> (NIST IAL2/AAL2-certified) → consent granted to a receiving organization through HealthEx "projects" (auditable, revocable any time) → queries across TEFCA QHINs (<b>MedAllies + CommonWell</b> confirmed; <b>Epic</b> patient-directed access partnership announced Sep 2025) → records flow to the consented org.</p>
+    <table>
+      <tr><th>Capability</th><th>Detail</th></tr>
+      <tr><td>Auth</td><td>JWT bearer; token scope = patients who consented to <i>your</i> org</td></tr>
+      <tr><td>Full record</td><td><code>GET /FHIR/R4/Person/{id}/$everything</code> → FHIR R4 Bundle</td></tr>
+      <tr><td>Filtering</td><td><code>_type=</code> any R4 resource; USCDIv3 / US Core recommended</td></tr>
+      <tr><td><b>Incremental sync</b></td><td><code>_since={timestamp}</code> — only new/modified since last pull</td></tr>
+      <tr><td>Paging</td><td><code>_count</code> / <code>_offset</code> + next/first/last links, streamed</td></tr>
+      <tr><td>Unified document</td><td><code>DocumentReference?type=60591-5</code> → full-record PDF (base64)</td></tr>
+      <tr><td>Consent signal</td><td>HTTP 403 = consent absent or revoked (our disconnect trigger)</td></tr>
+      <tr><td>Not documented</td><td>Webhooks (assume <b>polling</b>), rate limits, pricing</td></tr>
+    </table>
+    <p><b>Design consequence:</b> HealthEx normalizes to FHIR R4 for us — no raw C-CDA parsing in v1. Folio's effort goes where it differentiates: provenance, conflict surfacing, and the AI layer.</p>
+  </div>
+</section>
+
+<section class="block" data-sec="flows">
+  <div class="edit-controls"><span class="edited-tag">EDITED</span><button class="btn small" onclick="toggleEdit(this)">✎ Edit</button></div>
+  <h2>3 · End-to-end flows</h2>
+  <div class="editable">
+    <h3>3.1 Enrollment (once per patient)</h3>
+    <ol>
+      <li>Patient taps <b>Connect my records</b> → redirected into HealthEx's flow.</li>
+      <li>CLEAR identity proofing (IAL2) — owned entirely by HealthEx/CLEAR.</li>
+      <li>Patient grants consent to the <b>Folio project</b>; scope and revocability live in HealthEx.</li>
+      <li>Folio stores the binding: <code>{folio_user_id ↔ healthex_patient_id, consented_at, scope}</code>.</li>
+      <li>First sync runs immediately (full <code>$everything</code>).</li>
+    </ol>
+    <h3>3.2 Sync (recurring)</h3>
+    <pre>trigger (nightly cron + manual "Refresh records")
+  → GET $everything?_since={last_sync}   (paged)
+  → RAW STORE      bundle + unified PDF, content-hashed, immutable
+  → NORMALIZE      FHIR resources → folio_records (§4)
+  → DEDUP          within-org by id/version; cross-org by (code, date, value)
+                   near-duplicates are LINKED, never deleted
+  → CONFLICTS      same concept, active, differing values → "Needs review"
+  → AI ENRICH      plain-language context, action-item re-rank, brief regen
+  → STAGE REVIEW   "new since last sync" — patient accepts into record
+  → advance last_sync watermark</pre>
+    <h3>3.3 Revocation, export, deletion</h3>
+    <ul>
+      <li>403 → mark source <b>Disconnected</b>; already-imported data is the patient's copy and stays unless they delete it.</li>
+      <li>TEFCA IAS duties: self-service <b>export</b> (raw bundles + PDFs + normalized JSON) and <b>hard deletion</b>, logged.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="block" data-sec="model">
+  <div class="edit-controls"><span class="edited-tag">EDITED</span><button class="btn small" onclick="toggleEdit(this)">✎ Edit</button></div>
+  <h2>4 · The provenance-first record model</h2>
+  <div class="editable">
+    <p><b>Layer 0 — Raw (immutable).</b> Every bundle and PDF as received: <code>{id, patient, source_org, retrieved_at, content_hash, payload}</code>. Never edited; backs every "view source" drill-down.</p>
+    <p><b>Layer 1 — Normalized (folio_records).</b> One row per clinical fact: <code>{type, effective_date, source_org, source_doc → L0 ref, body, status}</code>.</p>
+    <table>
+      <tr><th>FHIR resource</th><th>Folio section</th></tr>
+      <tr><td>Condition</td><td>Conditions / Meds → condition status</td></tr>
+      <tr><td>MedicationRequest / MedicationStatement</td><td>Medication list — per-source rows; dose conflicts become visible here</td></tr>
+      <tr><td>Observation (laboratory)</td><td>Results → Labs (+ trend series by LOINC)</td></tr>
+      <tr><td>Observation (vital-signs)</td><td>Health snapshot (merged with Apple Health)</td></tr>
+      <tr><td>DiagnosticReport / ImagingStudy</td><td>Results → Imaging</td></tr>
+      <tr><td>Immunization</td><td>Immunizations — "no record found" stays a first-class state</td></tr>
+      <tr><td>DocumentReference</td><td>Documents (incl. the unified PDF)</td></tr>
+      <tr><td>Encounter · Procedure · CarePlan</td><td>Timeline / care-plan inputs</td></tr>
+      <tr><td>AllergyIntolerance</td><td>Allergy chip + print packet</td></tr>
+    </table>
+    <p><b>Layer 2 — Derived (AI findings).</b> Every AI output stored as its own record: <code>{generated_at, model+version, input_record_refs[], guideline_refs[], body}</code>. "Your findings stay yours," made structural: portable, vendor-labeled, never overwriting Layer 1. Conflict resolutions (patient-verified, provider-confirmed) live here with full history.</p>
+  </div>
+</section>
+
+<section class="block" data-sec="decisions">
+  <h2>5 · Design decisions <span style="font-size:13px;color:var(--faint);font-weight:400">— pick, note why, done</span></h2>
+
+  <div class="decision" data-d="d1">
+    <div class="d-head"><span class="d-num">D1</span><h4>Backend for the mikeshealth prototype</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">Where raw bundles, normalized records, and sync state live. The repo already carries Firebase config.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d1" value="firebase"><span><b>Firebase / Firestore + scheduled Cloud Functions</b><span class="rec">RECOMMENDED</span> — already in the stack; sync worker is one scheduled function.</span></label>
+      <label><input type="radio" name="d1" value="supabase"><span><b>Supabase (Postgres)</b> — better relational fit for record queries; new infra to run.</span></label>
+      <label><input type="radio" name="d1" value="vercel"><span><b>Vercel functions + hosted Postgres</b> — matches deploy story; more assembly.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+
+  <div class="decision" data-d="d2">
+    <div class="d-head"><span class="d-num">D2</span><h4>Sync cadence</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">No webhooks documented — polling with <code>_since</code> is the mechanism either way.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d2" value="nightly"><span><b>Nightly poll + manual refresh button</b><span class="rec">RECOMMENDED</span> — matches the product's mental model.</span></label>
+      <label><input type="radio" name="d2" value="manual"><span><b>Manual only</b> — simplest possible Phase 1.</span></label>
+      <label><input type="radio" name="d2" value="hourly"><span><b>More frequent (hourly+)</b> — only worth it if per-query pricing allows.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+
+  <div class="decision" data-d="d3">
+    <div class="d-head"><span class="d-num">D3</span><h4>Raw document retention</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">Layer 0 is the audit substrate and enables reprocessing as the normalizer improves.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d3" value="keep-all"><span><b>Keep every raw bundle + PDF, immutable</b><span class="rec">RECOMMENDED</span> — storage is cheap; provenance is the product.</span></label>
+      <label><input type="radio" name="d3" value="latest"><span><b>Keep latest snapshot only</b> — smaller, but loses history and reprocessability.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+
+  <div class="decision" data-d="d4">
+    <div class="d-head"><span class="d-num">D4</span><h4>Client app deployment</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">Where new clients live once foliohealth.app takes real users.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d4" value="separate"><span><b>Separate app.foliohealth.app — new repo, real auth from commit one</b><span class="rec">RECOMMENDED</span> — demo stays frozen as the sales asset.</span></label>
+      <label><input type="radio" name="d4" value="grow-demo"><span><b>Grow the demo codebase</b> — fastest start, but the localStorage SPA is structurally wrong for real data.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+
+  <div class="decision" data-d="d5">
+    <div class="d-head"><span class="d-num">D5</span><h4>Auth for the client app</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">Needed the day the first real patient signs in on foliohealth.app.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d5" value="clerk"><span><b>Clerk</b> — fastest polished auth + MFA.</span></label>
+      <label><input type="radio" name="d5" value="firebase-auth"><span><b>Firebase Auth</b> — one vendor if D1 = Firebase.</span></label>
+      <label><input type="radio" name="d5" value="auth0"><span><b>Auth0</b> — enterprise-friendly, more setup.</span></label>
+      <label><input type="radio" name="d5" value="later"><span><b>Decide at client-app kickoff</b> — fine; not needed for the prototype.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+
+  <div class="decision" data-d="d6">
+    <div class="d-head"><span class="d-num">D6</span><h4>IAS partner</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">Hinges on the pricing answer (Q1 below). Same integration shape across all three.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d6" value="healthex"><span><b>HealthEx</b><span class="rec">LEADING</span> — CLEAR identity, documented FHIR server, Epic partnership momentum.</span></label>
+      <label><input type="radio" name="d6" value="healthgorilla"><span><b>Health Gorilla</b> — established QHIN, own IAS offering.</span></label>
+      <label><input type="radio" name="d6" value="flexpa"><span><b>Flexpa</b> — developer-first; claims/payer strength.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes — record the pricing quote here…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+
+  <div class="decision" data-d="d7">
+    <div class="d-head"><span class="d-num">D7</span><h4>When the SOC 2 program starts</h4><span class="d-status">OPEN</span></div>
+    <p class="d-why">Pitch commitment: program during pilot, Type I after, Type II within a year of first client.</p>
+    <div class="d-options">
+      <label><input type="radio" name="d7" value="first-client"><span><b>Instrument the client-app repo from its first commit; program formally starts when the first client signs</b><span class="rec">RECOMMENDED</span></span></label>
+      <label><input type="radio" name="d7" value="now"><span><b>Start now (during prototype)</b> — earlier spend (~$10–25K/yr platform), earliest Type I.</span></label>
+    </div>
+    <textarea placeholder="Rationale / notes…"></textarea>
+    <div class="d-foot"><span class="d-stamp"></span><button class="btn small" onclick="clearDecision(this)">Clear</button></div>
+  </div>
+</section>
+
+<section class="block" data-sec="phases">
+  <div class="edit-controls"><span class="edited-tag">EDITED</span><button class="btn small" onclick="toggleEdit(this)">✎ Edit</button></div>
+  <h2>6 · Phased plan</h2>
+  <div class="editable">
+    <p><b>Phase 0 (this week):</b> the HealthEx conversation — checklist in §7. Everything downstream depends on partner terms.</p>
+    <p><b>Phase 1 (~2–3 weeks after access):</b> backend per D1 · you enroll through the real CLEAR flow (Folio's first IAL2-proofed patient — itself pitch material) · nightly <code>_since</code> sync + manual refresh · raw + normalized layers stored · records mapped into the UI shapes the Folio design pass already established · unified PDF into Documents.</p>
+    <p><b>Phase 2 (~2 weeks):</b> dedup + conflict objects + staged "new since last sync" review · AI enrichment on new data (brief regeneration, action-item re-rank).</p>
+    <p><b>Phase 3:</b> a month of real use. The prototype's job is to produce the honest list of what IAS returns messy — coverage gaps, duplicate labs, undated documents — before any client sees it.</p>
+    <p><b>Client-product deltas (foliohealth.app):</b> separate deployment (D4) · real auth + MFA (D5) · consent registry + patient-visible audit log · self-service export/deletion (TEFCA duty) · SOC 2 program (D7) · DUA template ready for Cone-style partners.</p>
+  </div>
+</section>
+
+<section class="block" data-sec="checklist">
+  <h2>7 · HealthEx call checklist <span style="font-size:13px;color:var(--faint);font-weight:400">— capture answers as you get them</span></h2>
+  <div id="qa-list">
+    <div class="qa" data-q="q1">
+      <div class="q-row"><span class="q-num">Q1</span><span class="q-text">Pricing model — per-member, per-query, or platform fee? Setup costs?</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">This hardens the $35K IAS/data budget line — 40 patients × a decade × many orgs was the pitch's flagged unknown. Get it in writing.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q2">
+      <div class="q-row"><span class="q-num">Q2</span><span class="q-text">Sandbox: test patients, credentials, terms — can we build before contracting?</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">Docs reference test patients; unclear what a pre-contract developer relationship looks like.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q3">
+      <div class="q-row"><span class="q-num">Q3</span><span class="q-text">Notification model — webhooks on new data, or is polling with _since the design?</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">Nothing in the docs suggests webhooks; confirms D2.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q4">
+      <div class="q-row"><span class="q-num">Q4</span><span class="q-text">QHIN coverage today — MedAllies + CommonWell confirmed; where does Epic Nexus stand? Cone / Atrium / Novant reachability specifically?</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">Determines what your own prototype sync will actually retrieve.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q5">
+      <div class="q-row"><span class="q-num">Q5</span><span class="q-text">Raw source documents (C-CDA) available alongside normalized FHIR?</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">For provenance display and future reprocessing; the unified PDF may be the only document form.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q6">
+      <div class="q-row"><span class="q-num">Q6</span><span class="q-text">Consent granularity — can a patient scope by category or org? How do consent changes reach us (403-only, or a consent status API)?</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">Shapes the Disconnected-state UX and the consent registry design.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q7">
+      <div class="q-row"><span class="q-num">Q7</span><span class="q-text">Data-use posture: their TEFCA privacy/security flow-down terms, BAA/DUA expectations for Folio.</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">Feeds the client-product legal stack and the Cone DUA conversation.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+    <div class="qa" data-q="q8">
+      <div class="q-row"><span class="q-num">Q8</span><span class="q-text">Rate limits, SLA, and the support channel during the pilot.</span><button class="q-mark" onclick="toggleAnswered(this)">OPEN</button></div>
+      <p class="q-why">Sizing the nightly sync job and knowing who to call when a source stops responding.</p>
+      <textarea placeholder="Answer…"></textarea>
+    </div>
+  </div>
+</section>
+
+<section class="block" data-sec="risks">
+  <div class="edit-controls"><span class="edited-tag">EDITED</span><button class="btn small" onclick="toggleEdit(this)">✎ Edit</button></div>
+  <h2>8 · Risks, honestly</h2>
+  <div class="editable">
+    <table>
+      <tr><th>Risk</th><th>Mitigation</th></tr>
+      <tr><td>Coverage is uneven (pitch already conceded this)</td><td>Prototype measures retrieval success + source completeness on your own record first — same metrics as the Cone pilot</td></tr>
+      <tr><td>No webhooks → staleness</td><td>Nightly poll + manual refresh matches the product's mental model</td></tr>
+      <tr><td>Cross-org duplicates</td><td>Link, never delete; show both with provenance</td></tr>
+      <tr><td>Pricing surprises</td><td>Get the number before Phase 1 code; Health Gorilla / Flexpa are same-shaped fallbacks</td></tr>
+      <tr><td>Normalized FHIR hides source nuance</td><td>Store the unified PDF + push on Q5 so every number can still drill to a document</td></tr>
+    </table>
+    <p style="font-size:12.5px;color:var(--faint)">Sources: docs.healthex.io/fhir-server · healthex.io policy playbook &amp; TEFCA privacy notice · HIT Consultant (Aug 2025) · Healthcare IT News (HealthEx + Epic) · Fierce Healthcare (HealthEx + CLEAR) · open.epic TEFCA IAS.</p>
+  </div>
+</section>
+
+</div>
+<footer>Working document · edits and answers persist in this browser (localStorage) · use Export JSON to move or back up your notes</footer>
+
+<script>
+(function(){
+  var KEY = "folio-healthex-design-v1";
+  function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+  function save(s){ try { localStorage.setItem(KEY, JSON.stringify(s)); } catch(e){} flashNote("Saved " + new Date().toLocaleTimeString()); }
+  var state = load();
+  function flashNote(t){ var n = document.getElementById("save-note"); n.textContent = t; clearTimeout(n._t); n._t = setTimeout(function(){ n.textContent = "Edits & answers save automatically in this browser."; }, 2500); }
+
+  /* ---- section editing ---- */
+  window.toggleEdit = function(btn){
+    var sec = btn.closest("section.block");
+    var body = sec.querySelector(".editable");
+    var editing = body.getAttribute("contenteditable") === "true";
+    if (editing) {
+      body.setAttribute("contenteditable", "false");
+      btn.textContent = "✎ Edit";
+      state.sections = state.sections || {};
+      state.sections[sec.dataset.sec] = body.innerHTML;
+      sec.classList.add("is-edited");
+      save(state);
+    } else {
+      body.setAttribute("contenteditable", "true");
+      btn.textContent = "✓ Save";
+      body.focus();
+    }
+  };
+
+  /* ---- decisions ---- */
+  function bindDecision(card){
+    var id = card.dataset.d;
+    var radios = card.querySelectorAll("input[type=radio]");
+    var notes = card.querySelector("textarea");
+    var stamp = card.querySelector(".d-stamp");
+    var status = card.querySelector(".d-status");
+    function apply(d){
+      if (!d) return;
+      radios.forEach(function(r){ r.checked = (r.value === d.choice); });
+      notes.value = d.notes || "";
+      if (d.choice) { card.classList.add("decided"); status.textContent = "DECIDED"; stamp.textContent = d.at ? "Decided " + d.at : ""; }
+    }
+    function record(){
+      var choice = null; radios.forEach(function(r){ if (r.checked) choice = r.value; });
+      state.decisions = state.decisions || {};
+      var at = (state.decisions[id] && state.decisions[id].at) || null;
+      if (choice && !at) at = new Date().toLocaleDateString();
+      state.decisions[id] = { choice: choice, notes: notes.value, at: choice ? at : null };
+      if (choice) { card.classList.add("decided"); status.textContent = "DECIDED"; stamp.textContent = "Decided " + state.decisions[id].at; }
+      else { card.classList.remove("decided"); status.textContent = "OPEN"; stamp.textContent = ""; }
+      save(state);
+    }
+    radios.forEach(function(r){ r.addEventListener("change", record); });
+    notes.addEventListener("input", debounce(record, 600));
+    apply((state.decisions || {})[id]);
+  }
+  window.clearDecision = function(btn){
+    var card = btn.closest(".decision"); var id = card.dataset.d;
+    card.querySelectorAll("input[type=radio]").forEach(function(r){ r.checked = false; });
+    card.querySelector("textarea").value = "";
+    card.classList.remove("decided");
+    card.querySelector(".d-status").textContent = "OPEN";
+    card.querySelector(".d-stamp").textContent = "";
+    if (state.decisions) delete state.decisions[id];
+    save(state);
+  };
+
+  /* ---- checklist answers ---- */
+  function bindQA(row){
+    var id = row.dataset.q;
+    var ta = row.querySelector("textarea");
+    var mark = row.querySelector(".q-mark");
+    function apply(q){ if (!q) return; ta.value = q.answer || ""; if (q.answered) { row.classList.add("answered"); mark.textContent = "ANSWERED"; } }
+    function record(){
+      state.qa = state.qa || {};
+      state.qa[id] = { answer: ta.value, answered: row.classList.contains("answered") };
+      save(state);
+    }
+    ta.addEventListener("input", debounce(function(){
+      if (ta.value.trim() && !row.classList.contains("answered")) { row.classList.add("answered"); mark.textContent = "ANSWERED"; }
+      record();
+    }, 600));
+    row._record = record;
+    apply((state.qa || {})[id]);
+  }
+  window.toggleAnswered = function(btn){
+    var row = btn.closest(".qa");
+    var on = row.classList.toggle("answered");
+    btn.textContent = on ? "ANSWERED" : "OPEN";
+    row._record && row._record();
+  };
+
+  /* ---- export / import / reset ---- */
+  window.exportState = function(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "healthex-design-notes-" + new Date().toISOString().slice(0,10) + ".json";
+    a.click();
+  };
+  window.importState = function(){
+    var inp = document.createElement("input"); inp.type = "file"; inp.accept = "application/json";
+    inp.onchange = function(){
+      var f = inp.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function(){ try { state = JSON.parse(r.result); save(state); location.reload(); } catch(e){ alert("Could not read that file."); } };
+      r.readAsText(f);
+    };
+    inp.click();
+  };
+  window.resetAll = function(){
+    if (!confirm("Discard all local edits, decisions, and answers on this page?")) return;
+    localStorage.removeItem(KEY); location.reload();
+  };
+
+  function debounce(fn, ms){ var t; return function(){ clearTimeout(t); t = setTimeout(fn, ms); }; }
+
+  /* ---- init ---- */
+  if (state.sections) Object.keys(state.sections).forEach(function(k){
+    var sec = document.querySelector('section.block[data-sec="' + k + '"]');
+    if (sec) { sec.querySelector(".editable").innerHTML = state.sections[k]; sec.classList.add("is-edited"); }
+  });
+  document.querySelectorAll(".decision").forEach(bindDecision);
+  document.querySelectorAll(".qa").forEach(bindQA);
+})();
+</script>
+</body>
+</html>
