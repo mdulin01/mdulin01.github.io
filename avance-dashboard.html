@@ -433,8 +433,8 @@ const BENCH={
 };
 const PERIODS={mtd:{f:0.57,lbl:"This Month (MTD, through Jun 17)"},last:{f:1.0,lbl:"Last Month (May)"},qtd:{f:2.57,lbl:"Quarter to Date (Q2)"},ytd:{f:5.57,lbl:"Year to Date"}};
 let dFrom="",dTo="";
-function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
-function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return PERIODS[period].f;}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):PERIODS[period].lbl;}
 
 /* ---------- aggregation ---------- */
 function aggregate(list){
