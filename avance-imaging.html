@@ -54,7 +54,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -64,7 +64,7 @@
     <div class="grid g3">
       <div class="card"><h3>Transmission Path</h3><div class="h">Interfaced — bidirectional (Raleigh Radiology · Cardinal Points) vs. manual fax</div><div class="cb"><canvas id="cPath"></canvas></div></div>
       <div class="card"><h3>Volume by Modality</h3><div class="h">Imaging orders by modality</div><div class="cb"><canvas id="cMod"></canvas></div></div>
-      <div class="card"><h3>Status Snapshot</h3><div class="h">Pending / Scheduled / Closed</div><div class="cb"><canvas id="cStatus"></canvas></div></div>
+      <div class="card"><h3>Status Snapshot</h3><div class="h">Awaiting confirmation / awaiting scheduling / scheduled / closed</div><div class="cb"><canvas id="cStatus"></canvas></div></div>
     </div>
     <div class="sec">By Imaging Facility <span>— ⚡ = bidirectional interface (Raleigh Radiology · Cardinal Points Imaging) · Aura/Epic interfaces under investigation for others</span></div>
     <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Facility</th><th>Path</th><th class="num">Orders</th><th class="num">% Scheduled</th><th class="num">Sched TAT</th><th class="num">Image Return</th></tr></thead><tbody id="facBody"></tbody></table></div>
@@ -83,6 +83,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const PROV=[
  {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",orders:44,carelink:31,subTAT:10,sched:3.7,stat:20,pending:20,schedP:55,ret:30},
  {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",orders:56,carelink:28,subTAT:14,sched:4.4,stat:26,pending:24,schedP:50,ret:40},
@@ -119,14 +122,14 @@ function buildClinic(){
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
 function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
-  const d=agg(),f=PERIODS[period].f,sel=active();
+  const d=agg(),f=periodF(),sel=active();
   const orders=round(d.orders*f*modShare()),closed=100-d.pending-d.schedP;
   document.getElementById("who").textContent=(mod==="all"?"":mod+" · ")+(provId!=="all"?sel[0].name:clinicLabel()?clinicLabel():region!=="all"?region+" Region":"Network — All Regions");
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=periodLabel()+" · illustrative data";
   const cards=[
     {l:"Imaging Orders",n:fmt(orders),s:round(orders*0.14)+" STAT",ac:C.navy},
     {l:"Interfaced (bidirectional)",n:Math.round(d.carelink)+"%",s:"Raleigh Rad · CPI — orders transmit on signature",ac:tone(d.carelink,true,30,20)},
-    {l:"Receipt Confirmed",n:Math.round(100-d.pending*0.4)+"%",s:"STAT ≤24 hrs · all orders ≤4 days",ac:tone(100-d.pending*0.4,true,92,85)},
+    {l:"% Awaiting Confirmation",n:Math.round(d.pending*0.4)+"%",s:Math.round(100-d.pending*0.4)+"% confirmed · STAT ≤24 h / all ≤4 d",ac:tone(d.pending*0.4,false,8,15)},
     {l:"Scheduling TAT (routine)",n:d.sched.toFixed(1)+" d",s:"goal ≤4 d · STAT "+d.stat.toFixed(0)+"h",ac:tone(d.sched,false,4,5.5)},
     {l:"% Scheduled",n:Math.round(d.schedP)+"%",s:Math.round(closed)+"% closed",ac:tone(d.schedP,true,55,48)},
     {l:"% Pending",n:Math.round(d.pending)+"%",s:"awaiting scheduling",ac:tone(d.pending,false,18,24)},
@@ -142,7 +145,7 @@ function render(){
   charts.mo=new Chart(document.getElementById("cMod"),{type:"bar",data:{labels:MODS.map(m=>m[0]),datasets:[{data:MODS.map(m=>round(d.orders*f*m[1])),backgroundColor:C.navy,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
   // status
   charts.st&&charts.st.destroy();
-  charts.st=new Chart(document.getElementById("cStatus"),{type:"doughnut",data:{labels:["Pending","Scheduled","Closed"],datasets:[{data:[round(d.pending),round(d.schedP),round(closed)],backgroundColor:[C.amber,C.peri,C.green],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
+  charts.st=new Chart(document.getElementById("cStatus"),{type:"doughnut",data:{labels:["Awaiting confirmation","Awaiting scheduling","Scheduled","Closed"],datasets:[{data:[round(d.pending*0.4),round(d.pending*0.6),round(d.schedP),round(closed)],backgroundColor:[C.red,C.amber,C.peri,C.green],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
   // facility table
   document.getElementById("facBody").innerHTML=FACIL.map(fac=>{const v=round(orders*fac[2]/FACIL.reduce((a,x)=>a+x[2],0));return `<tr>
     <td class="nm">${fac[0]}${fac[1]?'<span class="cl">⚡ Interfaced</span>':''}</td>
@@ -170,14 +173,14 @@ function render(){
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 window.AVANCE_AI={
- insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent,orders=round(d.orders*f*modShare());
+ insight:function(){const d=agg(),f=periodF(),scope=document.getElementById('who').textContent,orders=round(d.orders*f*modShare());
    return '<b>'+scope+'</b>: <b>'+fmt(orders)+'</b> imaging orders. '+Math.round(d.carelink)+'% go via the bidirectional interface (Raleigh Radiology · CPI) and transmit on signature; the rest are manual fax. Receipt confirmation is the intake KPI (STAT ≤24h, all ≤4d). Routine scheduling '+d.sched.toFixed(1)+' d (goal ≤4); image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h. The fax box (~450 faxes/day, ~15 FTE) remains the Phase-1 automation target; expanding interfaces (Aura/Epic) is the structural fix.';},
  chips:['Where is the fax-box automation opportunity?','How interfaced are we?','Where are we missing turnaround?'],
  answer:function(q){const d=agg(),ql=q.toLowerCase();
    if(/fax|automat|fte|contractor|manual|opportunit/.test(ql))return '<h5>Fax-box automation</h5>~450 faxes/day handled manually (150 order + 300 status) by ~15 FTE, with rework and overtime. Highest-ROI: auto-route inbound order faxes and auto-confirm receipt (High), then templated status updates and auto-attach image returns (Partial). Estimated ~64% automatable ≈ 9.6 FTE opportunity. Phase 2 automates the 4-day / same-day follow-up cadence.';
    if(/carelink|electronic|hl7|integrat|interfac|aura/.test(ql))return '<h5>Interfaced vs. fax</h5>'+Math.round(d.carelink)+'% of imaging orders go through the bidirectional interface — currently two partners, Raleigh Radiology and Cardinal Points Imaging (orders transmit on provider signature; results return to the chart). Everything else is manual fax. Aura (Epic-to-Epic interface) is under investigation — an Atrium build is the kind of red-tape collaboration required. Each interfaced facility removes fax-box touches on both the order and the result.';
    if(/turnaround|tat|slow|goal|schedul|return/.test(ql))return '<h5>Turnaround</h5>Receipt confirmation: STAT ≤24h / all ≤4d (orders transmit on signature, so there is no submission lag to manage). Routine scheduling '+d.sched.toFixed(1)+'d (goal ≤4), STAT '+d.stat.toFixed(0)+'h (goal ≤24). Image return by priority: STAT '+(d.ret*0.4).toFixed(0)+'h (goal ≤12), urgent '+(d.ret*0.7).toFixed(0)+'h (≤24), routine '+(d.ret*1.15).toFixed(0)+'h (≤48). Fax-path facilities run slower on returns than interfaced ones.';
-   return '<h5>Summary</h5>'+fmt(round(d.orders*PERIODS[period].f*modShare()))+' orders · '+Math.round(d.carelink)+'% interfaced · routine sched '+d.sched.toFixed(1)+'d · image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h.';}
+   return '<h5>Summary</h5>'+fmt(round(d.orders*periodF()*modShare()))+' orders · '+Math.round(d.carelink)+'% interfaced · routine sched '+d.sched.toFixed(1)+'d · image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h.';}
 };
 window.startDashboard=function(){
   buildClinic();buildProvider();
@@ -188,7 +191,9 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
 };
 </script>

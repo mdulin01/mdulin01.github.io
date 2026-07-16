@@ -81,7 +81,7 @@
   </div>
   <div class="controls">
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
-    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -112,6 +112,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const PROV=[["Dr. Maya Ellison","Holly Springs","Triangle"],["Dr. James Okafor","Apex","Triangle"],["Dr. Priya Nair","Charlotte — SouthPark","Charlotte"],["Dr. Daniel Reyes","Midtown Charlotte","Charlotte"],["Dr. Sarah Chen","Chapel Hill","Triangle"],["Dr. Robert Hughes","Durham","Triangle"],["Dr. Michael Dulin","Rea Farms","Charlotte"],["Dr. Amanda Steventon","Fuquay-Varina","Triangle"],["Dr. Rhett Brown","Midtown Charlotte","Charlotte"]];
 const FAC=["UNC Radiology ⚡","Duke Imaging ⚡","Raleigh Radiology ⚡","Cardinal Points ⚡","Wake Radiology","Novant Imaging","Charlotte Radiology"];
 const MODAL=["X-ray","Ultrasound","CT","MRI","Mammography"];
@@ -170,7 +173,7 @@ function badgeOf(n){if(n.leak)return["b-red","LEAKAGE"];const r=ratio(n);return 
 function rf(){return region==="all"?1:region==="Charlotte"?0.44:0.56;}
 
 function renderKPIs(){
-  const f=PERIODS[period].f,r=rf();
+  const f=periodF(),r=rf();
   const inFlight=NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0);
   const worst=NODES.filter(n=>!n.leak).reduce((a,n)=>ratio(n)>ratio(a)?n:a);
   const leaked=Math.round(41*f*r);
@@ -185,7 +188,7 @@ function renderKPIs(){
 function tone2(v,t1,t2){return v<=t1?C.greenD:v<=t2?C.amber:C.red;}
 
 function renderFunnel(){
-  const f=PERIODS[period].f,r=rf();
+  const f=periodF(),r=rf();
   document.getElementById("funnel").innerHTML=FUNNEL.map((s,i)=>{
     const val=Math.round(s[1]*f*r);
     const prev=i?Math.round(FUNNEL[i-1][1]*f*r):null;
@@ -259,7 +262,7 @@ function selectNode(id){
 
 function render(){
   document.getElementById("who").textContent=region==="all"?"Network — All Regions":region+" Region";
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=periodLabel()+" · illustrative data";
   renderKPIs();renderFunnel();renderMap();selectNode(selected);
   document.getElementById("foot").innerHTML="Illustrative / synthetic data structured from the <b>Alo Imaging fax value-stream map</b> (lanes and step numbers match the diagram). Queue depths and dwell times are point-in-time; funnel counts scale with the selected period. A production version requires structured capture of facility-receipt confirmation, outreach attempts &amp; channel, and image-return timestamps — today several of these live only in the referral order's communication notes.";
   if(window.renderAvanceAI)window.renderAvanceAI();
@@ -268,19 +271,21 @@ function render(){
 window.AVANCE_AI={
  insight:function(){
    const worst=NODES.filter(n=>!n.leak).reduce((a,n)=>ratio(n)>ratio(a)?n:a);
-   return '<b>'+(region==="all"?"Network":region)+'</b>: '+fmt(NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0)*rf())+' imaging referrals in flight. Biggest bottleneck: <b>'+worst.title+'</b> ('+worst.dwell+worst.unit+' median vs '+worst.target+worst.unit+' target) — manual portal polling. ~450 manual fax touches/day (~13.5 FTE) across the order, status and image queues; the 120-day rule closed '+Math.round(41*PERIODS[period].f*rf())+' referrals unscheduled this period.';
+   return '<b>'+(region==="all"?"Network":region)+'</b>: '+fmt(NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0)*rf())+' imaging referrals in flight. Biggest bottleneck: <b>'+worst.title+'</b> ('+worst.dwell+worst.unit+' median vs '+worst.target+worst.unit+' target) — manual portal polling. ~450 manual fax touches/day (~13.5 FTE) across the order, status and image queues; the 120-day rule closed '+Math.round(41*periodF()*rf())+' referrals unscheduled this period.';
  },
  chips:['Where is the bottleneck?','How many referrals are we losing?','What should we automate first?'],
  answer:function(q){const ql=q.toLowerCase();
    if(/bottleneck|slow|stuck|dwell|queue/.test(ql))return '<h5>Bottleneck</h5>Portal follow-up (step 15) — RCs re-check facility portals every 4 days until an appointment appears: 74 referrals sitting at a 6.8-day median vs a 4-day target. Second: patient outreach (18d median vs 14d). Both are polling loops a status interface or scheduling integration would remove.';
-   if(/los|leak|close|120|unscheduled|abandon/.test(ql))return '<h5>Referral leakage</h5>'+Math.round(41*PERIODS[period].f*rf())+' referrals were closed unscheduled this period under the attempt-4 / 120-day rule (steps 19–21) — patients who never got imaging. Recommend reporting these separately from clinical completions and reviewing STAT leakage case-by-case.';
+   if(/los|leak|close|120|unscheduled|abandon/.test(ql))return '<h5>Referral leakage</h5>'+Math.round(41*periodF()*rf())+' referrals were closed unscheduled this period under the attempt-4 / 120-day rule (steps 19–21) — patients who never got imaging. Recommend reporting these separately from clinical completions and reviewing STAT leakage case-by-case.';
    if(/automat|fax|fte|first|priorit/.test(ql))return '<h5>Automation sequence</h5>1) Status-fax queue → Media Manager (steps 32–37): 300/day, 8.5 FTE, pure document pushing. 2) Order-fax intake + receipt confirmation (steps 4–11): 150/day, ~5 FTE of transcription and phone confirmation. 3) Image-fax download/re-upload (steps 38–43): 90/day, 1.5 FTE. Portal polling (step 15) needs integration work rather than fax automation but has the biggest patient-facing payoff.';
-   return '<h5>Summary</h5>'+fmt(NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0)*rf())+' in flight · bottleneck at portal follow-up (6.8d vs 4d) · ~450 manual fax touches/day · '+Math.round(41*PERIODS[period].f*rf())+' leaked via the 120-day rule.';}
+   return '<h5>Summary</h5>'+fmt(NODES.filter(n=>!n.leak).reduce((a,n)=>a+n.queue,0)*rf())+' in flight · bottleneck at portal follow-up (6.8d vs 4d) · ~450 manual fax touches/day · '+Math.round(41*periodF()*rf())+' leaked via the 120-day rule.';}
 };
 
 window.startDashboard=function(){
   document.getElementById("selRegion").onchange=e=>{region=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
 };
 </script>

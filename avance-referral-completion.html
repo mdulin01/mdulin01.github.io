@@ -51,7 +51,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -60,7 +60,7 @@
     <div class="kpis" id="kpis"></div>
     <div class="grid">
       <div class="card"><h3>Referral Outcome</h3><div class="h">Completed / Failed / Still open</div><div class="cb"><canvas id="cOutcome"></canvas></div></div>
-      <div class="card"><h3>Reasons for Failure</h3><div class="h">Why the loop did not close</div><div class="cb"><canvas id="cFail"></canvas></div></div>
+      <div class="card"><h3>Reasons for Failure</h3><div class="h">Patient-side reasons only — single color on purpose (bars do not map to the outcome donut)</div><div class="cb" style="height:185px"><canvas id="cFail"></canvas></div><div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Insurance / OON and specialty-unable-to-schedule are <b>redirections, not failures</b> — those referrals are re-routed to another specialist until accepted and (ideally) completed.</div></div>
     </div>
     <div class="grid" style="grid-template-columns:1fr">
       <div class="card"><h3>Completion Rate — last 6 months</h3><div class="h">% of referrals with a closed loop</div><div class="cb" style="height:200px"><canvas id="cTrend"></canvas></div></div>
@@ -77,6 +77,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const OPEN_PCT=12, GOAL_COMPLETE=80;
 const PROV=[
  {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",vol:50,comp:82,days:9.2},
@@ -89,7 +92,7 @@ const PROV=[
  {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",vol:47,comp:86,days:8.1},
  {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",vol:53,comp:77,days:10.6},
 ];
-const FAILREASONS=[["Patient declined",.26,C.amber],["Insurance / OON issue",.22,C.red],["Specialty unable to schedule",.20,C.peri],["Unable to reach patient",.18,C.periL],["Other / undocumented",.14,C.gray]];
+const FAILREASONS=[["Patient declined",.34],["Patient unable to reach (UTR)",.30],["Service no longer needed",.24],["Patient deceased",.12]];
 let region="all",clinicSel=[],provId="all",period="mtd",charts={};
 const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
 function clinicLabel(){return clinicSel.length===0?null:clinicSel.length===1?clinicSel[0]:clinicSel.length+" locations";}
@@ -114,10 +117,10 @@ const FACS=[["Atrium Health",.24,84,17],["Novant Health",.21,80,20],["Duke Healt
 function drillRows(list,vol,hv){return list.map(x=>{const rv=Math.round(vol*x[1]),fp=Math.max(0,100-x[2]-8);
   return `<tr><td class="nm">${x[0]}${hv&&x[4]?' <span style="color:var(--green-dark);font-weight:800">✓</span>':''}</td><td class="num">${rv.toLocaleString()}</td><td class="num" style="font-weight:800;color:${x[2]>=80?'#2F9E45':x[2]>=73?'#D4A017':'#C0392B'}">${x[2]}%</td><td class="num">${x[3]} d</td><td class="num">${Math.round(rv*fp/100)}</td><td class="num">${Math.round(rv*0.08)}</td></tr>`;}).join("");}
 function render(){
-  const d=agg(),f=PERIODS[period].f,sel=active();
+  const d=agg(),f=periodF(),sel=active();
   const vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT),completed=round(vol*d.comp/100),failed=round(vol*failPct/100),open=round(vol*OPEN_PCT/100);
   document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=periodLabel()+" · illustrative data";
   const cards=[
     {l:"Referrals",n:fmt(vol),s:"in scope this period",ac:C.navy},
     {l:"Completion Rate",n:Math.round(d.comp)+"%",s:"loop closed · goal ≥80%",ac:tone(d.comp,true,80,73)},
@@ -132,7 +135,7 @@ function render(){
   charts.oc=new Chart(document.getElementById("cOutcome"),{type:"doughnut",data:{labels:["Completed","Failed / incomplete","Still open"],datasets:[{data:[completed,failed,open],backgroundColor:[C.green,C.red,C.amber],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"right",labels:{boxWidth:12,font:{size:11}}}}}});
   // fail reasons
   charts.fl&&charts.fl.destroy();
-  charts.fl=new Chart(document.getElementById("cFail"),{type:"bar",data:{labels:FAILREASONS.map(r=>r[0]),datasets:[{data:FAILREASONS.map(r=>round(failed*r[1])),backgroundColor:FAILREASONS.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  charts.fl=new Chart(document.getElementById("cFail"),{type:"bar",data:{labels:FAILREASONS.map(r=>r[0]),datasets:[{data:FAILREASONS.map(r=>round(failed*r[1])),backgroundColor:C.peri,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
   // trend
   const rr=(seed=>()=>{seed=(seed*9301+49297)%233280;return seed/233280;})((region+(clinicLabel()||"all")+provId).length*7+5);
   const tr=[];for(let i=0;i<6;i++){tr.push(round(clampC(d.comp+(rr()-0.5)*8)));}tr[5]=round(d.comp);
@@ -151,14 +154,14 @@ function render(){
 }
 function clampC(v){return Math.max(55,Math.min(95,v));}
 window.AVANCE_AI={
- insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent,vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT);
+ insight:function(){const d=agg(),f=periodF(),scope=document.getElementById('who').textContent,vol=round(d.vol*f),failPct=Math.max(0,100-d.comp-OPEN_PCT);
    return '<b>'+scope+'</b>: completion rate <b>'+Math.round(d.comp)+'%</b> (goal ≥80%), avg '+d.days.toFixed(1)+' days to close. '+failPct.toFixed(0)+'% fail to close — top reasons are patient declined (26%), insurance/OON (22%) and specialty unable to schedule (20%). Biggest lever: work the failure reasons — insurance/OON and unreachable patients are the most recoverable.';},
  chips:['Why are loops not closing?','Who has the lowest completion?','How do we improve completion?'],
  answer:function(q){const d=agg(),ql=q.toLowerCase();
-   if(/fail|reason|not clos|decline|insurance|oon/.test(ql))return '<h5>Failure reasons</h5>Of referrals that fail to close: patient declined 26%, insurance / OON 22%, specialty unable to schedule 20%, unable to reach patient 18%. Insurance/OON and unreachable-patient are the most recoverable — pre-check network status and add a second outreach attempt.';
+   if(/fail|reason|not clos|decline|insurance|oon|utr|redirect/.test(ql))return '<h5>Failure reasons</h5>Failures are patient-side only: patient declined 34%, unable to reach (UTR) 30%, service no longer needed 24%, deceased 12%. Insurance/OON and specialty-unable-to-schedule are redirections — re-routed until accepted, not failures. UTR is the most recoverable — add a second outreach attempt and a MyChart message before closing.';
    if(/who|lowest|worst|provider/.test(ql)){const w=active().map(p=>[p.name,p.comp]).sort((a,b)=>a[1]-b[1]).slice(0,3);return '<h5>Lowest completion</h5>'+w.map(x=>x[0]+' ('+x[1]+'%)').join(', ')+'. Pair these with a referral coordinator sweep on open loops.';}
-   if(/improve|close|better|loop/.test(ql))return '<h5>Improve completion</h5>1) Verify network/insurance before sending (cuts OON failures). 2) Second outreach attempt + MyChart message for unreachable patients. 3) Escalate specialty-can’t-schedule to redirect to a high-value specialist. Goal ≥80%.';
-   return '<h5>Summary</h5>Completion '+Math.round(d.comp)+'% · '+d.days.toFixed(1)+' days to close · failures led by patient-declined and insurance/OON.';}
+   if(/improve|close|better|loop/.test(ql))return '<h5>Improve completion</h5>1) Verify network/insurance before sending (cuts redirection churn). 2) Second outreach attempt + MyChart message for unreachable patients. 3) Escalate specialty-can’t-schedule to redirect to a high-value specialist. Goal ≥80%.';
+   return '<h5>Summary</h5>Completion '+Math.round(d.comp)+'% · '+d.days.toFixed(1)+' days to close · failures led by patient-declined and patient-UTR (insurance/OON count as redirections).';}
 };
 window.startDashboard=function(){
   buildClinic();buildProvider();
@@ -168,7 +171,9 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
 };
 </script>

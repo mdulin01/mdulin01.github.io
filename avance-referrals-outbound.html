@@ -49,7 +49,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -68,6 +68,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const PROV=[
  {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",sent:50,pend7:5,statPct:2,closed:78,innet:68,days:8.2},
  {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",sent:63,pend7:7,statPct:3,closed:74,innet:66,days:8.8},
@@ -101,9 +104,9 @@ function buildClinic(){
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
 function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
-  const d=agg(),f=PERIODS[period].f,sent=round(d.sent*f),pend=round(d.pend7*f),stat=round(sent*d.statPct/100),sel=active();
+  const d=agg(),f=periodF(),sent=round(d.sent*f),pend=round(d.pend7*f),stat=round(sent*d.statPct/100),sel=active();
   document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
-  document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+periodLabel()+" · illustrative data";
   const cards=[
     {l:"Referrals Sent",n:fmt(sent),s:"outbound this period",ac:C.navy},
     {l:"Pending &gt;7 days",n:fmt(pend),s:"need follow-up",ac:tone(pend,false,sent*0.06,sent*0.12)},
@@ -126,9 +129,9 @@ function render(){
   document.getElementById("foot").innerHTML="Illustrative / synthetic outbound-referral data, drillable Region → Clinic → Provider. Closing the loop and keeping referrals in-network are the key value-based levers. Targets are placeholders.";
 }
 window.AVANCE_AI={
- insight:function(){var d=agg(),f=PERIODS[period].f,sent=Math.round(d.sent*f),pend=Math.round(d.pend7*f),stat=Math.round(sent*d.statPct/100);var scope=document.getElementById('who').textContent;return '<b>'+scope+'</b>: <b>'+sent+'</b> referrals sent. Closed-loop '+Math.round(d.closed)+'% (target \u226580%), in-network '+Math.round(d.innet)+'%, '+pend+' pending >7 days, '+stat+' STAT. Biggest lever: close the loop on the '+pend+' pending and keep referrals in-network.';},
+ insight:function(){var d=agg(),f=periodF(),sent=Math.round(d.sent*f),pend=Math.round(d.pend7*f),stat=Math.round(sent*d.statPct/100);var scope=document.getElementById('who').textContent;return '<b>'+scope+'</b>: <b>'+sent+'</b> referrals sent. Closed-loop '+Math.round(d.closed)+'% (target \u226580%), in-network '+Math.round(d.innet)+'%, '+pend+' pending >7 days, '+stat+' STAT. Biggest lever: close the loop on the '+pend+' pending and keep referrals in-network.';},
  chips:['What is my biggest leakage risk?','Which referrals need follow-up?','How do I improve closed-loop rate?'],
- answer:function(q){var d=agg(),f=PERIODS[period].f,sent=Math.round(d.sent*f),pend=Math.round(d.pend7*f),ql=q.toLowerCase();
+ answer:function(q){var d=agg(),f=periodF(),sent=Math.round(d.sent*f),pend=Math.round(d.pend7*f),ql=q.toLowerCase();
   if(/leak|network|out/.test(ql))return '<h5>Leakage</h5>In-network is '+Math.round(d.innet)+'% (target \u226570%). Out-of-network referrals are lost continuity and shared-savings leakage \u2014 keep referrals in-network where clinically appropriate.';
   if(/follow|pending|loop|note/.test(ql))return '<h5>Follow-up</h5>'+pend+' referrals are pending >7 days and '+Math.round(d.closed)+'% have a consult note back. Work the pending list and chase missing consult notes.';
   if(/closed.?loop|improve|rate/.test(ql))return '<h5>Closed-loop</h5>Closed-loop is '+Math.round(d.closed)+'% (target \u226580%). Assign a coordinator to confirm appointments and retrieve consult notes \u2014 STAT/urgent first.';
@@ -142,7 +145,9 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
   if(window.renderAvanceAI)window.renderAvanceAI();
 };

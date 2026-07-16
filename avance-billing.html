@@ -73,7 +73,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Clinics</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -132,6 +132,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const ENTERPRISE_LAG=6.4;
 const PROV=[
  {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",charges:88000,payments:53500,contractual:26500,denials:8,claims:382,arDays:31,arBal:96000,lag:2.4,cleanPaid:4},
@@ -175,17 +178,17 @@ function buildClinic(){
 }
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Clinics"+(region==="all"?"":" — "+region));}
 function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
-function errScaled(){const sc=shareSel()*PERIODS[period].f;return ERRCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3],c[4]]);}
+function errScaled(){const sc=shareSel()*periodF();return ERRCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3],c[4]]);}
 function wqScaled(){const sc=shareSel();return WQCATS.map(c=>[c[0],round(c[1]*sc),round(c[2]*sc),c[3],c[4],c[5]]);}
 function aging(arDays,arBal){const o90=clamp((arDays-26)*0.6+6,4,24),b6190=13,b3160=22,b030=Math.max(0,100-o90-b6190-b3160);
   return [["0–30 days",b030,"Normal cycle (Central follow-up)"],["31–60 days",b3160,"Central A/R follow-up"],["61–90 days",b6190,"Central + Practice (denials)"],["90+ days",o90,"Escalate — Practice + Central"]].map(b=>[b[0],round(arBal*b[1]/100),b[1],b[2]]);}
 
 function render(){
-  const d=agg(),f=PERIODS[period].f,sel=active();
+  const d=agg(),f=periodF(),sel=active();
   const charges=d.charges*f, payments=d.payments*f, netRate=payments/(charges-d.contractual*f)*100, grossRate=payments/charges*100;
   const dailyRev=charges/(21.7*f||21.7), weekly=charges/(4.345*f||4.345), denialRate=d.denials/d.claims*100;
   document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=periodLabel()+" · illustrative data";
   const prod=[
     {l:"Gross Charges",n:moneyK(charges),s:"~"+moneyK(dailyRev)+"/day · "+moneyK(weekly)+"/wk",ac:C.navy},
     {l:"Net Collections",n:moneyK(payments),s:Math.round(grossRate)+"% gross collection",ac:C.green,drill:"netrate"},
@@ -281,7 +284,7 @@ function render(){
 /* ---------- drill-downs: Practice vs Central Office ---------- */
 function tableHTML(cols,rows){return `<table class="mtbl"><thead><tr>${cols.map(c=>`<th class="${c.num?'num':''}">${c.h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${cols.map(c=>`<td class="${c.num?'num':''}">${r[c.k]}</td>`).join("")}</tr>`).join("")}</tbody></table>`;}
 function buildDrill(key){
-  const d=agg(),f=PERIODS[period].f,who=document.getElementById("who").textContent;
+  const d=agg(),f=periodF(),who=document.getElementById("who").textContent;
   const charges=d.charges*f, payments=d.payments*f, netRate=payments/(charges-d.contractual*f)*100, denialRate=d.denials/d.claims*100;
   const avgClaim=d.charges/d.claims, E=errScaled();
   const regErr=(E.find(c=>c[0]==="Registration")||[,,0])[2], codErr=(E.find(c=>c[0]==="Professional Coding")||[,,0])[2];
@@ -296,7 +299,7 @@ function buildDrill(key){
       {dr:"Posting / adjustment accuracy",ow:ownerPill("Central Office"),im:money(posting),ac:"Audit write-offs &amp; adjustment codes"},
     ];
     const pracDol=regErr+chargeLagDol+underCode, centDol=denialDol+contractVar+posting;
-    return {title:"Net Collection Rate — why is it low?",sub:who+" · "+PERIODS[period].l,
+    return {title:"Net Collection Rate — why is it low?",sub:who+" · "+periodLabel(),
       chips:[{l:"Net collection rate",v:netRate.toFixed(1)+"%",c:tone(netRate,true,95,92)},{l:"Target",v:"≥95%",c:C.navy},{l:"Practice side",v:moneyK(pracDol),c:C.navy},{l:"Central office",v:moneyK(centDol),c:C.teal}],
       note:`Net collection rate = payments ÷ (charges − contractual). The gap splits into <b>practice</b> drivers (front desk, charge entry, coding ≈ <b>${moneyK(pracDol)}</b>) and <b>central-office</b> drivers (denials, payer follow-up, posting ≈ <b>${moneyK(centDol)}</b>). Practice-side is usually the faster, higher-ROI fix.`,
       cols:[{h:"Driver",k:"dr"},{h:"Owner",k:"ow"},{h:"Est. $ impact",k:"im",num:1},{h:"Action",k:"ac"}],rows,
@@ -355,7 +358,7 @@ function openDrill(key){const o=buildDrill(key);
 function closeModal(){document.getElementById("modal").hidden=true;}
 
 window.AVANCE_AI={
- insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent;
+ insight:function(){const d=agg(),f=periodF(),scope=document.getElementById('who').textContent;
    const E=errScaled(),W=wqScaled(),wDol=W.reduce((a,c)=>a+c[2],0),wItems=W.reduce((a,c)=>a+c[1],0);
    const reg=E.find(c=>c[0]==='Registration'),cod=W.find(c=>c[0]==='Professional Coding');
    return '<b>'+scope+'</b>: charge lag is strong ('+d.lag.toFixed(1)+' d vs enterprise '+ENTERPRISE_LAG+' d) but clean paid rate is low (~'+Math.round(d.cleanPaid)+'%). <b>'+moneyK(wDol)+'</b> across <b>'+wItems.toLocaleString()+'</b> items is stuck in work queues, aging 45–74 days. Most-fixable leaks are <b>practice-side</b>: Registration ('+moneyK(reg?reg[2]:0)+') and the Coding backlog ('+moneyK(cod?cod[2]:0)+'). Click any KPI to see Practice vs Central-Office drivers.';},
@@ -376,7 +379,9 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   document.getElementById("mClose").onclick=closeModal;
   document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
   document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});

@@ -52,7 +52,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -78,6 +78,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const GOAL_ROUTINE=4, GOAL_URGENT=24, GOAL_SUBMIT=24; // days, hrs, hrs
 const PROV=[
  {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",sent:50,subTAT:8,routine:3.6,urgent:20,pending:18,sched:54,hvs:82,redirect:9,oon:4},
@@ -115,10 +118,10 @@ function buildClinic(){
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
 function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
-  const d=agg(),f=PERIODS[period].f,sel=active();
+  const d=agg(),f=periodF(),sel=active();
   const sent=round(d.sent*f),closed=100-d.pending-d.sched,urgentVol=round(sent*0.14);
   document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=periodLabel()+" · illustrative data";
   const cards=[
     {l:"Referrals Sent",n:fmt(sent),s:urgentVol+" urgent/STAT",ac:C.navy},
     {l:"Submission TAT",n:d.subTAT.toFixed(0)+" hrs",s:"receive → fax out · goal ≤24h",ac:tone(d.subTAT,false,24,36)},
@@ -157,13 +160,13 @@ function render(){
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 window.AVANCE_AI={
- insight:function(){const d=agg(),f=PERIODS[period].f,scope=document.getElementById('who').textContent,sent=round(d.sent*f);
+ insight:function(){const d=agg(),f=periodF(),scope=document.getElementById('who').textContent,sent=round(d.sent*f);
    return '<b>'+scope+'</b>: <b>'+fmt(sent)+'</b> referrals sent. Submission TAT '+d.subTAT.toFixed(0)+' hrs (goal ≤24h), routine '+d.routine.toFixed(1)+' d (goal ≤4), urgent '+d.urgent.toFixed(0)+' hrs (goal ≤24h). '+Math.round(d.hvs)+'% went to high-value specialists; redirection '+Math.round(d.redirect)+'% ('+fmt(round(d.oon*f))+' out-of-network). Biggest lever: cut submission turnaround in the fax box and keep referrals with high-value specialists.';},
  chips:['Where are we missing the turnaround goal?','What is driving redirection / OON?','How can the fax box speed up?'],
  answer:function(q){const d=agg(),ql=q.toLowerCase();
    if(/turnaround|tat|goal|slow|speed|fax|automat/.test(ql))return '<h5>Turnaround</h5>Submission TAT is '+d.subTAT.toFixed(0)+' hrs (goal ≤24). Routine '+d.routine.toFixed(1)+' d vs 4-day goal; urgent '+d.urgent.toFixed(0)+' hrs vs 24-hr goal. The fax box is the automation target — 150 orders/day handled manually. Auto-routing inbound faxes and same-day STAT handling would move all three toward goal.';
    if(/redirect|oon|network|high.?value|specialist/.test(ql))return '<h5>Redirection & high-value specialists</h5>'+Math.round(d.hvs)+'% of referrals go to high-value specialists; redirection is '+Math.round(d.redirect)+'%, mostly OON (40%) and specialists not accepting new patients (25%). Keeping referrals with high-value / in-network specialists reduces redirection rework and improves closure.';
-   return '<h5>Summary</h5>'+fmt(round(d.sent*PERIODS[period].f))+' referrals · submit '+d.subTAT.toFixed(0)+'h · routine '+d.routine.toFixed(1)+'d · urgent '+d.urgent.toFixed(0)+'h · '+Math.round(d.hvs)+'% high-value · '+Math.round(d.redirect)+'% redirected.';}
+   return '<h5>Summary</h5>'+fmt(round(d.sent*periodF()))+' referrals · submit '+d.subTAT.toFixed(0)+'h · routine '+d.routine.toFixed(1)+'d · urgent '+d.urgent.toFixed(0)+'h · '+Math.round(d.hvs)+'% high-value · '+Math.round(d.redirect)+'% redirected.';}
 };
 window.startDashboard=function(){
   buildClinic();buildProvider();
@@ -173,7 +176,9 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
 };
 </script>

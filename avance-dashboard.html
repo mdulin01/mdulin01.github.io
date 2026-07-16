@@ -232,9 +232,7 @@
       <option value="mtd">This Month (MTD)</option>
       <option value="last">Last Month</option>
       <option value="qtd">Quarter to Date</option>
-      <option value="ytd">Year to Date</option>
-    </select>
-  </div>
+      <option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
   <div class="ctrl"><label>&nbsp;</label><button id="benchBtn" class="ghostbtn">⚙ Edit Benchmarks</button></div>
   <div class="who"><div class="nm" id="whoName">Network — All Providers</div><div class="sub" id="whoSub"></div></div>
 </div>
@@ -434,6 +432,9 @@ const BENCH={
   revPerLevelStep:38                // illustrative $ per E&M level step (under/over-coding estimate)
 };
 const PERIODS={mtd:{f:0.57,lbl:"This Month (MTD, through Jun 17)"},last:{f:1.0,lbl:"Last Month (May)"},qtd:{f:2.57,lbl:"Quarter to Date (Q2)"},ytd:{f:5.57,lbl:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 
 /* ---------- aggregation ---------- */
 function aggregate(list){
@@ -486,7 +487,7 @@ function baseMetrics(){
   return agg;
 }
 function scaled(){
-  const b=baseMetrics(), f=PERIODS[period].f;
+  const b=baseMetrics(), f=periodF();
   return {...b,_f:f,
     visitsC:round(b.visits*f),goalC:round(b.goal*f),newPtsC:round(b.newPts*f),procC:round(b.proc*f),
     csRxC:round(b.csRx*f),csPendC:round(b.csPending*f),refC:{routine:round(b.ref.routine*f),urgent:round(b.ref.urgent*f),stat:round(b.ref.stat*f)},
@@ -698,7 +699,7 @@ function buildDrill(key,d){
     const m=key.slice(4),g=d.gaps[m],open=g[0],elig=g[1],closure=round((elig-open)/elig*100);
     const n=Math.min(open,12);const rows=[];
     for(let i=0;i<n;i++){const last=dateBackMonths(r,18);rows.push({pt:person(r),age:50+((r()*30)|0),last:last,act:pill("Outreach",C.peri)});}
-    return {title:m+" — open gaps",sub:who+" · "+PERIODS[period].lbl,
+    return {title:m+" — open gaps",sub:who+" · "+periodLabel(),
       chips:[{l:"Open gaps",v:open,c:C.red},{l:"Eligible",v:elig,c:C.navy},{l:"Closure",v:closure+"%",c:tone(closure,true,80,70)}],
       note:sampleNote,
       cols:[{h:"Patient",k:"pt"},{h:"Age",k:"age",num:1},{h:"Last completed",k:"last"},{h:"Next step",k:"act"}],rows,
@@ -728,7 +729,7 @@ function buildDrill(key,d){
    case "awv":{
     const n=Math.min(d.awvDue,12),rows=[];
     for(let i=0;i<n;i++){rows.push({pt:person(r),age:65+((r()*22)|0),last:r()>0.3?dateBackMonths(r,24):"none on file",plan:pill(r()>0.5?"Schedule":"Outreach",C.peri)});}
-    return {title:"Annual Wellness Visits — patients due",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"Annual Wellness Visits — patients due",sub:who+" · "+periodLabel(),
       chips:[{l:"AWV completed",v:fmt(d.awvDoneC),c:C.greenD},{l:"Patients due",v:fmt(d.awvDue),c:C.amber},{l:"Est. revenue if closed",v:"$"+fmt(d.awvDue*120),c:C.green}],
       note:"AWVs anchor risk recapture and care-gap closure — every completed AWV typically closes multiple quality measures.",
       cols:[{h:"Patient",k:"pt"},{h:"Age",k:"age",num:1},{h:"Last AWV",k:"last"},{h:"Next step",k:"plan"}],rows,
@@ -739,7 +740,7 @@ function buildDrill(key,d){
     const deltaPts=provL45-benchL45;
     const rows=["L1 (99211)","L2 (99212)","L3 (99213)","L4 (99214)","L5 (99215)"].map((lbl,i)=>{const dlt=+(d.em[i]-BENCH.em[i]).toFixed(1);return {lvl:lbl,you:d.em[i].toFixed(1)+"%",bm:BENCH.em[i]+"%",delta:pill((dlt>=0?"+":"")+dlt+"%",Math.abs(dlt)<3?C.gray:(dlt<0&&i>=3?C.red:(dlt>0&&i>=3?C.amber:C.gray)))};});
     let note,opp=0;
-    if(deltaPts<-2){opp=round((-deltaPts/100)*d.visits*PERIODS[period].f*BENCH.revPerLevelStep);note=`Potential <b>under-coding</b>: L4+L5 share is ${Math.abs(deltaPts).toFixed(0)} pts below benchmark. Estimated capture opportunity ≈ <b>$${fmt(opp)}</b> this period if documentation supports higher levels.`;}
+    if(deltaPts<-2){opp=round((-deltaPts/100)*d.visits*periodF()*BENCH.revPerLevelStep);note=`Potential <b>under-coding</b>: L4+L5 share is ${Math.abs(deltaPts).toFixed(0)} pts below benchmark. Estimated capture opportunity ≈ <b>$${fmt(opp)}</b> this period if documentation supports higher levels.`;}
     else if(deltaPts>8){note=`L4+L5 share is ${deltaPts.toFixed(0)} pts <b>above</b> benchmark — ensure documentation supports level selection (audit-readiness review recommended).`;}
     else{note="E&M distribution is broadly in line with the family-medicine benchmark.";}
     return {title:"E&M coding vs. benchmark",sub:who+" · established-patient office visits",
@@ -771,7 +772,7 @@ function buildDrill(key,d){
     const total=d.refC.routine+d.refC.urgent+d.refC.stat,specs=["Cardiology","Orthopedics","GI","Dermatology","Endocrine","Neurology","Pulmonology","ENT","Ophthalmology"];const n=Math.min(d.refPendC+5,12),rows=[];
     for(let i=0;i<n;i++){const pr=i<2?"STAT":(i<5?"Urgent":"Routine");const days=pr==="Routine"?5+((r()*20)|0):1+((r()*9)|0);rows.push({pt:person(r),spec:specs[(r()*specs.length)|0],pri:pill(pr,pr==="STAT"?C.red:(pr==="Urgent"?C.amber:C.peri)),days:days});}
     rows.sort((a,b)=>b.days-a.days);
-    return {title:"Outbound referrals — pending",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"Outbound referrals — pending",sub:who+" · "+periodLabel(),
       chips:[{l:"Total referrals",v:fmt(total),c:C.navy},{l:"Pending >7 days",v:d.refPendC,c:tone(d.refPendC,false,3,5)},{l:"STAT",v:d.refC.stat,c:C.red}],
       note:"Track routine / urgent / STAT and specialty mix; ensure STAT and urgent referrals are scheduled within policy windows.",
       cols:[{h:"Patient",k:"pt"},{h:"Specialty",k:"spec"},{h:"Priority",k:"pri"},{h:"Days pending",k:"days",num:1}],rows,
@@ -811,7 +812,7 @@ function buildDrill(key,d){
       {m:"Avg minutes / enrolled patient",v:round(d.ccm*60/Math.max(1,enrolled))+" min"},
       {m:"Patients <20 min (not yet billable)",v:fmt(round(enrolled*0.22))},
       {m:"Est. CCM revenue (period)",v:"$"+fmt(round(d.ccmC*62))}];
-    return {title:"Chronic Care Management — billable time",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"Chronic Care Management — billable time",sub:who+" · "+periodLabel(),
       chips:[{l:"CCM hours",v:fmt(d.ccmC),c:C.green},{l:"Enrolled",v:fmt(enrolled),c:C.navy},{l:"Est. revenue",v:"$"+fmt(round(d.ccmC*62)),c:C.greenD}],
       note:"Monitors billable CCM time clinic nurses spend so the program stays above the minimum needed to be profitable.",
       cols:[{h:"Measure",k:"m"},{h:"Value",k:"v",num:1}],rows,
@@ -828,7 +829,7 @@ function buildDrill(key,d){
    case "newpts":{
     const tot=d.newPtsC,src=[["Self / web scheduling",.42],["Provider referral",.24],["Transfer of care",.18],["Insurance directory",.10],["Other",.06]];
     const rows=src.map(s=>({s:s[0],n:round(tot*s[1]),p:Math.round(s[1]*100)+"%"}));
-    return {title:"New patients — acquisition",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"New patients — acquisition",sub:who+" · "+periodLabel(),
       chips:[{l:"New patients",v:fmt(tot),c:C.peri},{l:"% of volume",v:(tot/Math.max(1,d.visitsC)*100).toFixed(0)+"%",c:C.navy},{l:"Benchmark",v:BENCH.newPtPct+"%",c:C.navy}],
       cols:[{h:"Source",k:"s"},{h:"Patients",k:"n",num:1},{h:"Share",k:"p",num:1}],rows,
       actions:["Protect new-patient slots in the template","Ensure same-day / next-day availability for acquisition","Tighten new-patient intake & onboarding","Track conversion from first call to completed visit"]};
@@ -836,7 +837,7 @@ function buildDrill(key,d){
    case "procedures":{
     const tot=d.procC,ps=[["EKG (93000)",.22],["Joint injection (20610)",.14],["IUD insertion — LARC (58300)",.09],["Contraceptive implant — LARC (11981)",.06],["Skin biopsy (11102)",.12],["Spirometry (94010)",.11],["Lesion removal (17110)",.09],["Laceration repair (12001)",.07],["Other",.10]];
     const rows=ps.map(p=>({s:p[0],n:round(tot*p[1])}));
-    return {title:"In-office procedures",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"In-office procedures",sub:who+" · "+periodLabel(),
       chips:[{l:"Procedures",v:fmt(tot),c:C.green},{l:"Per 100 visits",v:(tot/Math.max(1,d.visitsC)*100).toFixed(0),c:C.navy}],
       note:"Keeping appropriate procedures in primary care improves access and captures revenue — confirm each is charged (see Charge Capture).",
       cols:[{h:"Procedure",k:"s"},{h:"Count",k:"n",num:1}],rows,
@@ -864,7 +865,7 @@ function buildDrill(key,d){
    case "panel":{
     const tot=d.panel,bands=[["0–17",.16],["18–39",.24],["40–64",.34],["65+",.26]];
     const rows=bands.map(b=>({a:b[0],n:fmt(round(tot*b[1])),p:Math.round(b[1]*100)+"%"}));
-    return {title:"Attributed panel",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"Attributed panel",sub:who+" · "+periodLabel(),
       chips:[{l:"Panel size",v:fmt(tot),c:C.navy},{l:"Medicare share",v:Math.round(d.payer.Medicare)+"%",c:C.peri}],
       note:"Attribution rosters (with myPanel metrics & HCC tools) underpin value-based contract performance.",
       cols:[{h:"Age band",k:"a"},{h:"Patients",k:"n",num:1},{h:"Share",k:"p",num:1}],rows,
@@ -873,7 +874,7 @@ function buildDrill(key,d){
    case "sat":{
     const sd=satDomains(d);
     const rows=[["Provider communication",sd.communication],["Access / wait time",sd.access],["Staff courtesy",sd.staff],["Likelihood to recommend",sd.recommend]].map(x=>{const dlt=+(x[1]-BENCH.sat).toFixed(1);return {dm:x[0],sc:x[1].toFixed(1),bm:BENCH.sat.toFixed(1),d:pill((dlt>=0?"+":"")+dlt,dlt>=0?C.greenD:C.red)};});
-    return {title:"Patient experience — domain detail",sub:who+" · "+PERIODS[period].lbl,
+    return {title:"Patient experience — domain detail",sub:who+" · "+periodLabel(),
       chips:[{l:"Overall",v:d.sat.toFixed(1)+"/5",c:tone(d.sat,true,4.7,4.5)},{l:"Top-box",v:Math.round(d.satTop)+"%",c:tone(d.satTop,true,90,85)},{l:"NPS",v:sd.nps,c:tone(sd.nps,true,60,45)}],
       note:"Access/wait time is the most common detractor driver and correlates with the no-show and rooming-time metrics on the Productivity tab.",
       cols:[{h:"Survey domain",k:"dm"},{h:"Score",k:"sc",num:1},{h:"Benchmark",k:"bm",num:1},{h:"Δ",k:"d",num:1}],rows,
@@ -902,7 +903,7 @@ function closeModal(){document.getElementById("modal").hidden=true;}
 /* ============================================================ SCORECARD ============================================================ */
 const SCOLS=[{k:"name",label:"Provider"},{k:"pctGoal",label:"% Goal",num:1},{k:"visits",label:"Visits",num:1},{k:"noShow",label:"No-Show%",num:1},{k:"openCharts",label:"Open Charts",num:1},{k:"gapClose",label:"Gap Closure",num:1},{k:"raf",label:"RAF%",num:1},{k:"capture",label:"Capture%",num:1},{k:"sat",label:"Satisfaction",num:1}];
 let sortK="pctGoal",sortDir=-1;
-function provRow(p){const f=PERIODS[period].f,e=GAP_MEASURES.reduce((a,m)=>a+p.gaps[m][1],0),o=GAP_MEASURES.reduce((a,m)=>a+p.gaps[m][0],0);
+function provRow(p){const f=periodF(),e=GAP_MEASURES.reduce((a,m)=>a+p.gaps[m][1],0),o=GAP_MEASURES.reduce((a,m)=>a+p.gaps[m][0],0);
   return {id:p.id,name:p.name,clinic:p.clinic,pctGoal:p.visits/p.goal*100,visits:round(p.visits*f),noShow:p.noShow,openCharts:p.openCharts,gapClose:(e-o)/e*100,raf:p.raf,capture:p.capture,sat:p.sat};}
 function renderScore(){
   const head=document.getElementById("scoreHead");
@@ -958,8 +959,8 @@ function renderActiveCharts(){
 function renderHeader(d){
   document.getElementById("whoName").textContent=d.name;
   document.getElementById("whoSub").textContent= provId==="all"
-    ? `${PROVIDERS.length} providers · ${fmt(d.panel)} attributed patients · ${PERIODS[period].lbl}`
-    : `${d.clinic} · panel ${fmt(d.panel)} · ${PERIODS[period].lbl}`;
+    ? `${PROVIDERS.length} providers · ${fmt(d.panel)} attributed patients · ${periodLabel()}`
+    : `${d.clinic} · panel ${fmt(d.panel)} · ${periodLabel()}`;
 }
 function renderAll(){
   const d=scaled();
@@ -993,7 +994,9 @@ function initControls(){
   mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;renderAll();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";renderAll();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")renderAll();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")renderAll();};
   document.getElementById("mClose").onclick=closeModal;
   document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")closeModal();};
   document.getElementById("benchBtn").onclick=openBench;
@@ -1063,7 +1066,7 @@ function opportunities(d){
   o.push({label:"Close AWVs due",val:fmt(d.awvDue),$:d.awvDue*120,key:"awv"});
   o.push({label:"Recover open charges",val:fmt(d.openCharges),$:d.openCharges*70,key:"capture"});
   const provL45=d.em[3]+d.em[4],benchL45=BENCH.em[3]+BENCH.em[4];
-  if(provL45-benchL45<-2) o.push({label:"Coding to benchmark",val:Math.abs(Math.round(provL45-benchL45))+" pts",$:round((benchL45-provL45)/100*d.visits*PERIODS[period].f*BENCH.revPerLevelStep),key:"coding"});
+  if(provL45-benchL45<-2) o.push({label:"Coding to benchmark",val:Math.abs(Math.round(provL45-benchL45))+" pts",$:round((benchL45-provL45)/100*d.visits*periodF()*BENCH.revPerLevelStep),key:"coding"});
   return o.sort((a,b)=>b.$-a.$);
 }
 function topOutliers(){
@@ -1108,7 +1111,7 @@ function askAI(q){
     html=`<h5>Patient experience — ${who}</h5>Overall <b>${d.sat.toFixed(1)}/5</b>, ${Math.round(d.satTop)}% top-box, NPS <b>${sd.nps}</b>. Lowest domain: <b>Access/Wait (${sd.access.toFixed(1)})</b>.`+actBlock([`Tighten access & rooming time (correlates with no-shows)`,`Review verbatim comments for the lowest domain — <span class="ai-link" data-aikey="sat">open</span>`,`Share top-box trend with the care team monthly`]);
   } else if(/(message|email|draft|team|note|memo|huddle|communicat)/.test(ql)){
     const top=fl.slice(0,3);
-    const draft=`Team — quick ${PERIODS[period].lbl} check-in for ${who}.\n\n`+
+    const draft=`Team — quick ${periodLabel()} check-in for ${who}.\n\n`+
       `We're at ${Math.round(d.pctGoal)}% of our visit goal (${fmt(d.visitsC)} completed). Three priorities:\n`+
       (top.length?top.map((f,i)=>`${i+1}. ${f.dom}: ${f.txt.replace(/<[^>]+>/g,'')}.`).join("\n"):`1. Sustain performance — all metrics on target.`)+"\n"+
       `Quick wins this week: outreach to the ${fmt(d.awvDue)} patients due for an AWV, and clear ${d.openCharges} open charges before close.\n\nThanks for the great work.`;

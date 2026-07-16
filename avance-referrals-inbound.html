@@ -49,7 +49,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Clinic <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -68,6 +68,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const PROV=[
  {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",recv:50,sched:86,seen:67,days:4.1,conv:78},
  {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",recv:64,sched:83,seen:64,days:4.7,conv:75},
@@ -101,10 +104,10 @@ function buildClinic(){
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
 function buildProvider(){const s=document.getElementById("selProvider"),list=active();const lbl=clinicLabel()?clinicLabel()+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&clinicOn(p.clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
 function render(){
-  const d=agg(),f=PERIODS[period].f,recv=round(d.recv*f),pend=round(recv*0.31);
+  const d=agg(),f=periodF(),recv=round(d.recv*f),pend=round(recv*0.31);
   const sel=active();
   document.getElementById("who").textContent= provId!=="all"?sel[0].name : clinicLabel()?clinicLabel() : region!=="all"?region+" Region":"Network — All Regions";
-  document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=(provId!=="all"?sel[0].clinic+" · ":"")+periodLabel()+" · illustrative data";
   const cards=[
     {l:"Referrals Received",n:fmt(recv),s:"inbound this period",ac:C.navy},
     {l:"Scheduled",n:Math.round(d.sched)+"%",s:"target ≥85%",ac:tone(d.sched,true,85,78)},
@@ -128,9 +131,9 @@ function render(){
   document.getElementById("foot").innerHTML="Illustrative / synthetic inbound-referral data, drillable Region → Clinic → Provider. Targets are placeholders — replace with Avance Care intake SLAs.";
 }
 window.AVANCE_AI={
- insight:function(){var d=agg(),f=PERIODS[period].f,recv=Math.round(d.recv*f),pend=Math.round(recv*0.31);var scope=document.getElementById('who').textContent;var t='<b>'+scope+'</b>: <b>'+recv+'</b> inbound referrals this period. '+Math.round(d.sched)+'% scheduled (target \u226585%), '+Math.round(d.conv)+'% 30-day conversion. ';if(d.sched<85){t+='Scheduling is below target. ';}t+='About <b>'+pend+'</b> referrals are unworked \u2014 clearing them is the biggest lever on conversion.';return t;},
+ insight:function(){var d=agg(),f=periodF(),recv=Math.round(d.recv*f),pend=Math.round(recv*0.31);var scope=document.getElementById('who').textContent;var t='<b>'+scope+'</b>: <b>'+recv+'</b> inbound referrals this period. '+Math.round(d.sched)+'% scheduled (target \u226585%), '+Math.round(d.conv)+'% 30-day conversion. ';if(d.sched<85){t+='Scheduling is below target. ';}t+='About <b>'+pend+'</b> referrals are unworked \u2014 clearing them is the biggest lever on conversion.';return t;},
  chips:['What should the intake team focus on?','Why is conversion below target?','Where are referrals coming from?'],
- answer:function(q){var d=agg(),f=PERIODS[period].f,recv=Math.round(d.recv*f),pend=Math.round(recv*0.31),ql=q.toLowerCase();
+ answer:function(q){var d=agg(),f=periodF(),recv=Math.round(d.recv*f),pend=Math.round(recv*0.31),ql=q.toLowerCase();
   if(/focus|priorit|work|pending|today|week/.test(ql))return '<h5>Focus</h5>Clear the ~'+pend+' unworked referrals first \u2014 they drive both scheduling % ('+Math.round(d.sched)+'%, target \u226585%) and 30-day conversion ('+Math.round(d.conv)+'%). Prioritize the oldest-waiting and ED/discharge referrals.';
   if(/conver/.test(ql))return '<h5>Conversion</h5>30-day conversion is '+Math.round(d.conv)+'% (target \u226575%). The main drags are time-to-schedule ('+d.days.toFixed(1)+' days) and unworked referrals \u2014 faster outreach lifts conversion.';
   if(/source|coming|where|leak/.test(ql))return '<h5>Sources</h5>Largest inbound sources are community PCPs (~34%) and ED/hospital discharge (~22%). ED/discharge referrals are the most time-sensitive to work.';
@@ -144,7 +147,9 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
   if(window.renderAvanceAI)window.renderAvanceAI();
 };

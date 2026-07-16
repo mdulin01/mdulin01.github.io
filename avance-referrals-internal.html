@@ -51,7 +51,7 @@
     <div class="ctrl"><label>Service Line</label><select id="selService"><option value="all">All Internal Services</option><option value="bh">Behavioral Health</option><option value="nutr">Nutrition</option><option value="neuro">Neurology</option><option value="psych">Psychiatry</option></select></div>
     <div class="ctrl"><label>Referring Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Referring Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">All Internal Services</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -76,6 +76,9 @@
 <script>
 const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",gray:"#B8C0CC"};
 const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+let dFrom="",dTo="";
+function periodF(){if(period==="custom")return(dFrom&&dTo&&new Date(dTo)>=new Date(dFrom))?(((new Date(dTo)-new Date(dFrom))/86400000)+1)/30.4:1;return periodF();}
+function periodLabel(){return period==="custom"?((dFrom&&dTo)?dFrom+" → "+dTo:"Custom range — pick dates"):periodLabel();}
 const GOAL_TTS=7;
 const SERVICES={bh:{name:"Behavioral Health",tts:6.2,ttfa:11.8,pending:20,sched:54,seen:26,capture:88,color:C.peri},
                 nutr:{name:"Nutrition",tts:8.1,ttfa:13.5,pending:26,sched:52,seen:22,capture:82,color:C.green},
@@ -129,10 +132,10 @@ function buildClinic(){
 }
 function syncClinicBtn(){document.getElementById("mselBtn").textContent=clinicLabel()||("All Locations"+(region==="all"?"":" — "+region));}
 function render(){
-  const m=svcMeta(),f=PERIODS[period].f,vol=round(selVol()*f),v=svcVol();
+  const m=svcMeta(),f=periodF(),vol=round(selVol()*f),v=svcVol();
   const sa=specActive(),nas=sa.map(x=>x[3]).sort((a,b)=>a-b),medNA=nas.length?nas[Math.floor(nas.length/2)]:0,openSlots=sa.reduce((a,x)=>a+x[4],0);
   document.getElementById("who").textContent=(service==="all"?"All Internal Services":m.name)+(region!=="all"?" · "+region:"")+(clinicLabel()?" · "+clinicLabel():"");
-  document.getElementById("sub").textContent=PERIODS[period].l+" · illustrative data";
+  document.getElementById("sub").textContent=periodLabel()+" · illustrative data";
   const cards=[
     {l:"Internal Referrals",n:fmt(vol),s:"received "+(service==="all"?"(BH + Nutr + Neuro + Psych)":""),ac:C.navy},
     {l:"Avg Time to Schedule",n:m.tts.toFixed(1)+" d",s:"goal ≤7 days",ac:tone(m.tts,false,7,10)},
@@ -167,7 +170,7 @@ function render(){
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 window.AVANCE_AI={
- insight:function(){const m=svcMeta(),vol=round(selVol()*PERIODS[period].f),scope=document.getElementById('who').textContent;
+ insight:function(){const m=svcMeta(),vol=round(selVol()*periodF()),scope=document.getElementById('who').textContent;
    return '<b>'+scope+'</b>: <b>'+fmt(vol)+'</b> internal referrals. Time-to-schedule '+m.tts.toFixed(1)+' d (goal ≤7) and time-to-first-appointment '+m.ttfa.toFixed(1)+' d (goal ≤14). Internal capture '+Math.round(m.capture)+'%. Psychiatry ('+SERVICES.psych.tts+' d) and Neurology ('+SERVICES.neuro.tts+' d) have the longest waits and the fewest open slots — the bottleneck is specialist capacity, not referral volume.';},
  chips:['Which service has the longest wait?','Who has open schedule right now?','Where are we losing internal capture?'],
  answer:function(q){const ql=q.toLowerCase(),v=svcVol();
@@ -186,7 +189,9 @@ window.startDashboard=function(){
   mBtn.onclick=e=>{e.stopPropagation();mPop.classList.toggle("open");};
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
+  document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
 };
 </script>
