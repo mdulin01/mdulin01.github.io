@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Epic / Diver Implementation Plan</title>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .hero{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 55%,var(--teal));color:#fff;padding:26px 28px}
+  .hero h1{font-size:22px;font-weight:800}.hero p{font-size:13.5px;opacity:.92;margin-top:7px;max-width:880px;line-height:1.55}
+  .wrap{max-width:1100px;margin:0 auto;padding:26px 28px 70px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:26px 2px 12px;display:flex;align-items:center;gap:10px}
+  .sec::after{content:"";flex:1;height:1px;background:var(--line)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:14px}
+  .card h3{font-size:14.5px;font-weight:800;color:var(--navy);margin-bottom:6px}
+  .card p,.card li{font-size:13px;line-height:1.6;color:#3a454e}
+  .card ul{padding-left:20px;margin:6px 0}
+  .card li{margin:4px 0}
+  .lede{font-size:13.5px;line-height:1.65;color:#3a454e;max-width:920px}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  /* decision framework */
+  .fw{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .fwc{background:#fff;border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .fwc h4{font-size:13.5px;font-weight:800;color:var(--accent);margin-bottom:6px}
+  .fwc p{font-size:12.5px;line-height:1.55;color:#3a454e}
+  /* phases */
+  .phase{display:flex;gap:16px;margin-bottom:14px}
+  .pnum{flex:none;width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center}
+  .pbody{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 18px;box-shadow:var(--shadow);flex:1}
+  .pbody h3{font-size:14px;font-weight:800;color:var(--navy)}
+  .pbody .when{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);margin:2px 0 7px}
+  .pbody p,.pbody li{font-size:13px;line-height:1.6;color:#3a454e}
+  .pbody ul{padding-left:20px;margin:4px 0}
+  table{width:100%;border-collapse:collapse;background:#fff}
+  thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:12.5px;vertical-align:top;line-height:1.5}
+  tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700;white-space:nowrap}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:10.5px;white-space:nowrap}
+  .p-epic{background:#EEF1FB;color:var(--navy)}.p-diver{background:#E6F2EF;color:var(--teal)}.p-both{background:#F3EEFB;color:#6D28D9}.p-hold{background:#F1F3F5;color:var(--muted)}
+  .p-lo{background:#E6F2E6;color:var(--green-dark)}.p-md{background:#FCF3DC;color:#9A6E00}.p-hi{background:#FBEAE8;color:var(--bad)}
+  .risk{border-left:4px solid var(--warn)}
+  .next{border-left:4px solid var(--green-dark)}
+  .tblcard{padding:0;overflow-x:auto}
+  .foot{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:900px){.fw,.split{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t">Epic / Diver Implementation Plan</div><div><a href="/avance/">‹ All dashboards</a> · Draft v1 — July 2026</div></div>
+  </div>
+  <div class="hero">
+    <h1>From Mockups to Production: Epic &amp; Diver Implementation Plan</h1>
+    <p>The dashboards on this site are <b>requirements specifications</b>, not the destination. They let us iterate on metrics, targets, and layout in hours instead of build cycles. This plan describes how each one moves into the systems of record — Epic for operational, in-workflow views and Diver (Dimensional Insight) for cross-domain scorecards and trending — and what has to be true before the numbers are real.</p>
+  </div>
+  <div class="wrap">
+
+    <div class="sec">Guiding Principles</div>
+    <div class="card">
+      <ul>
+        <li><b>Mockups are the spec.</b> Each dashboard here encodes agreed metric definitions, targets, and layouts (per the 7/10 referrals review and the 7/15 billing scorecard). Sign-off on a mockup = sign-off on requirements.</li>
+        <li><b>Build where the work happens.</b> Worklists and same-day operational views belong in Epic, where staff already live. Monthly scorecards, trending, and cross-domain views belong in Diver.</li>
+        <li><b>Don't build twice.</b> Specialty ops already maintains Diver dashboards (Behavioral Health, Nutrition). Inventory existing Epic Radar and Diver content first; extend rather than duplicate.</li>
+        <li><b>Fix data capture before reporting.</b> Several mockup metrics currently live only in free-text notes or aren't captured at all. Structured capture changes are prerequisites, not afterthoughts.</li>
+        <li><b>Keep the sandbox.</b> This site stays as the rapid-iteration layer for new requirements — mock here, validate definitions, then promote to Epic/Diver. Retire each mockup once its production equivalent reconciles.</li>
+      </ul>
+    </div>
+
+    <div class="sec">Where Each Thing Belongs — Decision Framework</div>
+    <div class="fw">
+      <div class="fwc" style="--accent:#2B2C6B"><h4>Epic-native</h4><p>Data originates in Epic and users act on it during the workday: referral and imaging worklists, receipt-confirmation queues, denial/edit work queues, provider-level productivity. Tools: <b>Radar dashboards, Reporting Workbench, SlicerDicer, Workqueues</b>. Fastest path when the host instance already licenses similar Foundation content.</p></div>
+      <div class="fwc" style="--accent:#0E8A6E"><h4>Diver (Dimensional Insight)</h4><p>Cross-domain scorecards, month-over-month trending, and leadership views that blend Epic clinical/PB data with other sources: the billing scorecard, referral loop-closure by specialty/facility, internal access &amp; capacity. Specialty ops already operates here — extend their portfolio.</p></div>
+      <div class="fwc" style="--accent:#6D6E71"><h4>Stay in mockup (for now)</h4><p>Anything still changing weekly, plus future-state views tied to the referral-automation vendor decision — notably the <b>imaging workflow process map</b> (Phase 2 by agreement). Promote only when definitions stabilize and event-level data exists.</p></div>
+    </div>
+
+    <div class="sec">Phases</div>
+    <div class="phase"><div class="pnum">0</div><div class="pbody">
+      <h3>Governance &amp; Metric Dictionary</h3><div class="when">Weeks 1–2</div>
+      <ul>
+        <li>Convert each mockup into a one-page <b>metric dictionary</b>: definition, numerator/denominator, source field, target, owner. Most targets are already encoded on the dashboards (loop closure ≥80%, internal time-to-schedule ≤7d, time-to-first-appt ≤14d, copay collection ≥95%, receipt confirmation STAT ≤24h / all ≤4d, image return 12/24/48h by priority).</li>
+        <li>Sign-off owners: referrals — Christina; imaging — Swami's team; billing scorecard — Mary Knox / RCM; internal service lines — specialty ops (Jennifer Lattimer); provider performance — CMO office.</li>
+        <li>Decide the administrative-vs-clinical closure distinction for loop-closure math (120-day auto-closures reported separately) before anything is built.</li>
+      </ul>
+    </div></div>
+    <div class="phase"><div class="pnum">1</div><div class="pbody">
+      <h3>Feasibility, Inventory &amp; Access</h3><div class="when">Weeks 2–4</div>
+      <ul>
+        <li><b>Host-instance permissions:</b> Avance's Epic is affiliate-hosted, so report/dashboard build access must be requested formally. Scope the ask now — read access to Clarity/Caboodle for referrals, Cadence, and PB, plus Radar/Reporting Workbench build rights — because this is the long pole.</li>
+        <li><b>Inventory existing content:</b> session with Jennifer Lattimer + specialty ops on the current Diver portfolio; ask the host instance what Foundation/Radar revenue-cycle and referral dashboards already exist. Map every mockup metric to "exists / extend / net-new."</li>
+        <li><b>Data-capture gap list</b> (known so far): referral outreach attempts &amp; channel live in the communication→note section, not structured fields; imaging receipt-confirmation timestamps are manual; no-show (and 99050/99051 after-hours) fee capture needs charge-router confirmation; high-value specialist flag needs a maintained attribute table; TTFA requires linking referral → first completed appointment.</li>
+        <li>Confirm analyst capacity and slot this work into the analytics request portfolio rather than around it.</li>
+      </ul>
+    </div></div>
+    <div class="phase"><div class="pnum">2</div><div class="pbody">
+      <h3>Epic-Native Quick Wins</h3><div class="when">Weeks 4–8</div>
+      <ul>
+        <li>Referral and imaging <b>worklists</b> in Reporting Workbench: orders awaiting receipt confirmation (aging), referrals unscheduled &gt;X days, appointments &gt;24h without a returned result — the queues the process map identified.</li>
+        <li>Radar components for the daily operational metrics: outgoing referral TAT, receipt-confirmation cadence, denial/edit work-queue depth with aging.</li>
+        <li>PB metrics that are standard Clarity fare: denial rate by CARC/RARC grouping, clean-claim/first-pass rate, days in A/R, net collection rate, charge lag, write-offs by adjustment code (mapped to Mary's reason categories).</li>
+        <li>Structured-capture fixes from Phase 1 go in <i>during</i> this window so the data starts accruing.</li>
+      </ul>
+    </div></div>
+    <div class="phase"><div class="pnum">3</div><div class="pbody">
+      <h3>Diver Scorecards</h3><div class="when">Weeks 6–12</div>
+      <ul>
+        <li><b>Professional billing scorecard</b> (Mary's list): monthly, by clinic and provider — copay collection, outstanding-balance collection, no-show and after-hours fee collections, coding denials, missed charges, appeal &amp; overturn rates, write-offs by reason, days in A/R, net collection rate.</li>
+        <li><b>Referral loop-closure scorecard:</b> completion rate by specialty (high-value flagged) and by facility, days to close, failure reasons, administrative vs. clinical closures — trending monthly.</li>
+        <li><b>Internal access &amp; capacity:</b> time-to-schedule and time-to-first-appointment by service line (BH, Nutrition, Neurology, Psychiatry), specialist open-schedule/utilization, new-patient flow per provider — extending the existing specialty-ops Diver content.</li>
+      </ul>
+    </div></div>
+    <div class="phase"><div class="pnum">4</div><div class="pbody">
+      <h3>Validation &amp; Cutover</h3><div class="when">Rolling, per dashboard</div>
+      <ul>
+        <li>Parallel-run each production build against its metric dictionary for one month; reconcile discrepancies (usually definition drift or capture gaps, not build errors).</li>
+        <li>Review with the operational owner (does the number match their lived reality?), then mark the corresponding mockup "superseded — see Epic/Diver" and stop maintaining it.</li>
+      </ul>
+    </div></div>
+    <div class="phase"><div class="pnum">5</div><div class="pbody">
+      <h3>Rollout &amp; Continuous Improvement</h3><div class="when">Ongoing</div>
+      <ul>
+        <li>Training per audience: front-desk (collections scorecard), referral coordinators (worklists), practice managers (clinic scorecards), leadership (Diver).</li>
+        <li>Monthly PDSA cadence: plan the process change → implement → watch the metric → check for slip-back. The imaging workflow map becomes the monitoring layer for the automation-vendor rollout when that lands (its agreed Phase-2 role).</li>
+      </ul>
+    </div></div>
+
+    <div class="sec">Per-Dashboard Mapping</div>
+    <div class="card tblcard">
+      <table>
+        <thead><tr><th>Mockup dashboard</th><th>Primary Epic source</th><th>Build target</th><th>Key gaps / dependencies</th><th>Owner</th><th>Complexity</th></tr></thead>
+        <tbody>
+          <tr><td class="nm">Outgoing Referrals</td><td>Referrals module (order records, statuses), Cadence</td><td><span class="pill p-both">Epic + Diver</span></td><td>High-value specialist attribute table; redirection/OON coding</td><td>Christina / referral ops</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Internal Referrals</td><td>Referrals + Cadence templates (utilization, open slots)</td><td><span class="pill p-diver">Diver (extend)</span></td><td>TTFA needs referral→first-completed-appt link; extend existing BH/Nutrition Diver content, don't duplicate</td><td>Specialty ops (Lattimer)</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Referral Completion</td><td>Referral statuses + received documentation events</td><td><span class="pill p-diver">Diver</span></td><td>Administrative-vs-clinical closure split; failure-reason coding discipline</td><td>Christina + specialty ops</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Inbound Referrals</td><td>Intake work queues, Cadence conversion</td><td><span class="pill p-epic">Epic</span></td><td>Source attribution for external senders</td><td>Referral ops</td><td><span class="pill p-lo">Low–Med</span></td></tr>
+          <tr><td class="nm">Diagnostic Imaging</td><td>Orders + interface status; receipt-confirmation events</td><td><span class="pill p-both">Epic + Diver</span></td><td>Receipt-confirmation timestamp is manual today; interfaced-vs-fax flag; Aura/Epic interface roadmap (Atrium et al.); screening-study exclusion logic</td><td>Swami's team</td><td><span class="pill p-hi">Med–High</span></td></tr>
+          <tr><td class="nm">Imaging Workflow (process map)</td><td>Event-level queue data (mostly doesn't exist yet)</td><td><span class="pill p-hold">Hold — Phase 2</span></td><td>Tied to automation-vendor implementation; becomes the PDSA monitoring layer</td><td>TBD w/ vendor</td><td><span class="pill p-hi">High</span></td></tr>
+          <tr><td class="nm">Provider Performance</td><td>Clarity visit/RVU, quality registries, PB, Press Ganey feed</td><td><span class="pill p-epic">Epic (Radar)</span></td><td>Check host-instance Foundation dashboards first; benchmark governance</td><td>CMO office</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Professional Billing / scorecard</td><td>PB Clarity: transactions, CARC/RARC denials, adjustment codes; Cadence POS payments</td><td><span class="pill p-both">Epic + Diver</span></td><td>Write-off reason ↔ adjustment-code mapping; 99050/99051 &amp; no-show fee charge capture; copay POS data</td><td>Mary Knox / RCM</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Referral Clinical Review</td><td>—</td><td><span class="pill p-hold">Hold</span></td><td>Revisit if STAT-abuse feedback loop is prioritized</td><td>CMO office</td><td><span class="pill p-lo">Low</span></td></tr>
+          <tr><td class="nm">Analytics Requests</td><td>—</td><td><span class="pill p-hold">Keep as-is</span></td><td>Intake/triage tool; use it to schedule this plan's build slots</td><td>Analytics</td><td><span class="pill p-lo">Low</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sec">Cross-Cutting Risks &amp; Dependencies</div>
+    <div class="card risk">
+      <ul>
+        <li><b>Host-instance access is the critical path.</b> Build rights and Clarity access on an affiliate-hosted Epic take weeks-to-months; start the request in week 1 and design Phase 2 around what's granted.</li>
+        <li><b>Data capture precedes truth.</b> Until outreach attempts, receipt confirmations, and fee capture are structured, those mockup metrics can't be validated — sequence capture changes first.</li>
+        <li><b>Vendor overlap.</b> The referral-automation vendor will change the imaging/referral workflows this plan measures; keep Phase-2 builds metric-stable (definitions) even as the process underneath changes, and hold the process-map build until the vendor design is final.</li>
+        <li><b>Analyst capacity.</b> This portfolio competes with the existing analytics request queue; without dedicated slots, Phase 2 slips. Use the analytics-requests triage to make the trade-offs explicit.</li>
+        <li><b>Duplication risk.</b> Diver already covers parts of internal referrals; Epic Foundation likely covers parts of provider performance and PB. The Phase-1 inventory exists to prevent rebuilding either.</li>
+        <li><b>Compliance posture.</b> Avance's conservative legal/consent stance means any AI-assisted or automated outreach components need early compliance review — keep reporting builds (this plan) decoupled from automation decisions so they aren't blocked together.</li>
+      </ul>
+    </div>
+
+    <div class="sec">Next Two Weeks</div>
+    <div class="card next">
+      <ul>
+        <li>Circulate metric dictionaries for the three signed-off areas (outgoing referrals, internal referrals, billing scorecard) — Christina, Mary, Swami to confirm definitions and targets.</li>
+        <li>Submit the Epic host-instance access/build request (long pole — start immediately).</li>
+        <li>Diver inventory session with Jennifer Lattimer + specialty ops (in-person window, week of 7/20).</li>
+        <li>Swami walkthrough of the imaging dashboard to validate the interfaced-vs-fax framing and receipt-confirmation KPI.</li>
+        <li>Identify the Epic analyst + Diver developer who own Phase 2/3 builds, and reserve capacity via the analytics request portfolio.</li>
+      </ul>
+    </div>
+
+    <div class="foot">Draft v1 · prepared July 2026 · companion to the mockup dashboards on this site. Mockups remain the rapid-iteration layer; this page tracks promotion to Epic/Diver. Restricted to authorized Avance Care leadership.</div>
+  </div>
+</div>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>
