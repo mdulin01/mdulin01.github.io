@@ -89,11 +89,25 @@
       <div class="card"><h3>Charges vs. Collections — last 6 months</h3><div class="h">Gross charges vs. net collections</div><div class="cb" style="height:200px"><canvas id="cTrend"></canvas></div></div>
     </div>
 
+    <div class="sec">Patient &amp; Front-Desk Collections <span>— copays, patient balances, no-show &amp; after-hours fees (practice-owned)</span></div>
+    <div class="kpis" id="kFd"></div>
+    <div class="grid">
+      <div class="card"><h3>Copay Collection by Clinic</h3><div class="h">% of copays collected at time of service · target ≥95%</div><div class="cb"><canvas id="cCopay"></canvas></div></div>
+      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Clinic</th><th class="num">Copay %</th><th class="num">Balance Coll. %</th><th class="num">No-Show Fees</th><th class="num">After-Hours Fees</th></tr></thead><tbody id="fdBody"></tbody></table></div>
+    </div>
+
     <div class="sec">Errors &amp; Edits <span>— claims stopped by edits, by category</span></div>
     <div class="kpis" id="kErr" style="grid-template-columns:repeat(3,1fr)"></div>
     <div class="grid">
       <div class="card"><h3>Dollars Held by Error Category</h3><div class="h">Where revenue is stopped before it goes out the door</div><div class="cb"><canvas id="cErr"></canvas></div><div class="legend2"><span><i style="background:#2B2C6B"></i>Practice (front desk / coding)</span><span><i style="background:#0E8A6E"></i>Central office (RCM / IT)</span></div></div>
       <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Error Category</th><th>Owner</th><th class="num">Errors</th><th class="num">$ Affected</th></tr></thead><tbody id="errBody"></tbody></table></div>
+    </div>
+
+    <div class="sec">Denials, Appeals &amp; Write-Offs <span>— coding denials, missed charges, appeal recovery, and where revenue is written off</span></div>
+    <div class="kpis" id="kDen"></div>
+    <div class="grid">
+      <div class="card"><h3>Write-Offs by Reason</h3><div class="h">$ written off this period — preventable reasons in red/amber</div><div class="cb"><canvas id="cWo"></canvas></div></div>
+      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Write-Off Reason</th><th class="num">Count</th><th class="num">Amount</th><th>Classification</th></tr></thead><tbody id="woBody"></tbody></table></div>
     </div>
 
     <div class="sec">Work Queues — Backlog <span>— unresolved items still sitting, with aging</span></div>
@@ -132,6 +146,8 @@ const PROV=[
 ];
 const ERRCATS=[["Registration",210,72000,"Practice",C.navy],["Professional Coding",102,50000,"Practice / Coding",C.navy],["Project Team / System",198,27000,"Central Office",C.teal],["Billing / Posting",157,23000,"Central Office",C.teal]];
 const WQCATS=[["Professional Coding",352,91000,45,60,"Practice / Coding"],["Registration",210,72000,35,48,"Practice"],["Project Team",189,39000,57,74,"Central Office"]];
+const FD={"Holly Springs":[96,44,900,58,1450],"Apex":[91,38,1240,41,1690],"Charlotte — SouthPark":[86,31,1480,33,1210],"Midtown Charlotte":[89,35,1370,38,1980],"Chapel Hill":[97,47,820,63,1540],"Durham":[90,36,1310,40,1720],"Rea Farms":[95,45,880,61,2100],"Fuquay-Varina":[97,49,760,66,1380]};
+const WRITEOFFS=[["Timely filing",34,41800,"Preventable"],["Dx code incorrect / med. necessity",29,36500,"Preventable"],["Authorization missing",18,22400,"Preventable"],["Credentialing / enrollment",9,15200,"Partially preventable"],["Small balance / admin",64,6900,"Policy"],["Uncollectible / bad debt",22,18600,"Policy"]];
 
 let region="all",clinicSel=[],provId="all",period="mtd",charts={};
 const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
@@ -183,6 +199,22 @@ function render(){
   document.getElementById("kProd").innerHTML=prod.map(c=>`<div class="kpi" ${c.drill?`data-drill="${c.drill}"`:''}>${c.drill?'<span class="dz">⤢</span>':''}<div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
   document.querySelectorAll('#kProd .kpi[data-drill]').forEach(el=>el.onclick=()=>openDrill(el.dataset.drill));
 
+  // ---- patient & front-desk collections ----
+  const CLW={};active().forEach(p=>{CLW[p.clinic]=(CLW[p.clinic]||0)+p.charges;});
+  const fdRows=Object.keys(CLW).sort().map(c=>[c].concat(FD[c]||[90,38,1000,45,1500]));
+  const wsum=Object.values(CLW).reduce((a,b)=>a+b,0)||1, wavg=i=>fdRows.reduce((a,r)=>a+r[i]*(CLW[r[0]]||0),0)/wsum;
+  const copay=wavg(1),balCol=wavg(2),nsPct=wavg(4);
+  const nsBilled=fdRows.reduce((a,r)=>a+r[3],0)*f, nsCol=fdRows.reduce((a,r)=>a+r[3]*r[4]/100,0)*f, ahTot=fdRows.reduce((a,r)=>a+r[5],0)*f;
+  document.getElementById("kFd").innerHTML=[
+    {l:"Copay Collection Rate",n:copay.toFixed(0)+"%",s:"at time of service · target ≥95%",ac:tone(copay,true,95,90)},
+    {l:"Outstanding Balance Collection",n:balCol.toFixed(0)+"%",s:"patient balances collected ≤90 d · target ≥50%",ac:tone(balCol,true,50,38)},
+    {l:"No-Show Fee Collections",n:money(nsCol),s:Math.round(nsPct)+"% of "+money(nsBilled)+" billed",ac:tone(nsPct,true,60,45)},
+    {l:"After-Hours Fee Collections",n:money(ahTot),s:"99050/99051 captured this period",ac:C.teal},
+  ].map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  charts.cp&&charts.cp.destroy();
+  charts.cp=new Chart(document.getElementById("cCopay"),{data:{labels:fdRows.map(r=>r[0]),datasets:[{type:"bar",label:"Copay %",data:fdRows.map(r=>r[1]),backgroundColor:fdRows.map(r=>tone(r[1],true,95,90)),borderRadius:5},{type:"line",label:"Target 95%",data:fdRows.map(()=>95),borderColor:C.greenD,borderDash:[6,4],pointRadius:0}]},options:{plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}},scales:{y:{min:70,max:100}}}});
+  document.getElementById("fdBody").innerHTML=fdRows.map(r=>`<tr><td class="nm">${r[0]}</td><td class="num">${tagp(r[1]+'%',tone(r[1],true,95,90))}</td><td class="num">${tagp(r[2]+'%',tone(r[2],true,50,38))}</td><td class="num">${money(r[3]*r[4]/100*f)}<small style="color:var(--muted)"> of ${money(r[3]*f)}</small></td><td class="num">${money(r[5]*f)}</td></tr>`).join("");
+
   // errors
   const E=errScaled(), eTot=E.reduce((a,c)=>a+c[1],0), eDol=E.reduce((a,c)=>a+c[2],0), eTop=[...E].sort((a,b)=>b[2]-a[2])[0];
   document.getElementById("kErr").innerHTML=[
@@ -194,6 +226,21 @@ function render(){
   charts.err&&charts.err.destroy();
   charts.err=new Chart(document.getElementById("cErr"),{type:"bar",data:{labels:Es.map(c=>c[0]),datasets:[{data:Es.map(c=>c[2]),backgroundColor:Es.map(c=>c[4]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.x)}}},scales:{x:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000)+'K'}}}}});
   document.getElementById("errBody").innerHTML=Es.map(c=>`<tr><td class="nm">${c[0]}</td><td>${ownerPill(c[3])}</td><td class="num">${c[1].toLocaleString()}</td><td class="num">${money(c[2])}</td></tr>`).join("");
+
+  // ---- denials, appeals & write-offs ----
+  const WO=WRITEOFFS.map(w=>[w[0],round(w[1]*shareSel()*f),round(w[2]*shareSel()*f),w[3]]).sort((a,b)=>b[2]-a[2]);
+  const woTot=WO.reduce((a,w)=>a+w[2],0), woPrev=WO.filter(w=>/^Prevent/.test(w[3])).reduce((a,w)=>a+w[2],0);
+  const codingDR=denialRate*0.38, missedPct=3.1, missedDol=charges*0.012, appealRate=58, overturnRate=42;
+  document.getElementById("kDen").innerHTML=[
+    {l:"Coding Denial Rate",n:codingDR.toFixed(1)+"%",s:"of claims · "+Math.round(codingDR/denialRate*100)+"% of all denials · target ≤2%",ac:tone(codingDR,false,2,3)},
+    {l:"Missed Charges Rate",n:missedPct+"%",s:"encounters w/o charge · ≈"+moneyK(missedDol)+" est.",ac:tone(missedPct,false,2,4)},
+    {l:"Denial Appeal Rate",n:appealRate+"%",s:overturnRate+"% of appeals overturned &amp; paid",ac:tone(appealRate,true,60,45)},
+    {l:"Write-Offs",n:moneyK(woTot),s:moneyK(woPrev)+" preventable ("+Math.round(woPrev/woTot*100)+"%)",ac:tone(100-woPrev/woTot*100,true,60,45)},
+  ].map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  const woColor=t=>/^Prevent/.test(t)?C.red:/Partial/.test(t)?C.amber:C.gray;
+  charts.wo&&charts.wo.destroy();
+  charts.wo=new Chart(document.getElementById("cWo"),{type:"bar",data:{labels:WO.map(w=>w[0]),datasets:[{data:WO.map(w=>w[2]),backgroundColor:WO.map(w=>woColor(w[3])),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>money(c.parsed.x)}}},scales:{x:{beginAtZero:true,ticks:{callback:v=>moneyK(v)}}}}});
+  document.getElementById("woBody").innerHTML=WO.map(w=>`<tr><td class="nm">${w[0]}</td><td class="num">${w[1]}</td><td class="num">${money(w[2])}</td><td>${tagp(w[3],woColor(w[3]))}</td></tr>`).join("");
 
   // work queues
   const W=wqScaled(), wTot=W.reduce((a,c)=>a+c[1],0), wDol=W.reduce((a,c)=>a+c[2],0), wOld=[...W].sort((a,b)=>b[4]-a[4])[0];
@@ -227,7 +274,7 @@ function render(){
   document.getElementById("tbody").innerHTML=sel.map(p=>{const pc=p.charges*f,pp=p.payments*f,nr=pp/(pc-p.contractual*f)*100;return `<tr>
     <td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${money(pc)}</td><td class="num">${money(pp)}</td>
     <td class="num">${pc2(nr.toFixed(1)+'%',tone(nr,true,95,92))}</td><td class="num">${pc2(p.lag.toFixed(1)+' d',tone(p.lag,false,3,4))}</td><td class="num">${pc2(p.cleanPaid+'%',tone(p.cleanPaid,true,50,20))}</td></tr>`;}).join("");
-  document.getElementById("foot").innerHTML="Illustrative / synthetic professional-billing data structured to mirror the Avance Care PB report. Each KPI is clickable for a Practice-vs-Central-Office root-cause breakdown. Error/work-queue figures are network totals scaled by the current selection. Targets &amp; dollar splits are placeholders — replace with the live PB / SlicerDicer export.";
+  document.getElementById("foot").innerHTML="Illustrative / synthetic professional-billing data structured to mirror the Avance Care PB report. Each KPI is clickable for a Practice-vs-Central-Office root-cause breakdown. Error/work-queue figures are network totals scaled by the current selection. Targets &amp; dollar splits are placeholders — replace with the live PB / SlicerDicer export. Collections &amp; write-off scorecard panels added per M. Knox (7/15): copay / outstanding-balance / no-show / after-hours collections, coding denials, missed charges, appeal rate, write-offs by reason, days in A/R, net collection rate.";
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 
@@ -312,8 +359,10 @@ window.AVANCE_AI={
    const E=errScaled(),W=wqScaled(),wDol=W.reduce((a,c)=>a+c[2],0),wItems=W.reduce((a,c)=>a+c[1],0);
    const reg=E.find(c=>c[0]==='Registration'),cod=W.find(c=>c[0]==='Professional Coding');
    return '<b>'+scope+'</b>: charge lag is strong ('+d.lag.toFixed(1)+' d vs enterprise '+ENTERPRISE_LAG+' d) but clean paid rate is low (~'+Math.round(d.cleanPaid)+'%). <b>'+moneyK(wDol)+'</b> across <b>'+wItems.toLocaleString()+'</b> items is stuck in work queues, aging 45–74 days. Most-fixable leaks are <b>practice-side</b>: Registration ('+moneyK(reg?reg[2]:0)+') and the Coding backlog ('+moneyK(cod?cod[2]:0)+'). Click any KPI to see Practice vs Central-Office drivers.';},
- chips:['Where is the biggest ROI?','What is aging the most?','Why is the clean paid rate low?'],
+ chips:['Where is the biggest ROI?','How are front-desk collections?','Where are we writing off revenue?'],
  answer:function(q){const d=agg(),ql=q.toLowerCase(),E=errScaled(),W=wqScaled();const reg=E.find(c=>c[0]==='Registration'),cod=W.find(c=>c[0]==='Professional Coding');
+   if(/copay|front.?desk|no.?show|after.?hours|balance|patient collect/.test(ql)){const CLW={};active().forEach(p=>{CLW[p.clinic]=(CLW[p.clinic]||0)+p.charges;});const fr=Object.keys(CLW).sort().map(c=>[c].concat(FD[c]||[90,38,1000,45,1500]));const worst=fr.slice().sort((a,b)=>a[1]-b[1])[0];return '<h5>Front-desk collections</h5>Copay collection ranges '+fr.slice().sort((a,b)=>a[1]-b[1])[0][1]+'–'+fr.slice().sort((a,b)=>b[1]-a[1])[0][1]+'% across clinics (target ≥95%). Lowest: <b>'+worst[0]+'</b> at '+worst[1]+'% — time-of-service collection scripting and card-on-file are the levers. Patient-balance collection and no-show fee collection follow the same clinic pattern: where copay discipline is strong, everything else is too.';}
+   if(/write.?off|appeal|timely|missed charge|coding denial/.test(ql))return '<h5>Write-offs &amp; appeals</h5>The largest write-off reasons are timely filing and dx-coding/medical-necessity — both preventable (front-end coding + central filing discipline). ~58% of denials are appealed and 42% of appeals overturn, so unappealed denials are being left on the table. Missed charges (~3.1% of encounters) are pure practice-side leakage — daily encounter-closure reconciliation catches them.';
    if(/roi|biggest|first|fix|priorit|practice|central/.test(ql))return '<h5>Highest ROI — and who owns it</h5>1) <b>Registration / eligibility (Practice)</b> — '+moneyK(reg?reg[2]:0)+' in front-end errors. 2) <b>Coding capacity (Practice/Coding)</b> — '+moneyK(cod?cod[2]:0)+' backlog. Central office owns denials, payer follow-up and posting. The front-end practice fixes are faster and higher-ROI. Click Net Collection Rate for the full split.';
    if(/aging|old|stuck|days|timely|a\/?r/.test(ql))return '<h5>Aging</h5>Work-queue items age 30–57 days and date-of-service ages run 40–74 days. A/R 90+ is the risk bucket — escalate it first. Click A/R Balance or Days in A/R for the 30/60/90 split and owners.';
    if(/clean|paid|first.?pass|rework/.test(ql))return '<h5>Clean paid rate</h5>~'+Math.round(d.cleanPaid)+'% first-pass paid — most claims need rework. Root cause is front-end (registration + coding, practice-side). Pre-bill edits + real-time eligibility lift it.';
