@@ -85,7 +85,7 @@
       <h3>Governance &amp; Metric Dictionary</h3><div class="when">Weeks 1–2</div>
       <ul>
         <li>Convert each mockup into a one-page <b>metric dictionary</b>: definition, numerator/denominator, source field, target, owner. Most targets are already encoded on the dashboards (loop closure ≥80%, internal time-to-schedule ≤7d, time-to-first-appt ≤14d, copay collection ≥95%, receipt confirmation STAT ≤24h / all ≤4d, image return 12/24/48h by priority).</li>
-        <li>Sign-off owners: referrals — Christina; imaging — Swami's team; billing scorecard — Mary Knox / RCM; internal service lines — specialty ops (Jennifer Lattimer); provider performance — CMO office.</li>
+        <li>Sign-off owners: referrals — Christina; imaging — Zwami's team; billing scorecard — Dr. Knox / RCM; internal service lines — specialty ops (Jennifer Lattimer); provider performance — Dr. Steventon (CMO).</li>
         <li>Decide the administrative-vs-clinical closure distinction for loop-closure math (120-day auto-closures reported separately) before anything is built.</li>
       </ul>
     </div></div>
@@ -103,14 +103,14 @@
       <ul>
         <li>Referral and imaging <b>worklists</b> in Reporting Workbench: orders awaiting receipt confirmation (aging), referrals unscheduled &gt;X days, appointments &gt;24h without a returned result — the queues the process map identified.</li>
         <li>Radar components for the daily operational metrics: outgoing referral TAT, receipt-confirmation cadence, denial/edit work-queue depth with aging.</li>
-        <li>PB metrics that are standard Clarity fare: denial rate by CARC/RARC grouping, clean-claim/first-pass rate, days in A/R, net collection rate, charge lag, write-offs by adjustment code (mapped to Mary's reason categories).</li>
+        <li>PB metrics that are standard Clarity fare: denial rate by CARC/RARC grouping, clean-claim/first-pass rate, days in A/R, net collection rate, charge lag, write-offs by adjustment code (mapped to Dr. Knox's reason categories).</li>
         <li>Structured-capture fixes from Phase 1 go in <i>during</i> this window so the data starts accruing.</li>
       </ul>
     </div></div>
     <div class="phase"><div class="pnum">3</div><div class="pbody">
       <h3>Diver Scorecards</h3><div class="when">Weeks 6–12</div>
       <ul>
-        <li><b>Professional billing scorecard</b> (Mary's list): monthly, by clinic and provider — copay collection, outstanding-balance collection, no-show and after-hours fee collections, coding denials, missed charges, appeal &amp; overturn rates, write-offs by reason, days in A/R, net collection rate.</li>
+        <li><b>Professional billing scorecard</b> (Dr. Knox's list): monthly, by clinic and provider — copay collection, outstanding-balance collection, no-show and after-hours fee collections, coding denials, missed charges, appeal &amp; overturn rates, write-offs by reason, days in A/R, net collection rate.</li>
         <li><b>Referral loop-closure scorecard:</b> completion rate by specialty (high-value flagged) and by facility, days to close, failure reasons, administrative vs. clinical closures — trending monthly.</li>
         <li><b>Internal access &amp; capacity:</b> time-to-schedule and time-to-first-appointment by service line (BH, Nutrition, Neurology, Psychiatry), specialist open-schedule/utilization, new-patient flow per provider — extending the existing specialty-ops Diver content.</li>
       </ul>
@@ -139,11 +139,11 @@
           <tr><td class="nm">Internal Referrals</td><td>Referrals + Cadence templates (utilization, open slots)</td><td><span class="pill p-diver">Diver (extend)</span></td><td>TTFA needs referral→first-completed-appt link; extend existing BH/Nutrition Diver content, don't duplicate</td><td>Specialty ops (Lattimer)</td><td><span class="pill p-md">Medium</span></td></tr>
           <tr><td class="nm">Referral Completion</td><td>Referral statuses + received documentation events</td><td><span class="pill p-diver">Diver</span></td><td>Administrative-vs-clinical closure split; failure-reason coding discipline</td><td>Christina + specialty ops</td><td><span class="pill p-md">Medium</span></td></tr>
           <tr><td class="nm">Inbound Referrals</td><td>Intake work queues, Cadence conversion</td><td><span class="pill p-epic">Epic</span></td><td>Source attribution for external senders</td><td>Referral ops</td><td><span class="pill p-lo">Low–Med</span></td></tr>
-          <tr><td class="nm">Diagnostic Imaging</td><td>Orders + interface status; receipt-confirmation events</td><td><span class="pill p-both">Epic + Diver</span></td><td>Receipt-confirmation timestamp is manual today; interfaced-vs-fax flag; Aura/Epic interface roadmap (Atrium et al.); screening-study exclusion logic</td><td>Swami's team</td><td><span class="pill p-hi">Med–High</span></td></tr>
+          <tr><td class="nm">Diagnostic Imaging</td><td>Orders + interface status; receipt-confirmation events</td><td><span class="pill p-both">Epic + Diver</span></td><td>Receipt-confirmation timestamp is manual today; interfaced-vs-fax flag; Aura/Epic interface roadmap (Atrium et al.); screening-study exclusion logic</td><td>Zwami's team</td><td><span class="pill p-hi">Med–High</span></td></tr>
           <tr><td class="nm">Imaging Workflow (process map)</td><td>Event-level queue data (mostly doesn't exist yet)</td><td><span class="pill p-hold">Hold — Phase 2</span></td><td>Tied to automation-vendor implementation; becomes the PDSA monitoring layer</td><td>TBD w/ vendor</td><td><span class="pill p-hi">High</span></td></tr>
-          <tr><td class="nm">Provider Performance</td><td>Clarity visit/RVU, quality registries, PB, Press Ganey feed</td><td><span class="pill p-epic">Epic (Radar)</span></td><td>Check host-instance Foundation dashboards first; benchmark governance</td><td>CMO office</td><td><span class="pill p-md">Medium</span></td></tr>
-          <tr><td class="nm">Professional Billing / scorecard</td><td>PB Clarity: transactions, CARC/RARC denials, adjustment codes; Cadence POS payments</td><td><span class="pill p-both">Epic + Diver</span></td><td>Write-off reason ↔ adjustment-code mapping; 99050/99051 &amp; no-show fee charge capture; copay POS data</td><td>Mary Knox / RCM</td><td><span class="pill p-md">Medium</span></td></tr>
-          <tr><td class="nm">Referral Clinical Review</td><td>—</td><td><span class="pill p-hold">Hold</span></td><td>Revisit if STAT-abuse feedback loop is prioritized</td><td>CMO office</td><td><span class="pill p-lo">Low</span></td></tr>
+          <tr><td class="nm">Provider Performance</td><td>Clarity visit/RVU, quality registries, PB, Press Ganey feed</td><td><span class="pill p-epic">Epic (Radar)</span></td><td>Check host-instance Foundation dashboards first; benchmark governance</td><td>Dr. Steventon (CMO)</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Professional Billing / scorecard</td><td>PB Clarity: transactions, CARC/RARC denials, adjustment codes; Cadence POS payments</td><td><span class="pill p-both">Epic + Diver</span></td><td>Write-off reason ↔ adjustment-code mapping; 99050/99051 &amp; no-show fee charge capture; copay POS data</td><td>Dr. Knox / RCM</td><td><span class="pill p-md">Medium</span></td></tr>
+          <tr><td class="nm">Referral Clinical Review</td><td>—</td><td><span class="pill p-hold">Hold</span></td><td>Revisit if STAT-abuse feedback loop is prioritized</td><td>Dr. Steventon (CMO)</td><td><span class="pill p-lo">Low</span></td></tr>
           <tr><td class="nm">Analytics Requests</td><td>—</td><td><span class="pill p-hold">Keep as-is</span></td><td>Intake/triage tool; use it to schedule this plan's build slots</td><td>Analytics</td><td><span class="pill p-lo">Low</span></td></tr>
         </tbody>
       </table>
@@ -164,10 +164,10 @@
     <div class="sec">Next Two Weeks</div>
     <div class="card next">
       <ul>
-        <li>Circulate metric dictionaries for the three signed-off areas (outgoing referrals, internal referrals, billing scorecard) — Christina, Mary, Swami to confirm definitions and targets.</li>
+        <li>Circulate metric dictionaries for the three signed-off areas (outgoing referrals, internal referrals, billing scorecard) — Christina, Dr. Knox, and Zwami to confirm definitions and targets.</li>
         <li>Submit the Epic host-instance access/build request (long pole — start immediately).</li>
         <li>Diver inventory session with Jennifer Lattimer + specialty ops (in-person window, week of 7/20).</li>
-        <li>Swami walkthrough of the imaging dashboard to validate the interfaced-vs-fax framing and receipt-confirmation KPI.</li>
+        <li>Zwami walkthrough of the imaging dashboard to validate the interfaced-vs-fax framing and receipt-confirmation KPI.</li>
         <li>Identify the Epic analyst + Diver developer who own Phase 2/3 builds, and reserve capacity via the analytics request portfolio.</li>
       </ul>
     </div>
