@@ -101,6 +101,20 @@
   .pcard .lnk{display:flex;gap:10px;flex-wrap:wrap;font-size:.8rem}
   .pmeta{display:flex;gap:5px;flex-wrap:wrap;margin:7px 0}.pbadge{font-size:.66rem;border-radius:999px;padding:2px 7px;background:#edf1f4;color:var(--muted);font-weight:750}.pbadge.ok{background:var(--task-soft);color:var(--task)}
   .pnext{font-size:.76rem;color:var(--muted);border-top:1px solid var(--line);padding-top:7px;margin-top:7px}
+  /* Folio private command center */
+  .foliohero{background:linear-gradient(135deg,#123d45,#126b76 55%,#4a918c);color:#fff;border:0;padding:22px}
+  .foliohero h1{font-family:Georgia,serif;font-size:clamp(1.55rem,4vw,2.25rem);line-height:1.1;margin:0 0 7px}
+  .foliohero p{margin:0;color:rgba(255,255,255,.82);max-width:760px}
+  .foliotags{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0 0}.foliotag{font-size:.72rem;font-weight:750;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.24)}
+  .foliogrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.foliogrid .wide{grid-column:1/-1}
+  .boundarygrid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.boundary{border:1px solid var(--line);border-radius:9px;padding:11px;background:#fbfcfd}.boundary b{display:block}.boundary span{display:block;color:var(--muted);font-size:.8rem;margin-top:3px}
+  .phasegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.phasecard{border:1px solid var(--line);border-radius:11px;padding:13px;background:#fbfcfd}.phasehead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:9px}.phasehead b{display:block}.phasehead span{display:block;color:var(--dim);font-size:.74rem;margin-top:2px}.phasehead select{width:auto;min-width:105px;padding:6px 8px;font-size:.76rem}
+  .checkrow{display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:7px;padding:6px 0;border-bottom:1px solid var(--line)}.checkrow:last-child{border-bottom:0}.checkrow input[type=checkbox]{margin-top:9px;accent-color:var(--accent)}.checkrow input[type=text]{padding:6px 7px;font-size:.81rem;background:#fff}.checkrow .iconbtn{padding:5px 7px}
+  .phasecard textarea{font-size:.82rem;min-height:54px;margin-top:9px}.phasecard .addline{margin-top:8px}
+  .decision{border:1px solid var(--line);border-radius:9px;padding:11px;margin-bottom:8px;background:#fbfcfd}.decisiontop{display:flex;align-items:center;gap:8px}.decisiontop b{flex:1}.decisiontop select{width:auto;min-width:105px;padding:6px 8px;font-size:.76rem}.decision textarea{font-size:.82rem;min-height:52px;margin-top:8px}
+  .gategrid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}.gaterow{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;padding:7px 0;border-bottom:1px solid var(--line)}.gaterow input[type=checkbox]{margin-top:4px;accent-color:var(--accent)}.gaterow input[type=text]{padding:6px 7px;font-size:.81rem}
+  .metricrow{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:7px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}.metricrow b{font-size:.82rem}.metricrow input{padding:6px 7px;font-size:.8rem}
+  .private-note{font-size:.8rem;color:var(--muted);margin-top:8px}.private-note b{color:var(--accent-dark)}
   /* ai context */
   .ctl{padding:12px 0;border-top:1px solid var(--line)}
   .ctl:first-of-type{border-top:none;padding-top:0}
@@ -148,7 +162,7 @@
     .head .ttl{font-size:1.25rem}.wrap{width:min(100% - 20px,1120px);padding-bottom:96px}
     .tabs{position:fixed;z-index:40;left:0;right:0;bottom:0;margin:0;padding:5px 4px calc(5px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);border-bottom:0;box-shadow:0 -8px 24px rgba(31,41,51,.08);justify-content:space-around}
     .tab{min-width:0;flex:1;padding:7px 2px 5px;border:0;margin:0;font-size:.61rem;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.1}.tabicon{font-size:1.15rem;margin:0}.tab.on{background:var(--soft);border-radius:9px}
-    .handoffgrid{grid-template-columns:1fr}.handoffgrid .wide{grid-column:auto}.item .acts{flex-direction:column}.card{padding:14px}.hero{padding:19px}
+    .handoffgrid,.foliogrid{grid-template-columns:1fr}.handoffgrid .wide,.foliogrid .wide{grid-column:auto}.phasegrid,.boundarygrid,.gategrid{grid-template-columns:1fr}.metricrow{grid-template-columns:1fr}.item .acts{flex-direction:column}.card{padding:14px}.hero,.foliohero{padding:19px}
   }
 </style>
 </head>
@@ -175,6 +189,7 @@
 
   <div class="tabs">
     <button class="tab on" data-tab="focus"><span class="tabicon">◎</span><span>Focus</span></button>
+    <button class="tab" data-tab="folio"><span class="tabicon">♥</span><span>Folio</span></button>
     <button class="tab" data-tab="capture"><span class="tabicon">＋</span><span>Capture</span></button>
     <button class="tab" data-tab="roadmap"><span class="tabicon">◫</span><span>Work</span></button>
     <button class="tab" data-tab="projects"><span class="tabicon">▦</span><span>Projects</span></button>
@@ -200,18 +215,74 @@
       <div class="metric"><div class="n" id="statDoing">0</div><div class="l">In progress</div></div>
       <div class="metric"><div class="n" id="statP1">0</div><div class="l">P1 priorities</div></div>
       <div class="metric"><div class="n" id="statCapture">0</div><div class="l">Open captures</div></div>
-      <div class="metric"><div class="n" id="statLive">14/14</div><div class="l">Sites reachable · Jul 11</div></div>
+      <div class="metric"><div class="n" id="statLive">16</div><div class="l">Git repositories audited · Jul 21</div></div>
     </div>
     <div class="focusgrid">
       <div class="card"><h2>Recommended queue</h2><div id="focusQueue"></div></div>
       <div>
         <div class="card"><h2>Current handoff</h2><div id="focusHandoff" class="hint">No handoff saved yet.</div><button class="btn sec sm" id="focusCopy" style="margin-top:10px">Copy agent brief</button></div>
         <div class="card"><h2>Workspace signals</h2>
-          <div class="signal"><div>✓</div><div><b>Production reachable</b><span>14 of 14 known live sites returned HTTP 200 on Jul 11.</span></div></div>
+          <div class="signal"><div>♥</div><div><b>Folio is the priority</b><span>The private Folio tab holds the cross-device launch plan, decisions, measures, and gates.</span></div></div>
           <div class="signal"><div>⚠</div><div><b>Local folders need cleanup</b><span>Duplicate/backup folders exist for the cruise app, Mike &amp; Adam, fitness, and this site.</span></div></div>
           <div class="signal"><div>↗</div><div><b>GitHub is source of truth</b><span>Several local trees are stale or heavily modified. Start work from a fresh clone.</span></div></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- FOLIO PRIVATE COMMAND CENTER -->
+  <section class="view" id="v-folio">
+    <div class="card foliohero">
+      <h1>Folio command center</h1>
+      <p>The editable founder plan for moving from a reliable personal prototype to a safe, invite-only pilot.</p>
+      <div class="foliotags"><span class="foliotag">Private · owner only</span><span class="foliotag">Firestore synced</span><span class="foliotag">Included in agent handoff</span></div>
+      <div class="row" style="margin-top:15px;align-items:center">
+        <button class="btn" id="folioSaveTop" style="background:#fff;color:var(--accent-dark);border-color:#fff">Save plan</button>
+        <button class="btn sec" id="folioCopyTop" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.55)">Copy Markdown</button>
+        <button class="btn sec" id="folioReloadTop" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.55)">Reload saved</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>North star and current move</h2>
+      <div class="foliogrid">
+        <div class="wide"><label for="folioObjective">Outcome</label><textarea id="folioObjective"></textarea></div>
+        <div><label for="folioMilestone">Current milestone</label><input type="text" id="folioMilestone"></div>
+        <div><label for="folioTarget">Pilot target</label><input type="text" id="folioTarget"></div>
+        <div class="wide"><label for="folioNext">Exact next action</label><textarea id="folioNext"></textarea></div>
+        <div class="wide"><label for="folioBlockers">Blockers / owner decisions</label><textarea id="folioBlockers"></textarea></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Product boundary</h2>
+      <div class="boundarygrid">
+        <div class="boundary"><b>mikeshealth.app</b><span>Mike's owner-locked real-data prototype and learning environment.</span></div>
+        <div class="boundary"><b>foliohealth.app</b><span>Public story and synthetic demonstration; no PHI or pilot operations.</span></div>
+        <div class="boundary"><b>app.foliohealth.app</b><span>Mike-only sandbox today; future invite-only multi-user application in a separate cloud project.</span></div>
+        <div class="boundary"><b>mikedulinmd.app/coding.html</b><span>This private founder plan, portfolio tasks, decisions, and agent handoff.</span></div>
+      </div>
+      <p class="private-note"><b>Pilot promise:</b> Folio gathers records, preserves the source, proposes where each item belongs, and lets the patient decide. It supports coherent health stories and better clinical conversations; it does not diagnose or prescribe.</p>
+    </div>
+
+    <div class="card">
+      <h2>Build sequence</h2>
+      <p class="hint" style="margin-top:-4px">Edit tasks and notes directly. Status and checkmarks save with the plan.</p>
+      <div class="phasegrid" id="folioPhases"></div>
+    </div>
+
+    <div class="focusgrid">
+      <div class="card"><h2>Launch gate</h2><p class="hint" style="margin-top:-4px">Every item is required before inviting anyone outside Mike's own account.</p><div class="gategrid" id="folioGates"></div><button class="btn sec sm" id="folioAddGate" style="margin-top:10px">Add gate</button></div>
+      <div class="card"><h2>Decisions</h2><div id="folioDecisions"></div></div>
+    </div>
+
+    <div class="card">
+      <h2>Pilot measures</h2>
+      <div class="metricrow" style="font-size:.7rem;text-transform:uppercase;color:var(--dim);font-weight:800"><span>Measure</span><span>Target</span><span>Actual / note</span></div>
+      <div id="folioMetrics"></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="folioSaveBottom">Save plan</button><button class="btn sec" id="folioCopyBottom">Copy as Markdown</button></div>
+      <div class="status" id="folioStatus"></div>
+      <p class="private-note">Saved in owner-only <code>coding_meta/folioPlan</code>. Operational planning may be sensitive even when it contains no patient data; do not copy PHI or secret values into this plan.</p>
     </div>
   </section>
 
@@ -291,12 +362,12 @@
   <!-- PROJECTS -->
   <section class="view" id="v-projects">
     <div class="card">
-      <h2>Workspace audit <span class="upd">Jul 11, 2026</span></h2>
+      <h2>Workspace audit <span class="upd">Jul 21, 2026</span></h2>
       <div class="metricgrid" style="margin:0 0 12px">
-        <div class="metric"><div class="n">14</div><div class="l">Live apps reachable</div></div>
+        <div class="metric"><div class="n">16</div><div class="l">Git repositories found</div></div>
         <div class="metric"><div class="n">4</div><div class="l">Duplicate / backup folder groups</div></div>
-        <div class="metric"><div class="n">0</div><div class="l">Open GitHub PRs / issues here</div></div>
-        <div class="metric"><div class="n">1</div><div class="l">Natural URL fixed: /coding</div></div>
+        <div class="metric"><div class="n">3.36 GB</div><div class="l">Generated dependencies in iCloud</div></div>
+        <div class="metric"><div class="n">0</div><div class="l">Folders deleted in audit</div></div>
       </div>
       <details class="acc"><summary>Folder cleanup candidates</summary><div class="acc-body">
         <b>Do not delete automatically.</b> Compare and archive deliberately: <code>adam-the-cruise-guy/</code> vs <code>adamthecruiseguy/</code>; <code>mdulin01.github.io/</code> vs <code>mikedulinmd/</code>; <code>mikeandadam.broken/</code>; <code>mikesfitness-broken/</code>. Several mounted repositories are behind GitHub, so a fresh clone remains the safe starting point.
@@ -313,7 +384,7 @@
         <div class="desc">TEFCA IAS sync design for the Folio prototype and future clients: enrollment, sync pipeline, provenance-first record model. Interactive — editable sections, 7 decision cards, and the HealthEx call checklist with answer fields (saved in your browser).</div>
         <div class="lnk"><a href="/coding/healthex-design.html">Open working doc →</a><span style="color:var(--dim)">Jul 14, 2026</span></div>
       </div>
-      <p class="hint" style="margin-top:-4px">Other handoff + architecture docs live in the <code>Coding-Projects</code> folder (iCloud). New web-hosted docs go under <code>/coding/…</code> and get linked here.</p>
+      <p class="hint" style="margin-top:-4px">The authenticated <b>Folio</b> tab is the current, cross-device planning source. Repository detail lives in GitHub; historical handoffs remain reference material rather than competing current plans.</p>
       <div class="note-amber"><strong>Secrets:</strong> by design, no tokens or keys are stored here. Keep your GitHub PAT and API keys in a password manager (1Password / Apple Passwords) and app secrets in Vercel / Google Secret Manager. See the <b>🔐 Secrets</b> tab to track <em>where</em> each one lives and when it's due to rotate.</div>
     </div>
   </section>
@@ -526,10 +597,11 @@
 
   // Project metadata (kept in sync by hand with Coding-Projects/CLAUDE.md).
   const PROJECTS = [
+    ["folio","Folio product, roadmap, and pilot program","https://www.foliohealth.app","https://github.com/mdulin01/mikeshealth"],
+    ["folio-app","Invite-only Folio sandbox (Mike-only today)","https://app.foliohealth.app","https://github.com/mdulin01/mikeshealth"],
     ["mikeslife","LifeOS hub + Rupert","https://mikeslife.app","https://github.com/mdulin01/mikeslife"],
     ["mikes-money","Personal finance","https://www.mikesmoney.app","https://github.com/mdulin01/mikes-money"],
-    ["mikeshealth","Health / longevity","https://mikeshealth.app","https://github.com/mdulin01/mikeshealth"],
-    ["mikeshealth-demo","WholeRecord synthetic product demo","https://demo.mikeshealth.app","https://github.com/mdulin01/mikeshealth"],
+    ["mikeshealth","Mike's private real-data prototype","https://mikeshealth.app","https://github.com/mdulin01/mikeshealth"],
     ["mikesfitness","Fitness tracker","https://mikesfitness.app","https://github.com/mdulin01/mikesfitness"],
     ["mikesnutrition","Recipes / meal prep","https://mikesnutrition.app","https://github.com/mdulin01/mikesnutrition"],
     ["mikesupdates","Content feed","https://mikesupdates.app","https://github.com/mdulin01/mikesupdates"],
@@ -549,10 +621,11 @@
     ["other","Other / general","",""]
   ];
   const PROJECT_META={
+    folio:{folder:"mikeshealth + future folio repos",branch:"main",kind:"product",state:"priority"},
+    "folio-app":{folder:"mikeshealth (temporary)",branch:"main",kind:"pilot sandbox",state:"Mike-only"},
     "mikeslife":{folder:"mikeslife",branch:"main",kind:"hub",state:"active"},
     "mikes-money":{folder:"mikes-money",branch:"main",kind:"spoke",state:"active"},
     mikeshealth:{folder:"mikeshealth",branch:"main",kind:"spoke",state:"active"},
-    "mikeshealth-demo":{folder:"mikeshealth/demo",branch:"main",kind:"public demo",state:"active"},
     mikesfitness:{folder:"mikesfitness",branch:"main",kind:"spoke",state:"active"},
     mikesnutrition:{folder:"mikesnutrition",branch:"main",kind:"spoke",state:"active"},
     mikesupdates:{folder:"mikesupdates",branch:"main",kind:"spoke",state:"active"},
@@ -570,6 +643,176 @@
     "timeless-transitions":{folder:"timeless-transitions",branch:"master",kind:"website",state:"planned"},
     "apple-native":{folder:"learning track",branch:"—",kind:"learning",state:"planned"}
   };
+
+  const FOLIO_PROMISE="Folio gathers a patient's records, preserves the source, uses AI to propose where each item belongs, and lets the patient approve the result. It supports a coherent health story and better questions for clinicians; it does not diagnose or prescribe.";
+  const FOLIO_SEED={
+    version:1,
+    objective:"Prove the complete Folio loop—connect or upload, preserve source, stage, review, accept, and trace provenance—before opening a multi-user pilot.",
+    milestone:"Reliable prototype → separate multi-user foundation",
+    target:"5–10 invite-only users after every launch gate is complete",
+    nextAction:"Migrate legacy Mike-specific health seed and print/share identity values out of source code into owner-only application data; verify behavior, then plan a coordinated private-repo history cleanup.",
+    blockers:"No blocker to prototype work. External invitations remain blocked by user-scoped architecture, security/privacy operations, vendor agreements, legal review, and restore/incident readiness.",
+    phases:[
+      {id:"reliable",label:"Phase 1",title:"Reliable staging prototype",status:"active",notes:"Demonstrate the full patient-controlled loop before expanding scope.",items:[
+        {id:"r0",text:"Migrate hard-coded Mike health/identity data out of source; verify, then scrub private Git history in a coordinated operation",done:false},
+        {id:"r1",text:"Verify repeatable FHIR, C-CDA, note, and PDF imports with durable source identity",done:false},
+        {id:"r2",text:"Put the staged review inbox first and prevent silent accepted-record mutation",done:false},
+        {id:"r3",text:"Improve DiagnosticReport/DocumentReference narrative and provenance handling",done:false},
+        {id:"r4",text:"Add provider-message import and patient-approved reply-draft workflow",done:false},
+        {id:"r5",text:"Maintain a synthetic gold set for dedupe, linking, filing, and safety evaluation",done:false}
+      ]},
+      {id:"foundation",label:"Phase 2",title:"Multi-user foundation",status:"planned",notes:"Build in a separate private repository and cloud project; do not retrofit the owner-locked database in place.",items:[
+        {id:"f1",text:"Create separate folio-app repository, Firebase/Google Cloud project, and environments",done:false},
+        {id:"f2",text:"Implement user-scoped schema/rules, invite-only auth, and versioned consent ledger",done:false},
+        {id:"f3",text:"Build server-side OAuth callback and encrypted token vault",done:false},
+        {id:"f4",text:"Add audit events, access review, revocation, export, and deletion skeleton",done:false},
+        {id:"f5",text:"Submit/validate the appropriate Epic pilot registration and scopes",done:false}
+      ]},
+      {id:"experience",label:"Phase 3",title:"Pilot experience",status:"planned",notes:"Make first value obvious without hiding uncertainty or source material.",items:[
+        {id:"e1",text:"Request → accept → single-use invite → signup → onboarding flow",done:false},
+        {id:"e2",text:"Import progress, staged AI inbox, provenance drawer, and first-value Home",done:false},
+        {id:"e3",text:"Non-PHI support/feedback path and privacy-preserving pilot measures",done:false},
+        {id:"e4",text:"End-to-end authorization, deletion, incident, backup, and restore tests",done:false}
+      ]},
+      {id:"cohort",label:"Phase 4",title:"Controlled cohort",status:"planned",notes:"Mike-only and synthetic validation first; widen slowly with explicit weekly review.",items:[
+        {id:"c1",text:"Complete internal synthetic and Mike-only validation",done:false},
+        {id:"c2",text:"Invite 3 trusted users and resolve connection/comprehension failures",done:false},
+        {id:"c3",text:"Expand to 5–10 only after weekly safety and support review",done:false},
+        {id:"c4",text:"Hold broad launch until every technical and operating gate remains green",done:false}
+      ]}
+    ],
+    gates:[
+      {id:"g0",text:"No PHI or patient identifiers in the current source tree or shared Git history",done:false},
+      {id:"g1",text:"Separate user-scoped app project, rules, storage, and least-privilege admin access",done:false},
+      {id:"g2",text:"Versioned consent, limitations/emergency language, and data-source permissions",done:false},
+      {id:"g3",text:"Server-side encrypted OAuth token storage with revoke/status controls",done:false},
+      {id:"g4",text:"Provenance, audit trail, access logging, and AI workflow/model versioning",done:false},
+      {id:"g5",text:"Export and verified account/data deletion",done:false},
+      {id:"g6",text:"Data-flow, asset, vendor, and retention inventories",done:false},
+      {id:"g7",text:"Risk assessment, incident/breach response, and access review process",done:false},
+      {id:"g8",text:"Backups enabled and a restore test completed",done:false},
+      {id:"g9",text:"Applicable vendor agreements/BAAs and privacy/retention settings complete",done:false},
+      {id:"g10",text:"Healthcare/privacy and product-claims legal review complete",done:false},
+      {id:"g11",text:"Cyber/privacy insurance appropriate to the pilot",done:false},
+      {id:"g12",text:"No advertising analytics or support workflow that receives PHI by email",done:false}
+    ],
+    decisions:[
+      {id:"d1",title:"Product boundary",status:"decided",note:"mikeshealth.app stays private; foliohealth.app stays public/synthetic; app.foliohealth.app becomes the separate pilot app."},
+      {id:"d2",title:"AI account",status:"decided",note:"Use a Folio-managed server-side provider account after contractual, retention, and evaluation gates; no browser keys or consumer subscriptions."},
+      {id:"d3",title:"Epic sync claim",status:"decided",note:"Describe the current flow as user-triggered reconnect/import. Automatic sync requires a confidential client and server token vault."},
+      {id:"d4",title:"Initial cohort",status:"decided",note:"Start with 3 trusted users, then expand to 5–10 after connection, comprehension, support, and safety review."},
+      {id:"d5",title:"Operating entity and final vendors",status:"open",note:"Choose with healthcare/privacy counsel before external invitations."}
+    ],
+    metrics:[
+      {id:"m1",label:"Connection completion",target:"Define after internal baseline",actual:""},
+      {id:"m2",label:"Time to first accepted record",target:"Measure minutes, not days",actual:""},
+      {id:"m3",label:"Duplicate rate",target:"No accepted duplicate from repeat import",actual:""},
+      {id:"m4",label:"AI edit rate",target:"Track by source/type",actual:""},
+      {id:"m5",label:"Unsupported record types",target:"Trend down weekly",actual:""},
+      {id:"m6",label:"Support load",target:"Track issues per active user",actual:""},
+      {id:"m7",label:"Safety events",target:"0 unreviewed consequential changes",actual:""}
+    ]
+  };
+  const cloneJson=(x)=>JSON.parse(JSON.stringify(x));
+  const mergeById=(seed,saved=[])=>[
+    ...seed.map(s=>({...s,...(saved.find(x=>x.id===s.id)||{})})),
+    ...saved.filter(x=>!seed.some(s=>s.id===x.id))
+  ];
+  function mergeFolioPlan(saved={}){
+    const plan={...cloneJson(FOLIO_SEED),...saved};
+    plan.phases=mergeById(FOLIO_SEED.phases,saved.phases||[]).map(p=>{
+      const base=FOLIO_SEED.phases.find(x=>x.id===p.id);
+      return {...p,items:mergeById(base?.items||[],p.items||[])};
+    });
+    plan.gates=mergeById(FOLIO_SEED.gates,saved.gates||[]);
+    plan.decisions=mergeById(FOLIO_SEED.decisions,saved.decisions||[]);
+    plan.metrics=mergeById(FOLIO_SEED.metrics,saved.metrics||[]);
+    return plan;
+  }
+  let folioPlan=mergeFolioPlan(), folioBound=false;
+  const folioId=(prefix)=>prefix+"-"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const PHASE_STATUS=[["planned","Planned"],["active","Active"],["blocked","Blocked"],["complete","Complete"]];
+  const DECISION_STATUS=[["decided","Decided"],["open","Open"],["deferred","Deferred"]];
+
+  function folioReadTop(){
+    folioPlan.objective=$("folioObjective").value.trim();
+    folioPlan.milestone=$("folioMilestone").value.trim();
+    folioPlan.target=$("folioTarget").value.trim();
+    folioPlan.nextAction=$("folioNext").value.trim();
+    folioPlan.blockers=$("folioBlockers").value.trim();
+  }
+  function folioSelect(options,value,onchange){
+    const s=document.createElement("select");
+    options.forEach(([v,label])=>{const o=document.createElement("option");o.value=v;o.textContent=label;if(v===value)o.selected=true;s.appendChild(o);});
+    s.onchange=()=>onchange(s.value);return s;
+  }
+  function renderFolio(){
+    $("folioObjective").value=folioPlan.objective||"";$("folioMilestone").value=folioPlan.milestone||"";$("folioTarget").value=folioPlan.target||"";$("folioNext").value=folioPlan.nextAction||"";$("folioBlockers").value=folioPlan.blockers||"";
+    const phases=$("folioPhases");phases.innerHTML="";
+    folioPlan.phases.forEach(phase=>{
+      const card=document.createElement("div");card.className="phasecard";
+      const head=document.createElement("div");head.className="phasehead";
+      const name=document.createElement("div");const title=document.createElement("b");title.textContent=phase.title;const label=document.createElement("span");label.textContent=phase.label;name.append(title,label);
+      head.append(name,folioSelect(PHASE_STATUS,phase.status,v=>phase.status=v));card.appendChild(head);
+      const items=document.createElement("div");
+      phase.items.forEach(item=>{
+        const row=document.createElement("div");row.className="checkrow";
+        const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.done;cb.onchange=()=>item.done=cb.checked;
+        const inp=document.createElement("input");inp.type="text";inp.value=item.text||"";inp.oninput=()=>item.text=inp.value;
+        const del=document.createElement("button");del.className="iconbtn";del.textContent="×";del.title="Remove item";del.onclick=()=>{if(confirm("Remove this Folio plan item?")){phase.items=phase.items.filter(x=>x.id!==item.id);renderFolio();}};
+        row.append(cb,inp,del);items.appendChild(row);
+      });
+      card.appendChild(items);
+      const notes=document.createElement("textarea");notes.value=phase.notes||"";notes.placeholder="Phase notes";notes.oninput=()=>phase.notes=notes.value;card.appendChild(notes);
+      const add=document.createElement("button");add.className="btn sec sm addline";add.textContent="Add item";add.onclick=()=>{phase.items.push({id:folioId(phase.id),text:"New item",done:false});renderFolio();};card.appendChild(add);
+      phases.appendChild(card);
+    });
+
+    const gates=$("folioGates");gates.innerHTML="";
+    folioPlan.gates.forEach(gate=>{
+      const row=document.createElement("label");row.className="gaterow";
+      const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!gate.done;cb.onchange=()=>gate.done=cb.checked;
+      const inp=document.createElement("input");inp.type="text";inp.value=gate.text||"";inp.oninput=()=>gate.text=inp.value;
+      row.append(cb,inp);gates.appendChild(row);
+    });
+
+    const decisions=$("folioDecisions");decisions.innerHTML="";
+    folioPlan.decisions.forEach(decision=>{
+      const row=document.createElement("div");row.className="decision";const top=document.createElement("div");top.className="decisiontop";
+      const title=document.createElement("b");title.textContent=decision.title;top.append(title,folioSelect(DECISION_STATUS,decision.status,v=>decision.status=v));row.appendChild(top);
+      const notes=document.createElement("textarea");notes.value=decision.note||"";notes.oninput=()=>decision.note=notes.value;row.appendChild(notes);decisions.appendChild(row);
+    });
+
+    const metrics=$("folioMetrics");metrics.innerHTML="";
+    folioPlan.metrics.forEach(metric=>{
+      const row=document.createElement("div");row.className="metricrow";const label=document.createElement("b");label.textContent=metric.label;
+      const target=document.createElement("input");target.type="text";target.value=metric.target||"";target.placeholder="Target";target.oninput=()=>metric.target=target.value;
+      const actual=document.createElement("input");actual.type="text";actual.value=metric.actual||"";actual.placeholder="Actual / note";actual.oninput=()=>metric.actual=actual.value;
+      row.append(label,target,actual);metrics.appendChild(row);
+    });
+  }
+  function folioMarkdown(){
+    folioReadTop();const md=["# Folio founder plan","","> "+FOLIO_PROMISE,"","## Now","","- Outcome: "+folioPlan.objective,"- Current milestone: "+folioPlan.milestone,"- Pilot target: "+folioPlan.target,"- Exact next action: "+folioPlan.nextAction,"- Blockers / decisions: "+folioPlan.blockers,"","## Build sequence",""];
+    folioPlan.phases.forEach(p=>{md.push("### "+p.label+" — "+p.title+" ["+p.status+"]","",p.notes||"");p.items.forEach(i=>md.push("- ["+(i.done?"x":" ")+"] "+i.text));md.push("");});
+    md.push("## Launch gate","");folioPlan.gates.forEach(g=>md.push("- ["+(g.done?"x":" ")+"] "+g.text));md.push("","## Decisions","");folioPlan.decisions.forEach(d=>md.push("- ["+d.status+"] "+d.title+": "+d.note));md.push("","## Pilot measures","","| Measure | Target | Actual / note |","|---|---|---|");folioPlan.metrics.forEach(m=>md.push("| "+m.label+" | "+(m.target||"")+" | "+(m.actual||"")+" |"));return md.join("\n");
+  }
+  async function saveFolioPlan(){
+    folioReadTop();$("folioStatus").textContent="Saving…";
+    try{await setDoc(doc(db,"coding_meta","folioPlan"),{...folioPlan,version:FOLIO_SEED.version,updatedAt:serverTimestamp(),updatedBy:OWNER});$("folioStatus").textContent="Saved privately. The latest plan will load on either Mac and appear in the agent handoff feed.";}
+    catch(e){$("folioStatus").textContent="Save failed: "+(e.message||e);}
+  }
+  async function loadFolioPlan(showStatus=true){
+    try{const snap=await getDoc(doc(db,"coding_meta","folioPlan"));folioPlan=mergeFolioPlan(snap.exists()?snap.data():{});renderFolio();if(showStatus)$("folioStatus").textContent=snap.exists()?"Loaded the latest saved plan.":"Using the launch-plan starter. Save once to sync it privately.";}
+    catch(e){renderFolio();if(showStatus)$("folioStatus").textContent="Couldn’t load the saved plan; showing the built-in starter. "+(e.message||e);}
+  }
+  function bindFolio(){
+    if(folioBound)return;folioBound=true;renderFolio();
+    ["folioObjective","folioMilestone","folioTarget","folioNext","folioBlockers"].forEach(id=>$(id).addEventListener("input",folioReadTop));
+    ["folioSaveTop","folioSaveBottom"].forEach(id=>$(id).onclick=saveFolioPlan);
+    ["folioCopyTop","folioCopyBottom"].forEach(id=>$(id).onclick=()=>navigator.clipboard.writeText(folioMarkdown()).then(()=>$("folioStatus").textContent="Copied as Markdown — ready for Codex or Claude.",()=>$("folioStatus").textContent="Copy failed."));
+    $("folioReloadTop").onclick=()=>{if(confirm("Reload the saved Folio plan and replace unsaved edits?"))loadFolioPlan();};
+    $("folioAddGate").onclick=()=>{folioPlan.gates.push({id:folioId("gate"),text:"New launch gate",done:false});renderFolio();};
+  }
 
   // ---------- auth ----------
   $("signinBtn").onclick = async ()=>{
@@ -628,7 +871,7 @@
     ["capProject","quickProject","hoProject"].forEach(sid=>{
       const sel=$(sid); if(!sel)return; sel.innerHTML="";
       PROJECTS.forEach(([id,desc])=>{ const o=document.createElement("option"); o.value=id; o.textContent=id; sel.appendChild(o); });
-      sel.value="mikeslife";
+      sel.value="folio";
     });
   }
   function projName(id){ const p=PROJECTS.find(x=>x[0]===id); return p?p[0]:id; }
@@ -837,11 +1080,11 @@ ${$("notes").value.trim()||"- none"}`;
   }
 
   // ---------- roadmap (Firestore-backed kanban; seeded from embed) ----------
-  const RM_APPS={lifeos:"LifeOS",money:"Money",fitness:"Fitness",health:"Health",travel:"Travel",rentals:"Rentals",mini:"Mini/Rupert",security:"Security",docs:"Docs",learning:"Learning",native:"Apple / Native",other:"Other",...Object.fromEntries(PROJECTS.filter(p=>p[0]!=="other").map(p=>[p[0],p[0]]))};
+  const RM_APPS={folio:"Folio", "folio-app":"Folio app",lifeos:"LifeOS",money:"Money",fitness:"Fitness",health:"Health",travel:"Travel",rentals:"Rentals",mini:"Mini/Rupert",security:"Security",docs:"Docs",learning:"Learning",native:"Apple / Native",other:"Other",...Object.fromEntries(PROJECTS.filter(p=>p[0]!=="other").map(p=>[p[0],p[0]]))};
   const RM_COLS=[["doing","In progress"],["next","Next up"],["idea","Ideas"],["done","Done"]];
   let rmItems=[], rmFilter="all", rmEditing=null, rmSeedTried=false;
   function rmFillSelects(){
-    const a=$("rmApp"); if(a && !a.options.length){ Object.entries(RM_APPS).forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;a.appendChild(o);}); a.value="lifeos"; }
+    const a=$("rmApp"); if(a && !a.options.length){ Object.entries(RM_APPS).forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;a.appendChild(o);}); a.value="folio"; }
     const st=$("rmStatus"); if(st && !st.options.length){ RM_COLS.forEach(([k,lb])=>{const o=document.createElement("option");o.value=k;o.textContent=lb;if(k==="next")o.selected=true;st.appendChild(o);}); }
   }
   function rmRender(){
@@ -910,7 +1153,7 @@ ${$("notes").value.trim()||"- none"}`;
   let started=false;
   async function startApp(){
     if(started) return; started=true;
-    fillProjectSelects(); rmFillSelects(); renderProjects(); updateCtx();
+    fillProjectSelects(); rmFillSelects(); renderProjects(); updateCtx(); bindFolio(); await loadFolioPlan(false);
     try{ const s=await getDoc(doc(db,"coding_meta","aiContext")); if(s.exists()){
       const data=s.data();savedWorkingSummary=data.workingSummary||data.summary||buildSummary();handoff=data.handoff||{};
       if(handoff.project)$("hoProject").value=handoff.project;if(handoff.agent)$("hoAgent").value=handoff.agent;
