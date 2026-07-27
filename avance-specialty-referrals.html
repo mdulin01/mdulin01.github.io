@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Specialty Services Referrals</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--purple:#6D28D9;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}.wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{color:var(--peri);font-weight:700;text-decoration:none}
+  .controls{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 60%,var(--peri));padding:14px 26px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;color:#fff}
+  .ctrl{display:flex;flex-direction:column;gap:4px}.ctrl label{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;opacity:.85;font-weight:700}
+  .ctrl select{font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;min-width:150px}
+  .specbox{display:flex;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:9px;padding:7px 10px}
+  .specbox label{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0;opacity:1}
+  .specbox input{accent-color:#5BC24E;width:14px;height:14px;cursor:pointer}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 26px 60px}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:18px 2px 12px}
+  .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .ac{position:absolute;left:0;top:0;bottom:0;width:4px}.kpi .l{font-size:11px;color:var(--muted);font-weight:600}.kpi .n{font-size:23px;font-weight:800;margin-top:5px}.kpi .s{font-size:11px;color:var(--muted);margin-top:4px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:8px 0 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .card h3{font-size:13px;font-weight:700}.card .h{font-size:11px;color:var(--muted);margin-bottom:10px}.cb{position:relative;height:235px}
+  table{width:100%;border-collapse:collapse}thead th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:10px;border-bottom:1px solid var(--line)}
+  thead th.num,td.num{text-align:right}tbody td{padding:10px;border-bottom:1px solid var(--line);font-size:13px}tbody tr:hover{background:#FAFBFD}
+  .nm{font-weight:700}.nm small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px}
+  .flagbar{background:linear-gradient(120deg,#FFF7ED,#FEF3E7);border:1px solid #FBD9A8;border-left:4px solid var(--warn);border-radius:12px;padding:14px 18px;margin-top:8px}
+  .flagbar .at{font-size:13px;font-weight:800;color:#9A5B00}.flagbar p{font-size:12.5px;color:#6b4a1a;margin-top:4px;line-height:1.5}
+  .foot{margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6}
+  @media(max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand"><svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><div class="wordmark"><b>Avance</b>Care</div></div>
+    <div class="meta"><div class="t" id="pageTitle">Specialty Services Referrals</div><div><a href="/avance/">‹ All dashboards</a> · Illustrative data</div></div>
+  </div>
+  <div class="controls">
+    <div class="ctrl"><label>Specialty (select one or more)</label><div class="specbox" id="specBox"></div></div>
+    <div class="ctrl"><label>Priority</label><select id="selPri"><option value="all">All priorities</option><option value="routine">Routine</option><option value="urgent">Urgent / STAT</option></select></div>
+    <div class="ctrl"><label>Source</label><select id="selSrc"><option value="all">All sources</option><option value="internal">Internal only</option><option value="external">External only</option><option value="cin">CIN partners only</option><option value="community">Community orgs only</option></select></div>
+    <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
+    <div class="ctrl"><label>Referring Location</label><select id="selClinic"></select></div>
+    <div class="ctrl"><label>Referring Provider</label><select id="selProvider"></select></div>
+    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option></select></div>
+    <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">All Specialties</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
+  </div>
+  <div class="wrap">
+    <div id="aiBar"></div>
+    <div class="sec">Access, Source &amp; Conversion <span>— time-to-schedule goal ≤ 7 days</span></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="grid">
+      <div class="card"><h3>Referral Source — Internal vs. External</h3><div class="h">Where referrals originate · external split by channel</div><div class="cb"><canvas id="cSrc"></canvas></div></div>
+      <div class="card"><h3>Community Organization ROI</h3><div class="h">Referrals generated by outreach / engagement specialists</div><div class="cb"><canvas id="cComm"></canvas></div></div>
+    </div>
+    <div class="grid">
+      <div class="card"><h3>30-Day Conversion by Specialty</h3><div class="h">Established with specialty vs. converted to Avance primary care</div><div class="cb"><canvas id="cConv"></canvas></div></div>
+      <div class="card"><h3>Received by Provider Type</h3><div class="h">Which sub-specialty received the referral · workforce &amp; procurement</div><div class="cb"><canvas id="cPtype"></canvas></div></div>
+    </div>
+
+    <div class="sec">Avoidable External Referrals <span>— insurance is the only absolute reason; the rest are addressable</span></div>
+    <div class="kpis" id="kAvoid" style="grid-template-columns:repeat(3,1fr)"></div>
+    <div class="flagbar"><div class="at">Referral-decision watch</div><p id="avoidTxt"></p></div>
+    <div class="grid">
+      <div class="card"><h3>Why the Referral Went External</h3><div class="h">Insurance (unavoidable) vs. provider preference / capacity (addressable)</div><div class="cb"><canvas id="cWhy"></canvas></div></div>
+      <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Referring Provider</th><th class="num">Referrals</th><th class="num">External %</th><th class="num">Avoidable Ext %</th><th>Primary reason</th></tr></thead><tbody id="avoidBody"></tbody></table></div>
+    </div>
+
+    <div class="sec">By Location &amp; Receiving Provider Type <span>— for workforce development / procurement</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Receiving Location</th><th>Provider Type</th><th class="num">Referrals</th><th class="num">Time to Schedule</th><th class="num">% Scheduled</th></tr></thead><tbody id="locBody"></tbody></table></div>
+    <div class="foot" id="foot"></div>
+  </div>
+</div>
+<script>
+const C={navy:"#2B2C6B",peri:"#5C6CB8",periL:"#8A97D1",teal:"#0E8A6E",green:"#4CB749",greenD:"#2F9E45",amber:"#D4A017",red:"#C0392B",purple:"#6D28D9",gray:"#B8C0CC"};
+const PERIODS={mtd:{f:0.57,l:"This Month (MTD)"},last:{f:1,l:"Last Month"},qtd:{f:2.57,l:"Quarter to Date"},ytd:{f:5.57,l:"Year to Date"}};
+
+/* ===== CONFIG — swap this block to create a sibling team dashboard ===== */
+const CONFIG={
+  title:"Specialty Services Referrals",
+  team:"Psychiatry · Behavioral Health · Nutrition",
+  goalTTS:7,
+  specialties:[
+    {id:"psych",name:"Psychiatry",vol:148,tts:9.4,sched:62,convSpec:71,convPC:34,color:"#5C6CB8"},
+    {id:"bh",name:"Behavioral Health",vol:232,tts:6.2,sched:68,convSpec:76,convPC:41,color:"#4CB749"},
+    {id:"nutr",name:"Nutrition",vol:104,tts:8.1,sched:64,convSpec:69,convPC:38,color:"#D4A017"}
+  ],
+  providerTypes:[["Therapy / LCSW",.28],["Adult Psychiatry",.26],["Child &amp; Adolescent Psych",.14],["Registered Dietitian",.12],["Substance Use / MAT",.11],["Psych NP",.09]],
+  locations:[["Midtown Charlotte",.24],["Charlotte — SouthPark",.19],["Raleigh — Oberlin",.18],["Durham",.15],["Chapel Hill",.13],["Fuquay-Varina",.11]]
+};
+/* ====================================================================== */
+
+const SOURCES=[["Internal — Avance primary care",.52,C.green,"internal"],["External — Athena / Epic outside practice",.17,C.peri,"external"],
+  ["External — CIN partner clinic",.14,C.navy,"cin"],["External — Community organization",.09,C.purple,"community"],
+  ["External — Self / patient",.05,C.periL,"external"],["External — Other",.03,C.gray,"external"]];
+const COMMORGS=[["YMCA (Charlotte)",22,"J. Rivera"],["Mecklenburg County Health Dept",16,"T. Nguyen"],["Charlotte Community Health",12,"J. Rivera"],["Faith-based partners",9,"M. Ellis"],["Senior centers",7,"T. Nguyen"],["Schools / student health",6,"M. Ellis"]];
+const WHYEXT=[["Insurance not accepted internally",.58,C.gray,"Unavoidable"],["Provider preference",.24,C.red,"Addressable"],["Internal capacity / wait time",.12,C.amber,"Addressable"],["Patient preference",.06,C.periL,"Partly"]];
+const PROV=[
+ {id:"ellison",name:"Dr. Maya Ellison",clinic:"Holly Springs",region:"Triangle",vol:46,ext:31,avoid:18,reason:"Insurance"},
+ {id:"okafor",name:"Dr. James Okafor",clinic:"Apex",region:"Triangle",vol:58,ext:44,avoid:37,reason:"Provider preference"},
+ {id:"nair",name:"Dr. Priya Nair",clinic:"Charlotte — SouthPark",region:"Charlotte",vol:41,ext:49,avoid:41,reason:"Provider preference"},
+ {id:"reyes",name:"Dr. Daniel Reyes",clinic:"Midtown Charlotte",region:"Charlotte",vol:52,ext:38,avoid:26,reason:"Capacity / wait"},
+ {id:"chen",name:"Dr. Sarah Chen",clinic:"Chapel Hill",region:"Triangle",vol:44,ext:24,avoid:11,reason:"Insurance"},
+ {id:"hughes",name:"Dr. Robert Hughes",clinic:"Durham",region:"Triangle",vol:48,ext:41,avoid:33,reason:"Provider preference"},
+ {id:"dulin",name:"Dr. Michael Dulin",clinic:"Rea Farms",region:"Charlotte",vol:45,ext:27,avoid:14,reason:"Insurance"},
+ {id:"steventon",name:"Dr. Amanda Steventon",clinic:"Fuquay-Varina",region:"Triangle",vol:42,ext:22,avoid:9,reason:"Insurance"},
+ {id:"brown",name:"Dr. Rhett Brown",clinic:"Midtown Charlotte",region:"Charlotte",vol:47,ext:35,avoid:24,reason:"Capacity / wait"}
+];
+let picked=CONFIG.specialties.map(s=>s.id), pri="all", src="all", region="all", clinic="all", provId="all", period="mtd", charts={};
+const round=n=>Math.round(n),fmt=n=>round(n).toLocaleString();
+function hexA(h,a){const n=h.replace('#','');return`rgba(${parseInt(n.slice(0,2),16)},${parseInt(n.slice(2,4),16)},${parseInt(n.slice(4,6),16)},${a})`;}
+function tone(v,hi,t1,t2){return hi?(v>=t1?C.greenD:v>=t2?C.amber:C.red):(v<=t1?C.greenD:v<=t2?C.amber:C.red);}
+function specs(){return CONFIG.specialties.filter(s=>picked.indexOf(s.id)>=0);}
+function activeProv(){return PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)&&(provId==="all"||p.id===provId));}
+function provShare(){const t=PROV.reduce((a,p)=>a+p.vol,0);return activeProv().reduce((a,p)=>a+p.vol,0)/t;}
+function priShare(){return pri==="urgent"?0.14:pri==="routine"?0.86:1;}
+function srcShare(){if(src==="all")return 1;if(src==="internal")return .52;if(src==="external")return .48;if(src==="cin")return .14;if(src==="community")return .09;return 1;}
+function agg(){const ss=specs();const v=ss.reduce((a,s)=>a+s.vol,0)||1;const w=k=>ss.reduce((a,s)=>a+s[k]*s.vol,0)/v;
+  return {vol:ss.reduce((a,s)=>a+s.vol,0),tts:w("tts"),sched:w("sched"),convSpec:w("convSpec"),convPC:w("convPC")};}
+function clinics(){const rs=region==="all"?PROV:PROV.filter(p=>p.region===region);return [...new Set(rs.map(p=>p.clinic))].sort();}
+function buildSpecBox(){document.getElementById("specBox").innerHTML=CONFIG.specialties.map(s=>
+  `<label><input type="checkbox" value="${s.id}" ${picked.indexOf(s.id)>=0?"checked":""}>${s.name}</label>`).join("");
+  document.querySelectorAll("#specBox input").forEach(cb=>cb.onchange=()=>{
+    picked=[...document.querySelectorAll("#specBox input:checked")].map(x=>x.value);
+    if(!picked.length){picked=CONFIG.specialties.map(s=>s.id);buildSpecBox();}
+    render();});}
+function buildClinic(){const s=document.getElementById("selClinic");s.innerHTML=`<option value="all">All Locations${region==='all'?'':' — '+region}</option>`+clinics().map(c=>`<option>${c}</option>`).join("");s.value=clinic;}
+function buildProvider(){const s=document.getElementById("selProvider");const lbl=clinic!=="all"?clinic+" — All":region!=="all"?region+" — All":"All Providers";s.innerHTML=`<option value="all">${lbl}</option>`+PROV.filter(p=>(region==="all"||p.region===region)&&(clinic==="all"||p.clinic===clinic)).map(p=>`<option value="${p.id}">${p.name}</option>`).join("");s.value=provId;}
+
+function render(){
+  const d=agg(),f=PERIODS[period].f,scale=f*provShare()*priShare()*srcShare();
+  const vol=round(d.vol*scale), ap=activeProv();
+  const extPct=ap.length?ap.reduce((a,p)=>a+p.ext*p.vol,0)/ap.reduce((a,p)=>a+p.vol,0):0;
+  const avoidPct=ap.length?ap.reduce((a,p)=>a+p.avoid*p.vol,0)/ap.reduce((a,p)=>a+p.vol,0):0;
+  const cinVol=round(vol*(src==="all"?0.14:src==="cin"?1:0));
+  const ttsAdj=pri==="urgent"?d.tts*0.45:d.tts;
+  document.getElementById("pageTitle").textContent=CONFIG.title;
+  document.getElementById("who").textContent=(picked.length===CONFIG.specialties.length?"All Specialties":specs().map(s=>s.name).join(" + "));
+  document.getElementById("sub").textContent=CONFIG.team+" · "+PERIODS[period].l+(pri!=="all"?" · "+(pri==="urgent"?"Urgent/STAT":"Routine"):"");
+  const cards=[
+    {l:"Referrals Received",n:fmt(vol),s:CONFIG.team,ac:C.navy},
+    {l:"Internal Referrals",n:Math.round(100-extPct)+"%",s:Math.round(extPct)+"% external",ac:tone(100-extPct,true,70,60)},
+    {l:"Time to Schedule",n:ttsAdj.toFixed(1)+" d",s:"goal ≤"+CONFIG.goalTTS+" days",ac:tone(ttsAdj,false,CONFIG.goalTTS,CONFIG.goalTTS+3)},
+    {l:"% Scheduled",n:Math.round(d.sched)+"%",s:"of referrals received",ac:tone(d.sched,true,65,55)},
+    {l:"30-day Conversion — Specialty",n:Math.round(d.convSpec)+"%",s:"established with specialty",ac:tone(d.convSpec,true,72,64)},
+    {l:"30-day Conversion — Primary Care",n:Math.round(d.convPC)+"%",s:"became Avance PC patients",ac:tone(d.convPC,true,38,30)},
+    {l:"Avoidable External",n:Math.round(avoidPct)+"%",s:"external when insurance allowed internal",ac:tone(avoidPct,false,15,28)},
+    {l:"CIN-Sourced",n:fmt(cinVol),s:"from CIN partner clinics",ac:C.navy}
+  ];
+  document.getElementById("kpis").innerHTML=cards.map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  // sources
+  charts.src&&charts.src.destroy();
+  charts.src=new Chart(document.getElementById("cSrc"),{type:"bar",data:{labels:SOURCES.map(s=>s[0]),datasets:[{data:SOURCES.map(s=>round(vol*s[1]/srcShare()*(src==="all"?1:(s[3]===src||(src==="external"&&s[3]!=="internal")?1:0)))),backgroundColor:SOURCES.map(s=>s[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // community ROI
+  charts.cm&&charts.cm.destroy();
+  charts.cm=new Chart(document.getElementById("cComm"),{type:"bar",data:{labels:COMMORGS.map(o=>o[0]),datasets:[{data:COMMORGS.map(o=>round(o[1]*f*provShare())),backgroundColor:C.purple,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:c=>"Engagement specialist: "+COMMORGS[c.dataIndex][2]}}},scales:{x:{beginAtZero:true}}}});
+  // conversion by specialty
+  const ss=specs();
+  charts.cv&&charts.cv.destroy();
+  charts.cv=new Chart(document.getElementById("cConv"),{type:"bar",data:{labels:ss.map(s=>s.name),datasets:[
+    {label:"Established with specialty",data:ss.map(s=>s.convSpec),backgroundColor:C.peri,borderRadius:5},
+    {label:"Converted to Avance primary care",data:ss.map(s=>s.convPC),backgroundColor:C.green,borderRadius:5}]},
+    options:{plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}});
+  // provider types
+  charts.pt&&charts.pt.destroy();
+  charts.pt=new Chart(document.getElementById("cPtype"),{type:"bar",data:{labels:CONFIG.providerTypes.map(p=>p[0].replace("&amp;","&")),datasets:[{data:CONFIG.providerTypes.map(p=>round(vol*p[1])),backgroundColor:C.teal,borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  // avoidable KPIs
+  const extVol=round(vol*extPct/100), avoidVol=round(extVol*avoidPct/100);
+  document.getElementById("kAvoid").innerHTML=[
+    {l:"External Referrals",n:fmt(extVol),s:Math.round(extPct)+"% of total",ac:C.amber},
+    {l:"Avoidable (internal was an option)",n:fmt(avoidVol),s:"insurance would have allowed internal",ac:C.red},
+    {l:"Providers Above Threshold",n:ap.filter(p=>p.avoid>25).length,s:"avoidable external >25%",ac:C.red}
+  ].map(c=>`<div class="kpi"><div class="ac" style="background:${c.ac}"></div><div class="l">${c.l}</div><div class="n" style="color:${c.ac}">${c.n}</div><div class="s">${c.s}</div></div>`).join("");
+  const worst=[...ap].sort((a,b)=>b.avoid-a.avoid).slice(0,3);
+  document.getElementById("avoidTxt").innerHTML="Insurance type is the only absolute reason a referral must go external. <b>"+fmt(avoidVol)+"</b> external referrals this period had an internal option available under the patient's insurance — driven mostly by <b>provider preference</b> (24%) and <b>internal capacity / wait time</b> (12%). Highest avoidable-external rates: "+worst.map(p=>"<b>"+p.name+"</b> ("+p.avoid+"%)").join(", ")+".";
+  // why external
+  charts.why&&charts.why.destroy();
+  charts.why=new Chart(document.getElementById("cWhy"),{type:"bar",data:{labels:WHYEXT.map(w=>w[0]),datasets:[{data:WHYEXT.map(w=>round(extVol*w[1])),backgroundColor:WHYEXT.map(w=>w[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false},tooltip:{callbacks:{afterLabel:c=>WHYEXT[c.dataIndex][3]}}},scales:{x:{beginAtZero:true}}}});
+  // avoidable table
+  const pc=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
+  document.getElementById("avoidBody").innerHTML=[...ap].sort((a,b)=>b.avoid-a.avoid).map(p=>`<tr>
+    <td class="nm">${p.name}<small>${p.clinic}</small></td><td class="num">${fmt(round(p.vol*f*priShare()))}</td>
+    <td class="num">${pc(p.ext+'%',tone(p.ext,false,30,42))}</td><td class="num">${pc(p.avoid+'%',tone(p.avoid,false,15,28))}</td>
+    <td>${p.reason==="Insurance"?pc("Insurance (unavoidable)",C.gray):pc(p.reason,C.red)}</td></tr>`).join("");
+  // location x provider type
+  const rows=[];CONFIG.locations.forEach(function(L){CONFIG.providerTypes.slice(0,3).forEach(function(T){rows.push({loc:L[0],pt:T[0].replace("&amp;","&"),n:round(vol*L[1]*T[1]),tts:(d.tts*(0.85+L[1])).toFixed(1),sch:Math.round(d.sched*(0.92+L[1]*0.4))});});});
+  document.getElementById("locBody").innerHTML=rows.slice(0,14).map(r=>`<tr><td class="nm">${r.loc}</td><td>${r.pt}</td><td class="num">${fmt(r.n)}</td><td class="num">${pc(r.tts+' d',tone(+r.tts,false,CONFIG.goalTTS,CONFIG.goalTTS+3))}</td><td class="num">${Math.min(99,r.sch)}%</td></tr>`).join("");
+  document.getElementById("foot").innerHTML="Illustrative / synthetic data for the "+CONFIG.team+" referral team. Sources split internal vs. external (Athena/Epic outside practices, CIN partner clinics, community organizations, self). Community-org volume supports outreach/engagement-specialist ROI. 30-day conversion is tracked both to the specialty and to Avance primary care, by specialty. Avoidable-external = referred out when the patient's insurance would have allowed an internal referral.";
+  if(window.renderAvanceAI)window.renderAvanceAI();
+}
+window.AVANCE_AI={
+ insight:function(){const d=agg(),f=PERIODS[period].f,ap=activeProv();
+   const extPct=ap.reduce((a,p)=>a+p.ext*p.vol,0)/ap.reduce((a,p)=>a+p.vol,0);
+   const avoidPct=ap.reduce((a,p)=>a+p.avoid*p.vol,0)/ap.reduce((a,p)=>a+p.vol,0);
+   const worst=[...ap].sort((a,b)=>b.avoid-a.avoid)[0];
+   return '<b>'+CONFIG.team+'</b>: '+fmt(round(d.vol*f*provShare()*priShare()*srcShare()))+' referrals · '+Math.round(100-extPct)+'% internal. Time-to-schedule '+d.tts.toFixed(1)+' d (goal ≤'+CONFIG.goalTTS+'). 30-day conversion: '+Math.round(d.convSpec)+'% to specialty, <b>'+Math.round(d.convPC)+'% became Avance primary-care patients</b>. <b>'+Math.round(avoidPct)+'% of external referrals were avoidable</b> (insurance allowed internal) — highest: '+worst.name+' ('+worst.avoid+'%). Biggest levers: cut avoidable external referrals and shorten internal wait times.';},
+ chips:['Who sends avoidable external referrals?','Which community orgs drive referrals?','How much do we convert to primary care?'],
+ answer:function(q){const d=agg(),ql=q.toLowerCase(),ap=activeProv();
+   if(/avoid|external|insurance|preference|provider/.test(ql)){const w=[...ap].sort((a,b)=>b.avoid-a.avoid).slice(0,3);return '<h5>Avoidable external referrals</h5>Insurance is the only absolute reason to refer out. Highest avoidable rates: '+w.map(p=>p.name+' ('+p.avoid+'%)').join(', ')+'. Drivers are provider preference (24%) and internal capacity/wait (12%) — the first is education, the second is access. Insurance-driven external referrals (58%) are unavoidable.';}
+   if(/community|ymca|outreach|roi|org/.test(ql))return '<h5>Community outreach ROI</h5>Top community sources: '+COMMORGS.slice(0,3).map(o=>o[0]+' ('+o[1]+'/mo, '+o[2]+')').join(', ')+'. Community organizations account for ~9% of referrals — use volume per org per specialist to size outreach ROI.';
+   if(/convert|conversion|primary|pc|establish/.test(ql))return '<h5>Conversion</h5>'+Math.round(d.convSpec)+'% establish with the specialty and '+Math.round(d.convPC)+'% go on to become Avance primary-care patients within 30 days. Behavioral Health converts to primary care best (41%) — specialty access is a front door for primary care growth.';
+   if(/cin|partner|athena|epic|source/.test(ql))return '<h5>Sources</h5>52% internal (Avance primary care); external is Athena/Epic outside practices 17%, CIN partner clinics 14%, community organizations 9%, self 5%. CIN-partner volume is tracked separately so partnered non-Avance clinics can be measured.';
+   return '<h5>Summary</h5>'+Math.round(100-ap.reduce((a,p)=>a+p.ext*p.vol,0)/ap.reduce((a,p)=>a+p.vol,0))+'% internal · time-to-schedule '+d.tts.toFixed(1)+'d · '+Math.round(d.convPC)+'% convert to primary care.';}
+};
+window.startDashboard=function(){
+  document.title="Avance Care — "+CONFIG.title;
+  buildSpecBox();buildClinic();buildProvider();
+  document.getElementById("selPri").onchange=e=>{pri=e.target.value;render();};
+  document.getElementById("selSrc").onchange=e=>{src=e.target.value;render();};
+  document.getElementById("selRegion").onchange=e=>{region=e.target.value;clinic="all";provId="all";buildClinic();buildProvider();render();};
+  document.getElementById("selClinic").onchange=e=>{clinic=e.target.value;provId="all";buildProvider();render();};
+  document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;render();};
+  render();
+};
+</script>
+<script src="/avance-ai.js"></script>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>
