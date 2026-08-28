@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Science: Myth vs. Reality</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2b6cb0;
+            --accent: #319795;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --danger: #e53e3e;
+            --success: #38a169;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: #4a5568;
+            font-size: 1.2rem;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+        h2 {
+            color: var(--secondary);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        @media (min-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .block {
+            background: #edf2f7;
+            padding: 1.25rem;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent);
+        }
+        .block.danger { border-left-color: var(--danger); }
+        .block.success { border-left-color: var(--success); }
+        .block-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        .visual {
+            background: #edf2f7;
+            padding: 1.5rem;
+            border-radius: 6px;
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: var(--primary);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            color: #718096;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Climate Science Context Guide</h1>
+            <p class="subtitle">Understanding how true observations can lead to misleading conclusions</p>
+        </header>
+
+        <!-- Section 1: Water Vapor -->
+        <div class="card">
+            <h2>1. The Water Vapor Trap</h2>
+            <p><strong>The Claim:</strong> "Global warming is caused by water vapor, not humans, because water vapor is the most abundant greenhouse gas."</p>
+            
+            <div class="grid">
+                <div class="block">
+                    <div class="block-title">What's True</div>
+                    Water vapor is indeed the most plentiful greenhouse gas. It traps a massive amount of heat in our atmosphere organically.
+                </div>
+                <div class="block success">
+                    <div class="block-title">The Scientific Context</div>
+                    Water vapor doesn't act on its own; it acts as an <strong>amplifier</strong>. Human CO₂ emissions turn up the global thermostat. Because warmer air holds more moisture, water vapor levels rise and double the warming effect.
+                </div>
+            </div>
+
+            <div class="visual">
+                <svg width="100%" height="120" viewBox="0 0 600 120" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Flowchart design -->
+                    <rect x="10" y="35" width="130" height="50" rx="5" fill="#e53e3e" />
+                    <text x="75" y="65" fill="white" font-weight="bold" text-anchor="middle" font-size="12">Human CO₂</text>
+                    
+                    <path d="M 140 60 L 190 60" stroke="#4a5568" stroke-width="2" marker-end="url(#arrow)" />
+                    
+                    <rect x="200" y="35" width="130" height="50" rx="5" fill="#dd6b20" />
+                    <text x="265" y="65" fill="white" font-weight="bold" text-anchor="middle" font-size="12">Warmer Atmosphere</text>
+                    
+                    <path d="M 330 60 L 380 60" stroke="#4a5568" stroke-width="2" />
+                    
+                    <rect x="390" y="35" width="130" height="50" rx="5" fill="#3182ce" />
+                    <text x="455" y="65" fill="white" font-weight="bold" text-anchor="middle" font-size="12">More Water Vapor</text>
+                    
+                    <!-- Loop back arrow -->
+                    <path d="M 455 35 C 455 10, 265 10, 265 30" fill="none" stroke="#e53e3e" stroke-width="2" stroke-dasharray="4" />
+                    <text x="360" y="20" fill="#e53e3e" font-size="10" font-weight="bold" text-anchor="middle">Amplifies Heat</text>
+                </svg>
+            </div>
+            <a href="https://climate.nasa.gov/ask-nasa-climate/3143/steamy-relationships-how-atmospheric-water-vapor-amplifies-earth-s-greenhouse-effect/" class="btn" target="_blank">Read NASA's Water Vapor Study</a>
+        </div>
+
+        <!-- Section 2: Ice Sheets -->
+        <div class="card">
+            <h2>2. The Ice Sheet Paradox</h2>
+            <p><strong>The Claim:</strong> "Ice sheets are actually growing larger, meaning the planet isn't really warming."</p>
+            
+            <div class="grid">
+                <div class="block">
+                    <div class="block-title">What's True</div>
+                    Parts of East Antarctica have experienced localized mass gains in recent decades due to heavy and frequent snowstorms.
+                </div>
+                <div class="block danger">
+                    <div class="block-title">The Scientific Context</div>
+                    <strong>Climate change directly drives this extra snowfall.</strong> Because human emissions create a warmer and wetter atmosphere, the air holds more moisture, triggering severe snowstorms over East Antarctica. However, these isolated local gains do not offset the massive, catastrophic ice losses happening across West Antarctica and Greenland. Globally, Earth loses billions of tons of ice annually.
+                </div>
+            </div>
+
+            <div class="visual">
+                <svg width="100%" height="150" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Bar Chart Visualizing the Mass Balance -->
+                    <text x="20" y="25" font-weight="bold" font-size="12" fill="#2d3748">Global Annual Ice Sheet Mass Changes</text>
+                    
+                    <!-- East Antarctica Gain -->
+                    <rect x="50" y="50" width="80" height="20" fill="#38a169" />
+                    <text x="140" y="65" font-size="11" fill="#4a5568">+ East Antarctica (Snowfall Gain)</text>
+                    
+                    <!-- West Antarctica Loss -->
+                    <rect x="50" y="80" width="220" height="20" fill="#e53e3e" />
+                    <text x="280" y="95" font-size="11" fill="#4a5568">- West Antarctica Loss</text>
+                    
+                    <!-- Greenland Loss -->
+                    <rect x="50" y="110" width="350" height="20" fill="#e53e3e" />
+                    <text x="410" y="125" font-size="11" fill="#4a5568">- Greenland Loss</text>
+                    
+                    <line x1="50" y1="40" x2="50" y2="140" stroke="#2d3748" stroke-width="2" />
+                </svg>
+            </div>
+            <a href="https://climate.nasa.gov/vital-signs/ice-sheets/" class="btn" target="_blank">View NASA's Ice Sheets Tracker</a>
+        </div>
+
+        <!-- Section 3: Greening -->
+        <div class="card">
+            <h2>3. The Global Greening Illusion</h2>
+            <p><strong>The Claim:</strong> "The planet is becoming much greener, which proves that rising CO₂ is good for nature."</p>
+            
+            <div class="grid">
+                <div class="block">
+                    <div class="block-title">What's True</div>
+                    Satellite images do show an increase in green foliage over the last few decades, partially caused by plants growing faster due to higher atmospheric carbon levels.
+                </div>
+                <div class="block danger">
+                    <div class="block-title">The Scientific Context</div>
+                    A "greener" planet does not equal a healthier ecosystem. This <strong>CO₂ fertilization effect</strong> is a temporary reaction to an unstable climate. The slight benefit of extra leaf growth is heavily wiped out by climate complications, including extreme droughts, severe heatwaves, destructive wildfires, and changing weather patterns.
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Data and educational context sourced directly from NASA Earth Science divisions.</p>
+        </div>
+    </div>
+</body>
+</html>
