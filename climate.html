@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climate Science: Myth vs. Reality</title>
+    <meta name="description" content="A concise, evidence-based guide to water vapor, ice sheets, and global greening in the context of human-caused climate change.">
+    <meta name="author" content="Michael Dulin, MD, PhD">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mikedulinmd.app/climate">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://mikedulinmd.app/climate">
+    <meta property="og:title" content="Climate Science Context Guide">
+    <meta property="og:description" content="How true observations about water vapor, ice sheets, and global greening can be used to support misleading conclusions.">
     <style>
         :root {
             --primary: #1a365d;
@@ -110,10 +118,25 @@
             color: #718096;
             font-size: 0.9rem;
         }
+        .site-nav {
+            margin-bottom: 1.5rem;
+        }
+        .site-nav a, .source-link {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+        .source-note {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <nav class="site-nav" aria-label="Site navigation">
+            <a href="/">&larr; Michael Dulin, MD</a>
+        </nav>
         <header>
             <h1>Climate Science Context Guide</h1>
             <p class="subtitle">Understanding how true observations can lead to misleading conclusions</p>
@@ -127,11 +150,11 @@
             <div class="grid">
                 <div class="block">
                     <div class="block-title">What's True</div>
-                    Water vapor is indeed the most plentiful greenhouse gas. It traps a massive amount of heat in our atmosphere organically.
+                    Water vapor is the most abundant greenhouse gas and accounts for a large share of Earth's natural greenhouse effect.
                 </div>
                 <div class="block success">
                     <div class="block-title">The Scientific Context</div>
-                    Water vapor doesn't act on its own; it acts as an <strong>amplifier</strong>. Human CO₂ emissions turn up the global thermostat. Because warmer air holds more moisture, water vapor levels rise and double the warming effect.
+                    Water vapor primarily acts as an <strong>amplifier</strong>, or feedback, rather than the initial driver of today's warming. Long-lived greenhouse gases such as CO₂ raise temperatures; warmer air then contains more water vapor, which amplifies the initial warming. NASA estimates that water-vapor feedback more than doubles the warming caused by CO₂ alone.
                 </div>
             </div>
 
@@ -141,12 +164,17 @@
                     <rect x="10" y="35" width="130" height="50" rx="5" fill="#e53e3e" />
                     <text x="75" y="65" fill="white" font-weight="bold" text-anchor="middle" font-size="12">Human CO₂</text>
                     
+                    <defs>
+                        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5568" />
+                        </marker>
+                    </defs>
                     <path d="M 140 60 L 190 60" stroke="#4a5568" stroke-width="2" marker-end="url(#arrow)" />
                     
                     <rect x="200" y="35" width="130" height="50" rx="5" fill="#dd6b20" />
                     <text x="265" y="65" fill="white" font-weight="bold" text-anchor="middle" font-size="12">Warmer Atmosphere</text>
                     
-                    <path d="M 330 60 L 380 60" stroke="#4a5568" stroke-width="2" />
+                    <path d="M 330 60 L 380 60" stroke="#4a5568" stroke-width="2" marker-end="url(#arrow)" />
                     
                     <rect x="390" y="35" width="130" height="50" rx="5" fill="#3182ce" />
                     <text x="455" y="65" fill="white" font-weight="bold" text-anchor="middle" font-size="12">More Water Vapor</text>
@@ -156,7 +184,7 @@
                     <text x="360" y="20" fill="#e53e3e" font-size="10" font-weight="bold" text-anchor="middle">Amplifies Heat</text>
                 </svg>
             </div>
-            <a href="https://climate.nasa.gov/ask-nasa-climate/3143/steamy-relationships-how-atmospheric-water-vapor-amplifies-earth-s-greenhouse-effect/" class="btn" target="_blank">Read NASA's Water Vapor Study</a>
+            <a href="https://science.nasa.gov/earth/climate-change/steamy-relationships-how-atmospheric-water-vapor-amplifies-earths-greenhouse-effect/" class="btn" target="_blank" rel="noopener noreferrer">Read NASA's Water Vapor Explanation</a>
         </div>
 
         <!-- Section 2: Ice Sheets -->
@@ -167,35 +195,26 @@
             <div class="grid">
                 <div class="block">
                     <div class="block-title">What's True</div>
-                    Parts of East Antarctica have experienced localized mass gains in recent decades due to heavy and frequent snowstorms.
+                    Some parts of East Antarctica have experienced localized mass gains during certain periods because snowfall added ice.
                 </div>
                 <div class="block danger">
                     <div class="block-title">The Scientific Context</div>
-                    <strong>Climate change directly drives this extra snowfall.</strong> Because human emissions create a warmer and wetter atmosphere, the air holds more moisture, triggering severe snowstorms over East Antarctica. However, these isolated local gains do not offset the massive, catastrophic ice losses happening across West Antarctica and Greenland. Globally, Earth loses billions of tons of ice annually.
+                    Local gains do not describe the balance of the entire ice-sheet system, and no single snowfall event should automatically be attributed to climate change. Satellite measurements show that both Antarctica and Greenland are losing ice overall as the atmosphere and oceans warm. NASA's latest long-term estimates are approximately 135 billion metric tons per year from Antarctica and 264 billion metric tons per year from Greenland.
                 </div>
             </div>
 
             <div class="visual">
                 <svg width="100%" height="150" viewBox="0 0 500 150" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Bar Chart Visualizing the Mass Balance -->
-                    <text x="20" y="25" font-weight="bold" font-size="12" fill="#2d3748">Global Annual Ice Sheet Mass Changes</text>
-                    
-                    <!-- East Antarctica Gain -->
-                    <rect x="50" y="50" width="80" height="20" fill="#38a169" />
-                    <text x="140" y="65" font-size="11" fill="#4a5568">+ East Antarctica (Snowfall Gain)</text>
-                    
-                    <!-- West Antarctica Loss -->
-                    <rect x="50" y="80" width="220" height="20" fill="#e53e3e" />
-                    <text x="280" y="95" font-size="11" fill="#4a5568">- West Antarctica Loss</text>
-                    
-                    <!-- Greenland Loss -->
-                    <rect x="50" y="110" width="350" height="20" fill="#e53e3e" />
-                    <text x="410" y="125" font-size="11" fill="#4a5568">- Greenland Loss</text>
-                    
-                    <line x1="50" y1="40" x2="50" y2="140" stroke="#2d3748" stroke-width="2" />
+                    <text x="20" y="25" font-weight="bold" font-size="12" fill="#2d3748">Average ice-sheet mass loss since 2002</text>
+                    <text x="20" y="45" font-size="10" fill="#718096">NASA GRACE and GRACE-FO satellite observations</text>
+                    <rect x="50" y="65" width="135" height="24" fill="#e53e3e" />
+                    <text x="195" y="81" font-size="11" fill="#4a5568">Antarctica: 135 billion metric tons/year</text>
+                    <rect x="50" y="105" width="264" height="24" fill="#c53030" />
+                    <text x="324" y="121" font-size="11" fill="#4a5568">Greenland: 264 billion/year</text>
+                    <line x1="50" y1="55" x2="50" y2="140" stroke="#2d3748" stroke-width="2" />
                 </svg>
             </div>
-            <a href="https://climate.nasa.gov/vital-signs/ice-sheets/" class="btn" target="_blank">View NASA's Ice Sheets Tracker</a>
+            <a href="https://science.nasa.gov/earth/explore/earth-indicators/ice-sheets/" class="btn" target="_blank" rel="noopener noreferrer">View NASA's Ice Sheets Tracker</a>
         </div>
 
         <!-- Section 3: Greening -->
@@ -206,17 +225,19 @@
             <div class="grid">
                 <div class="block">
                     <div class="block-title">What's True</div>
-                    Satellite images do show an increase in green foliage over the last few decades, partially caused by plants growing faster due to higher atmospheric carbon levels.
+                    Satellites have measured increased leaf area across much of the world's vegetated land. Higher atmospheric CO₂ has contributed substantially, alongside nitrogen deposition, land-management changes, and climate-related changes in temperature, precipitation, and sunlight.
                 </div>
                 <div class="block danger">
                     <div class="block-title">The Scientific Context</div>
-                    A "greener" planet does not equal a healthier ecosystem. This <strong>CO₂ fertilization effect</strong> is a temporary reaction to an unstable climate. The slight benefit of extra leaf growth is heavily wiped out by climate complications, including extreme droughts, severe heatwaves, destructive wildfires, and changing weather patterns.
+                    A "greener" satellite image does not, by itself, show that ecosystems or people are better off. The <strong>CO₂ fertilization effect is real</strong>, but it can diminish over time and is constrained by water, nutrients, temperature, and other stresses. Greening therefore does not negate the independently measured harms from warming, drought, extreme heat, wildfire risk, sea-level rise, and shifting ecosystems.
                 </div>
             </div>
+            <p class="source-note">Source: <a class="source-link" href="https://science.nasa.gov/earth/earth-observatory/global-green-up-slows-warming-146296/" target="_blank" rel="noopener noreferrer">NASA Earth Observatory on global greening and its limits</a>.</p>
         </div>
 
         <div class="footer">
-            <p>Data and educational context sourced directly from NASA Earth Science divisions.</p>
+            <p>Sources: NASA Earth Science and peer-reviewed research summarized by NASA. Measurements and estimates can be updated as new observations become available.</p>
+            <p><a href="/">Return to mikedulinmd.app</a></p>
         </div>
     </div>
 </body>
