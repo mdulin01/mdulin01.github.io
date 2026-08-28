@@ -4,6 +4,11 @@
       "source": "/coding",
       "destination": "/coding.html",
       "permanent": false
+    },
+    {
+      "source": "/climate",
+      "destination": "/climate.html",
+      "permanent": false
     }
   ]
 }
