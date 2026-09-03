@@ -52,7 +52,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
+    <div class="ctrl"><label>Reporting Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom Date Range</option></select></div><div class="ctrl" id="ctrlCustom" style="opacity:.55"><label>Custom Dates</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" disabled style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" disabled style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -65,8 +65,8 @@
     </div>
     <div class="sec">Redirection &amp; Closure</div>
     <div class="grid">
-      <div class="card"><h3>Redirection Reasons</h3><div class="h">Why a referral had to be redirected · OON tracked separately</div><div class="cb"><canvas id="cRedir"></canvas></div></div>
-      <div class="card"><h3>Closure Reasons</h3><div class="h">Documented reason the referral loop closed</div><div class="cb"><canvas id="cClose"></canvas></div></div>
+      <div class="card"><h3>Redirection Reasons</h3><div class="h">Referral rework before acceptance · not counted as closed incomplete</div><div class="cb"><canvas id="cRedir"></canvas></div></div>
+      <div class="card"><h3>Closed-Incomplete Reasons</h3><div class="h">Breakout of patient-side closure reasons only</div><div class="cb"><canvas id="cClose"></canvas></div><div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">Insurance / OON and specialty unable to schedule are <b>redirections, not closed-incomplete outcomes</b> — those referrals should be re-routed until accepted and ideally completed.</div></div>
     </div>
     <div class="sec">STAT / Urgent Volume by Location <span>— dropdown to provider level via the filter above</span></div>
     <div class="card" style="padding:0;overflow:hidden;margin-bottom:16px"><table><thead><tr><th>Provider</th><th class="num">Referrals</th><th class="num">Urgent/STAT</th><th class="num">Submit TAT</th><th class="num">Routine TAT</th><th class="num">Urgent TAT</th><th class="num">High-Value %</th></tr></thead><tbody id="tbody"></tbody></table></div>
@@ -95,7 +95,7 @@ const PROV=[
 ];
 const SPECTYPES=[["Cardiology",.17],["Orthopedics",.15],["Gastroenterology",.12],["Dermatology",.11],["Endocrinology",.10],["Neurology",.09],["Pulmonology",.08],["ENT",.07],["Ophthalmology",.06],["Other",.05]];
 const REDIR=[["Out-of-network (OON)",.40,C.red],["Not accepting new patients",.25,C.amber],["Patient preference",.20,C.peri],["No appointment availability",.15,C.gray]];
-const CLOSE=[["Loop closed — completed",.62,C.green],["Patient declined",.12,C.amber],["Unable to schedule",.10,C.peri],["Insurance / OON issue",.09,C.red],["Unable to reach patient",.07,C.gray]];
+const CLOSE=[["Pt declined",.34,C.amber],["Patient UTR",.30,C.red],["Service no longer needed",.24,C.peri],["Pt deceased",.12,C.gray]];
 const NAMEDSPEC=[["Charlotte Cardiology Associates","Cardiology",1,.19],["OrthoCarolina","Orthopedics",1,.16],["Carolina Digestive Health","Gastroenterology",1,.12],["Dermatology & Laser Center","Dermatology",0,.10],["Triangle Endocrine","Endocrinology",1,.09],["Avance Neurology (internal)","Neurology",1,.08],["Wake Pulmonary","Pulmonology",0,.07],["Piedmont ENT","ENT",1,.06],["Carolina Eye Associates","Ophthalmology",0,.06],["Other specialists","Various",0,.07]];
 let region="all",clinicSel=[],provId="all",period="mtd",charts={};
 const clinicOn=c=>clinicSel.length===0||clinicSel.includes(c);
@@ -143,10 +143,10 @@ function render(){
   const redTot=round(sent*d.redirect/100);
   charts.rd&&charts.rd.destroy();
   charts.rd=new Chart(document.getElementById("cRedir"),{type:"bar",data:{labels:REDIR.map(r=>r[0]),datasets:[{data:REDIR.map(r=>round(redTot*r[1])),backgroundColor:REDIR.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
-  // closure
-  const closeTot=round(sent*closed/100);
+  // patient-side closed-incomplete subset; redirection reasons are tracked separately above.
+  const closeIncompleteTot=round(sent*Math.max(.06,Math.min(.14,(d.redirect*.65)/100)));
   charts.cl&&charts.cl.destroy();
-  charts.cl=new Chart(document.getElementById("cClose"),{type:"bar",data:{labels:CLOSE.map(r=>r[0]),datasets:[{data:CLOSE.map(r=>round(closeTot*r[1])),backgroundColor:CLOSE.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
+  charts.cl=new Chart(document.getElementById("cClose"),{type:"bar",data:{labels:CLOSE.map(r=>r[0]),datasets:[{data:CLOSE.map(r=>round(closeIncompleteTot*r[1])),backgroundColor:CLOSE.map(r=>r[2]),borderRadius:5}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}});
   // provider table
   const pc=(v,c)=>`<span class="pill" style="background:${hexA(c,.14)};color:${c}">${v}</span>`;
   document.getElementById("tbody").innerHTML=sel.map(p=>{const ps=round(p.sent*f),uv=round(ps*0.14);return `<tr>
@@ -156,16 +156,17 @@ function render(){
   // specialist table
   document.getElementById("specBody").innerHTML=NAMEDSPEC.map(s=>{const v=round(sent*s[3]);const sc=round(d.sched*(0.9+Math.random()*0.2));return `<tr>
     <td class="nm">${s[0]}${s[2]?'<span class="hvs">✓ HV</span>':''}</td><td>${s[1]}</td><td class="num">${fmt(v)}</td><td class="num">${Math.min(99,Math.round(d.sched))}%</td><td class="num">${d.routine.toFixed(1)}</td></tr>`;}).join("");
-  document.getElementById("foot").innerHTML="Illustrative / synthetic outgoing-referral data, drillable Region → Location → Provider. Turnaround goals: routine ≤4 days, urgent/STAT ≤24 hrs, submission (receive → fax out) ≤24 hrs. ‘High-value specialist’ = preferred, integrated (e.g., Carelink) or high-quality specialist. Redirection tracks OON, not-accepting, patient-preference and availability; OON volume is broken out for the in-network team.";
+  document.getElementById("foot").innerHTML="Illustrative / synthetic outgoing-referral data, drillable Region → Location → Provider. Turnaround goals: routine ≤4 days, urgent/STAT ≤24 hrs, submission (receive → fax out) ≤24 hrs. ‘High-value specialist’ = preferred, integrated (e.g., Carelink) or high-quality specialist. Redirection tracks OON, not-accepting, patient-preference and availability before acceptance; closed-incomplete reasons are patient-side closure reasons only: Pt declined, Patient UTR, service no longer needed, and Pt deceased.";
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 window.AVANCE_AI={
  insight:function(){const d=agg(),f=periodF(),scope=document.getElementById('who').textContent,sent=round(d.sent*f);
    return '<b>'+scope+'</b>: <b>'+fmt(sent)+'</b> referrals sent. Submission TAT '+d.subTAT.toFixed(0)+' hrs (goal ≤24h), routine '+d.routine.toFixed(1)+' d (goal ≤4), urgent '+d.urgent.toFixed(0)+' hrs (goal ≤24h). '+Math.round(d.hvs)+'% went to high-value specialists; redirection '+Math.round(d.redirect)+'% ('+fmt(round(d.oon*f))+' out-of-network). Biggest lever: cut submission turnaround in the fax box and keep referrals with high-value specialists.';},
- chips:['Where are we missing the turnaround goal?','What is driving redirection / OON?','How can the fax box speed up?'],
+ chips:['Where are we missing the turnaround goal?','What is driving redirection / OON?','Why did referrals close incomplete?'],
  answer:function(q){const d=agg(),ql=q.toLowerCase();
    if(/turnaround|tat|goal|slow|speed|fax|automat/.test(ql))return '<h5>Turnaround</h5>Submission TAT is '+d.subTAT.toFixed(0)+' hrs (goal ≤24). Routine '+d.routine.toFixed(1)+' d vs 4-day goal; urgent '+d.urgent.toFixed(0)+' hrs vs 24-hr goal. The fax box is the automation target — 150 orders/day handled manually. Auto-routing inbound faxes and same-day STAT handling would move all three toward goal.';
    if(/redirect|oon|network|high.?value|specialist/.test(ql))return '<h5>Redirection & high-value specialists</h5>'+Math.round(d.hvs)+'% of referrals go to high-value specialists; redirection is '+Math.round(d.redirect)+'%, mostly OON (40%) and specialists not accepting new patients (25%). Keeping referrals with high-value / in-network specialists reduces redirection rework and improves closure.';
+   if(/close|incomplete|fail|decline|utr|reach|deceased|needed/.test(ql))return '<h5>Closed-incomplete reasons</h5>Closed-incomplete referrals are patient-side only: Pt declined 34%, Patient UTR 30%, service no longer needed 24%, Pt deceased 12%. Insurance/OON and specialty unable to schedule are redirections — re-routed until accepted, not failures. UTR is the most recoverable: add a second outreach attempt and MyChart message before closing.';
    return '<h5>Summary</h5>'+fmt(round(d.sent*periodF()))+' referrals · submit '+d.subTAT.toFixed(0)+'h · routine '+d.routine.toFixed(1)+'d · urgent '+d.urgent.toFixed(0)+'h · '+Math.round(d.hvs)+'% high-value · '+Math.round(d.redirect)+'% redirected.';}
 };
 window.startDashboard=function(){
@@ -176,7 +177,7 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;const custom=period==="custom";document.getElementById("ctrlCustom").style.opacity=custom?"1":".55";document.getElementById("dFrom").disabled=!custom;document.getElementById("dTo").disabled=!custom;render();};
   document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
   document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
   render();
