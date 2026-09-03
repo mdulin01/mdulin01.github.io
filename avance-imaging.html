@@ -54,7 +54,7 @@
     <div class="ctrl"><label>Region</label><select id="selRegion"><option value="all">All Regions</option><option>Charlotte</option><option>Triangle</option></select></div>
     <div class="ctrl"><label>Location <span style="opacity:.7;font-weight:600;text-transform:none;letter-spacing:0">(multi)</span></label><div class="msel" id="mselClinic"><button type="button" class="msel-btn" id="mselBtn">All Locations</button><div class="msel-pop" id="mselPop"></div></div></div>
     <div class="ctrl"><label>Provider</label><select id="selProvider"></select></div>
-    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom…</option></select></div><div class="ctrl" id="ctrlCustom" style="display:none"><label>From / To</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
+    <div class="ctrl"><label>Period</label><select id="selPeriod"><option value="mtd">This Month (MTD)</option><option value="last">Last Month</option><option value="qtd">Quarter to Date</option><option value="ytd">Year to Date</option><option value="custom">Custom Date Range</option></select></div><div class="ctrl" id="ctrlCustom"><label>Custom Dates</label><div style="display:flex;gap:6px"><input type="date" id="dFrom" disabled style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"><input type="date" id="dTo" disabled style="font-size:13px;padding:7px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.95);font-weight:600;font-family:inherit"></div></div>
     <div style="margin-left:auto;text-align:right"><div style="font-size:17px;font-weight:700" id="who">Network — All Regions</div><div style="font-size:12px;opacity:.85" id="sub"></div></div>
   </div>
   <div class="wrap">
@@ -66,8 +66,8 @@
       <div class="card"><h3>Volume by Modality</h3><div class="h">Imaging orders by modality</div><div class="cb"><canvas id="cMod"></canvas></div></div>
       <div class="card"><h3>Status Snapshot</h3><div class="h">Awaiting confirmation / awaiting scheduling / scheduled / closed</div><div class="cb"><canvas id="cStatus"></canvas></div></div>
     </div>
-    <div class="sec">By Imaging Facility <span>— ⚡ = bidirectional interface (Raleigh Radiology · Cardinal Points Imaging) · Aura/Epic interfaces under investigation for others</span></div>
-    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Facility</th><th>Path</th><th class="num">Orders</th><th class="num">% Scheduled</th><th class="num">Sched TAT</th><th class="num">Image Return</th></tr></thead><tbody id="facBody"></tbody></table></div>
+    <div class="sec">By Imaging Facility <span>— ⚡ = bidirectional interface (Raleigh Radiology · Cardinal Points Imaging) · track confirmation before scheduling</span></div>
+    <div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>Facility</th><th>Path</th><th class="num">Orders</th><th class="num">% Awaiting Confirmation</th><th class="num">% Scheduled</th><th class="num">Sched TAT</th><th class="num">Image Return</th></tr></thead><tbody id="facBody"></tbody></table></div>
 
     <div class="sec">Fax Box — Automation Opportunity <span>— Phase 1 target: automate the fax box (manual document pushing)</span></div>
     <div class="kpis" id="kFax" style="grid-template-columns:repeat(4,1fr)"></div>
@@ -147,10 +147,10 @@ function render(){
   charts.st&&charts.st.destroy();
   charts.st=new Chart(document.getElementById("cStatus"),{type:"doughnut",data:{labels:["Awaiting confirmation","Awaiting scheduling","Scheduled","Closed"],datasets:[{data:[round(d.pending*0.4),round(d.pending*0.6),round(d.schedP),round(closed)],backgroundColor:[C.red,C.amber,C.peri,C.green],borderColor:"#fff",borderWidth:2}]},options:{cutout:"56%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed+'%'}}}}});
   // facility table
-  document.getElementById("facBody").innerHTML=FACIL.map(fac=>{const v=round(orders*fac[2]/FACIL.reduce((a,x)=>a+x[2],0));return `<tr>
+  document.getElementById("facBody").innerHTML=FACIL.map(fac=>{const v=round(orders*fac[2]/FACIL.reduce((a,x)=>a+x[2],0)),awaitPct=fac[1]?Math.max(3,round(d.pending*.28)):round(d.pending*.46);return `<tr>
     <td class="nm">${fac[0]}${fac[1]?'<span class="cl">⚡ Interfaced</span>':''}</td>
     <td>${fac[1]?'<span class="pill" style="background:'+hexA(C.teal,.14)+';color:'+C.teal+'">Electronic</span>':'<span class="pill" style="background:'+hexA(C.amber,.14)+';color:'+C.amber+'">Fax</span>'}</td>
-    <td class="num">${fmt(v)}</td><td class="num">${Math.round(d.schedP)}%</td><td class="num">${d.sched.toFixed(1)} d</td><td class="num">${fac[1]?round(d.ret*0.7):round(d.ret*1.2)} h</td></tr>`;}).join("");
+    <td class="num">${fmt(v)}</td><td class="num"><span class="pill" style="background:${hexA(tone(awaitPct,false,8,15),.14)};color:${tone(awaitPct,false,8,15)}">${awaitPct}%</span></td><td class="num">${Math.round(d.schedP)}%</td><td class="num">${d.sched.toFixed(1)} d</td><td class="num">${fac[1]?round(d.ret*0.7):round(d.ret*1.2)} h</td></tr>`;}).join("");
   // ---- fax box ----
   const orderFaxMo=round(150*21.7*f),statusFaxMo=round(300*21.7*f),totalTouch=orderFaxMo+statusFaxMo+round(120*21.7*f)+round(90*21.7*f);
   const autoPct=64, fteNow=3+2+8.5+1.5, fteSave=Math.round(fteNow*autoPct/100*10)/10;
@@ -169,19 +169,20 @@ function render(){
   // fax queue table
   const autoc=a=>a==="High"?C.greenD:a==="Partial"?C.amber:C.gray;
   document.getElementById("faxBody").innerHTML=FAXQ.map(q=>`<tr><td class="nm">${q[0]}</td><td class="num">${q[1]}</td><td class="num">${q[2]}</td><td><span class="pill" style="background:${hexA(autoc(q[3]),.14)};color:${autoc(q[3])}">${q[3]}</span></td></tr>`).join("");
-  document.getElementById("foot").innerHTML="Illustrative / synthetic imaging-referral data, structured from the Alo Imaging fax value-stream map. Interfaced facilities (Raleigh Radiology, Cardinal Points Imaging) have a bidirectional interface — orders transmit on provider signature and results return to the chart; Aura/Epic-to-Epic interfaces with other systems (e.g. Atrium) are under investigation. All other facilities are manual fax. <b>Screening studies are excluded</b> (screening mammography, DEXA, other preventive screeners — tracked under preventive care, where turnaround KPIs don't apply); diagnostic mammography is included. Fax-box volumes (150 order + 300 status faxes/day) per the workflow annotations.";
+  document.getElementById("foot").innerHTML="Illustrative / synthetic imaging-referral data, structured from the Alo Imaging fax value-stream map. Interfaced facilities (Raleigh Radiology, Cardinal Points Imaging) have a bidirectional interface — orders transmit on provider signature and results return to the chart; Aura/Epic-to-Epic interfaces with other systems (e.g. Atrium) are under investigation. All other facilities are manual fax. <b>% awaiting confirmation</b> is tracked as the intake handoff metric before scheduling. <b>Screening studies are excluded</b> (screening mammography, DEXA, other preventive screeners — tracked under preventive care, where turnaround KPIs don't apply); diagnostic mammography is included. Fax-box volumes (150 order + 300 status faxes/day) per the workflow annotations.";
   if(window.renderAvanceAI)window.renderAvanceAI();
 }
 window.AVANCE_AI={
  insight:function(){const d=agg(),f=periodF(),scope=document.getElementById('who').textContent,orders=round(d.orders*f*modShare());
-   return '<b>'+scope+'</b>: <b>'+fmt(orders)+'</b> imaging orders. '+Math.round(d.carelink)+'% go via the bidirectional interface (Raleigh Radiology · CPI) and transmit on signature; the rest are manual fax. Receipt confirmation is the intake KPI (STAT ≤24h, all ≤4d). Routine scheduling '+d.sched.toFixed(1)+' d (goal ≤4); image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h. The fax box (~450 faxes/day, ~15 FTE) remains the Phase-1 automation target; expanding interfaces (Aura/Epic) is the structural fix.';},
+   return '<b>'+scope+'</b>: <b>'+fmt(orders)+'</b> imaging orders. '+Math.round(d.carelink)+'% go via the bidirectional interface (Raleigh Radiology · CPI) and transmit on signature; the rest are manual fax. '+Math.round(d.pending*0.4)+'% are awaiting confirmation before scheduling; receipt confirmation is the intake KPI (STAT ≤24h, all ≤4d). Routine scheduling '+d.sched.toFixed(1)+' d (goal ≤4); image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h. The fax box (~450 faxes/day, ~15 FTE) remains the Phase-1 automation target; expanding interfaces (Aura/Epic) is the structural fix.';},
  chips:['Where is the fax-box automation opportunity?','How interfaced are we?','Where are we missing turnaround?'],
  answer:function(q){const d=agg(),ql=q.toLowerCase();
    if(/fax|automat|fte|contractor|manual|opportunit/.test(ql))return '<h5>Fax-box automation</h5>~450 faxes/day handled manually (150 order + 300 status) by ~15 FTE, with rework and overtime. Highest-ROI: auto-route inbound order faxes and auto-confirm receipt (High), then templated status updates and auto-attach image returns (Partial). Estimated ~64% automatable ≈ 9.6 FTE opportunity. Phase 2 automates the 4-day / same-day follow-up cadence.';
    if(/carelink|electronic|hl7|integrat|interfac|aura/.test(ql))return '<h5>Interfaced vs. fax</h5>'+Math.round(d.carelink)+'% of imaging orders go through the bidirectional interface — currently two partners, Raleigh Radiology and Cardinal Points Imaging (orders transmit on provider signature; results return to the chart). Everything else is manual fax. Aura (Epic-to-Epic interface) is under investigation — an Atrium build is the kind of red-tape collaboration required. Each interfaced facility removes fax-box touches on both the order and the result.';
    if(/turnaround|tat|slow|goal|schedul|return/.test(ql))return '<h5>Turnaround</h5>Receipt confirmation: STAT ≤24h / all ≤4d (orders transmit on signature, so there is no submission lag to manage). Routine scheduling '+d.sched.toFixed(1)+'d (goal ≤4), STAT '+d.stat.toFixed(0)+'h (goal ≤24). Image return by priority: STAT '+(d.ret*0.4).toFixed(0)+'h (goal ≤12), urgent '+(d.ret*0.7).toFixed(0)+'h (≤24), routine '+(d.ret*1.15).toFixed(0)+'h (≤48). Fax-path facilities run slower on returns than interfaced ones.';
-   return '<h5>Summary</h5>'+fmt(round(d.orders*periodF()*modShare()))+' orders · '+Math.round(d.carelink)+'% interfaced · routine sched '+d.sched.toFixed(1)+'d · image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h.';}
+   return '<h5>Summary</h5>'+fmt(round(d.orders*periodF()*modShare()))+' orders · '+Math.round(d.carelink)+'% interfaced · '+Math.round(d.pending*0.4)+'% awaiting confirmation · routine sched '+d.sched.toFixed(1)+'d · image return STAT '+(d.ret*0.4).toFixed(0)+'h / routine '+(d.ret*1.15).toFixed(0)+'h.';}
 };
+function syncCustomDates(){const isCustom=period==="custom",ctrl=document.getElementById("ctrlCustom"),from=document.getElementById("dFrom"),to=document.getElementById("dTo");ctrl.style.opacity=isCustom?"1":".58";from.disabled=!isCustom;to.disabled=!isCustom;}
 window.startDashboard=function(){
   buildClinic();buildProvider();
   document.getElementById("selMod").onchange=e=>{mod=e.target.value;render();};
@@ -191,9 +192,10 @@ window.startDashboard=function(){
   mPop.onclick=e=>e.stopPropagation();
   document.addEventListener("click",()=>mPop.classList.remove("open"));
   document.getElementById("selProvider").onchange=e=>{provId=e.target.value;render();};
-  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;document.getElementById("ctrlCustom").style.display=period==="custom"?"flex":"none";render();};
+  document.getElementById("selPeriod").onchange=e=>{period=e.target.value;syncCustomDates();render();};
   document.getElementById("dFrom").onchange=e=>{dFrom=e.target.value;if(period==="custom")render();};
   document.getElementById("dTo").onchange=e=>{dTo=e.target.value;if(period==="custom")render();};
+  syncCustomDates();
   render();
 };
 </script>
