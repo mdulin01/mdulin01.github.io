@@ -269,22 +269,47 @@
             font-size: 0.88em; background: var(--paper-deep); padding: 1px 6px; border-radius: 5px; color: var(--ink);
         }
 
-        /* ---- Prompt block ---- */
-        .prompt {
+        /* ---- Sample prompt, attached under the size-2 card ---- */
+        .attached {
             margin-top: 22px;
+            border: 1px solid var(--teal);
+            border-radius: 18px;
+            background: var(--white);
+            box-shadow: 0 0 0 3px var(--teal-light);
+            overflow: hidden;
+            scroll-margin-top: 90px;
+        }
+        .attached-head {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+            padding: 18px 24px;
+            background: var(--teal-light);
+            border-bottom: 1px solid var(--rule);
+        }
+        .attached-label {
+            font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase;
+            color: var(--teal); font-weight: 700;
+        }
+        .attached-sub { font-size: 0.9rem; color: var(--ink-soft); margin-top: 4px; }
+        .copy {
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600;
+            color: var(--white); background: var(--teal);
+            border: none; border-radius: 999px; padding: 9px 16px; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .copy:hover { opacity: 0.85; }
+        .copy.done { background: var(--ink); }
+        .prompt {
+            margin: 0;
             background: var(--ink); color: #efe9dc;
-            border-radius: 16px; padding: 24px 26px;
+            padding: 24px 26px;
             font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
             font-size: 0.86rem; line-height: 1.65;
-            white-space: pre-wrap; overflow-x: auto;
-            position: relative;
+            white-space: pre-wrap; word-break: break-word; overflow-x: auto;
         }
-        .prompt .label {
-            position: absolute; top: -12px; left: 20px;
-            font-family: 'Inter', sans-serif; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
-            background: var(--gold); color: var(--ink); padding: 3px 10px; border-radius: 999px; font-weight: 700;
+        @media (max-width: 600px) {
+            .attached-head { flex-direction: column; }
         }
-        .prompt b { color: var(--gold); font-weight: 600; }
 
         /* ---- Caveats ---- */
         .caveats { display: grid; gap: 16px; margin-top: 24px; }
@@ -450,7 +475,7 @@
                     <li>Write one prompt that says what to check, what counts as a deal, and to email you.</li>
                     <li>Set it to weekly. Re-export the CSV whenever your list changes.</li>
                 </ul>
-                <div class="fit"><strong>The catch:</strong> usage limits. Each run spends part of your plan's allowance, and checking 300 books is a lot of web lookups. Keep a “priority” shelf of 25 to 50 titles, or let it work through the list in batches.</div>
+                <div class="fit"><strong>The catch:</strong> usage limits. Each run spends part of your plan's allowance, and checking 300 books is a lot of web lookups. Keep a “priority” shelf of 25 to 50 titles, or let it work through the list in batches. <a href="#sample-prompt">Sample prompt below ↓</a></div>
             </div>
 
             <div class="tier">
@@ -465,6 +490,29 @@
                 </ul>
                 <div class="fit"><strong>The catch:</strong> maintenance. Stores redesign pages and block scrapers. Only worth it if size 2 leaves you wanting more, or if you enjoy the tinkering for its own sake.</div>
             </div>
+        </div>
+
+        <div class="attached" id="sample-prompt">
+            <div class="attached-head">
+                <div>
+                    <div class="attached-label">Sample prompt · for size 2</div>
+                    <div class="attached-sub">Paste this into a new Cowork scheduled task, swap in your email address, and set it to weekly. Edit the numbers in rule 4 to taste.</div>
+                </div>
+                <button class="copy" type="button" data-copy="sample-prompt-text">Copy prompt</button>
+            </div>
+            <pre class="prompt" id="sample-prompt-text">You are my book-deal scout. Every run, do the following.
+
+1. Open the newest file named goodreads_library_export*.csv in my Google Drive folder "Book deals".
+2. Keep only rows where "Exclusive Shelf" is "to-read". If a row's "Bookshelves" column contains "deal-watch", treat those books as the priority list; otherwise use the whole to-read list. Check at most 40 books per run, and rotate through the rest on later runs.
+3. For each book, check the current Kindle price on Amazon, and look for a current deal on BookBub, Chirp (audiobooks), and Kobo. Note the list price if you can find it.
+4. A deal is SIGNIFICANT if any of these is true:
+   a) at least 50% below list price
+   b) $2.99 or less
+   c) free
+   d) an audiobook under $5
+5. Email me at [my address] with the subject "Book deals, week of [date]". List only the significant deals: title, author, format, price now, list price, store, and a link. One line per book, best deal first.
+6. If there are no significant deals, send one sentence saying so and how many books you checked.
+7. Never guess a price. If you can't verify it, leave the book out and tell me how many you skipped.</pre>
         </div>
     </div>
 </section>
@@ -527,7 +575,7 @@
                 <div class="n"></div>
                 <div>
                     <h3>Create the scheduled task</h3>
-                    <p>In the Claude desktop app, open Cowork, start a new scheduled task, paste a prompt like the one below, and set the cadence to weekly. Run it once by hand first and read the result critically. Tighten the prompt until the email is something you'd actually want.</p>
+                    <p>In the Claude desktop app, open Cowork, start a new scheduled task, paste the <a href="#sample-prompt">sample prompt</a> from the size-2 card above, and set the cadence to weekly. Run it once by hand first and read the result critically. Tighten the prompt until the email is something you'd actually want.</p>
                 </div>
             </div>
             <div class="step">
@@ -539,16 +587,6 @@
             </div>
         </div>
 
-        <div class="prompt"><span class="label">Starter prompt · edit freely</span>You are my book-deal scout. Every run, do the following.
-
-1. Open the newest file named <b>goodreads_library_export*.csv</b> in my Google Drive folder “Book deals”.
-2. Keep only rows where <b>Exclusive Shelf</b> is “to-read”. If a row has a bookshelf tag “deal-watch”, treat those as the priority list; otherwise use the whole to-read list.
-3. For each priority book, check the current price on Amazon Kindle, and check BookBub, Chirp (audiobooks), and Kobo for a current deal. Note the list price if you can find it.
-4. A deal is SIGNIFICANT if any of these is true:
-   <b>a)</b> at least 50% below list price, <b>b)</b> $2.99 or less, <b>c)</b> free, <b>d)</b> an audiobook under $5.
-5. Email me at <b>[my address]</b> with subject “Book deals, week of [date]”. List only the significant deals: title, author, format, price now, list price, store, and a link. One line per book, best deal first.
-6. If there are no significant deals, send one sentence saying so and how many books you checked.
-7. Never guess a price. If you can't verify it, leave the book out and say how many you skipped.</div>
     </div>
 </section>
 
@@ -600,5 +638,27 @@
     </div>
 </footer>
 
+<script>
+    document.querySelectorAll('button.copy').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var el = document.getElementById(btn.dataset.copy);
+            if (!el) return;
+            var text = el.textContent;
+            var done = function () {
+                btn.textContent = 'Copied';
+                btn.classList.add('done');
+                setTimeout(function () { btn.textContent = 'Copy prompt'; btn.classList.remove('done'); }, 2000);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+            } else { fallback(); }
+            function fallback() {
+                var r = document.createRange(); r.selectNodeContents(el);
+                var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+                try { document.execCommand('copy'); done(); } catch (e) { btn.textContent = 'Select and copy'; }
+            }
+        });
+    });
+</script>
 </body>
 </html>
