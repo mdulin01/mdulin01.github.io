@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Christina's Book Deal Scout — a note from Mike Dulin</title>
-    <meta name="description" content="Can an AI agent watch your Goodreads want-to-read list and tell you when one of your books goes on sale? Yes. Here is the honest version of how, in three sizes.">
+    <meta name="description" content="Can an AI agent watch your Goodreads want-to-read list and tell you when one of your books goes on sale? Yes. Here is the honest version of how, in three options.">
     <meta name="robots" content="noindex, follow">
     <link rel="canonical" href="https://mikedulinmd.app/christina">
 
@@ -269,9 +269,9 @@
             font-size: 0.88em; background: var(--paper-deep); padding: 1px 6px; border-radius: 5px; color: var(--ink);
         }
 
-        /* ---- Sample prompt, attached under the size-2 card ---- */
+        /* ---- Sample prompt panel ---- */
         .attached {
-            margin-top: 22px;
+            margin-top: 18px;
             border: 1px solid var(--teal);
             border-radius: 18px;
             background: var(--white);
@@ -321,15 +321,13 @@
         .caveat h3 .glyph { color: var(--gold); font-size: 1.2rem; }
         .caveat p { font-size: 0.94rem; }
 
-        /* ---- Bottom line ---- */
-        .bottom {
-            background: var(--ink); color: var(--paper);
-            border-radius: 22px; padding: 40px 36px;
-            margin-top: 8px;
+        /* ---- Contact ---- */
+        .contact {
+            text-align: center;
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 1.2rem;
+            color: var(--ink);
         }
-        .bottom h2 { color: var(--paper); }
-        .bottom p { color: #d9d2c3; }
-        .bottom a { color: var(--gold); }
 
         /* ---- Footer ---- */
         footer {
@@ -445,9 +443,9 @@
 <section>
     <div class="container-wide">
         <div class="container" style="padding:0;">
-            <div class="section-label">Three sizes</div>
+            <div class="section-label">Three options</div>
             <h2>Pick the smallest one that makes you happy</h2>
-            <p>Start at the left. Move right only if the previous size annoys you.</p>
+            <p>Start at the left. Move right only if the previous option annoys you.</p>
         </div>
 
         <div class="tiers">
@@ -475,7 +473,7 @@
                     <li>Write one prompt that says what to check, what counts as a deal, and to email you.</li>
                     <li>Set it to weekly. Re-export the CSV whenever your list changes.</li>
                 </ul>
-                <div class="fit"><strong>The catch:</strong> usage limits. Each run spends part of your plan's allowance, and checking 300 books is a lot of web lookups. Keep a “priority” shelf of 25 to 50 titles, or let it work through the list in batches. <a href="#sample-prompt">Sample prompt below ↓</a></div>
+                <div class="fit"><strong>The catch:</strong> usage limits. Each run spends part of your plan's allowance, and checking 300 books is a lot of web lookups. Keep a “priority” shelf of 25 to 50 titles, or let it work through the list in batches.</div>
             </div>
 
             <div class="tier">
@@ -488,32 +486,10 @@
                     <li>Runs on a fixed schedule with no plan limits to think about.</li>
                     <li>Needs someone to host it and fix it when a store changes its website.</li>
                 </ul>
-                <div class="fit"><strong>The catch:</strong> maintenance. Stores redesign pages and block scrapers. Only worth it if size 2 leaves you wanting more, or if you enjoy the tinkering for its own sake.</div>
+                <div class="fit"><strong>The catch:</strong> maintenance. Stores redesign pages and block scrapers. Only worth it if option 2 leaves you wanting more, or if you enjoy the tinkering for its own sake.</div>
             </div>
         </div>
 
-        <div class="attached" id="sample-prompt">
-            <div class="attached-head">
-                <div>
-                    <div class="attached-label">Sample prompt · for size 2</div>
-                    <div class="attached-sub">Paste this into a new Cowork scheduled task, swap in your email address, and set it to weekly. Edit the numbers in rule 4 to taste.</div>
-                </div>
-                <button class="copy" type="button" data-copy="sample-prompt-text">Copy prompt</button>
-            </div>
-            <pre class="prompt" id="sample-prompt-text">You are my book-deal scout. Every run, do the following.
-
-1. Open the newest file named goodreads_library_export*.csv in my Google Drive folder "Book deals".
-2. Keep only rows where "Exclusive Shelf" is "to-read". If a row's "Bookshelves" column contains "deal-watch", treat those books as the priority list; otherwise use the whole to-read list. Check at most 40 books per run, and rotate through the rest on later runs.
-3. For each book, check the current Kindle price on Amazon, and look for a current deal on BookBub, Chirp (audiobooks), and Kobo. Note the list price if you can find it.
-4. A deal is SIGNIFICANT if any of these is true:
-   a) at least 50% below list price
-   b) $2.99 or less
-   c) free
-   d) an audiobook under $5
-5. Email me at [my address] with the subject "Book deals, week of [date]". List only the significant deals: title, author, format, price now, list price, store, and a link. One line per book, best deal first.
-6. If there are no significant deals, send one sentence saying so and how many books you checked.
-7. Never guess a price. If you can't verify it, leave the book out and tell me how many you skipped.</pre>
-        </div>
     </div>
 </section>
 
@@ -546,7 +522,7 @@
 
 <section>
     <div class="container">
-        <div class="section-label">Size 2, step by step</div>
+        <div class="section-label">Option 2, step by step</div>
         <h2>Setting up the Cowork version</h2>
 
         <div class="steps">
@@ -575,7 +551,31 @@
                 <div class="n"></div>
                 <div>
                     <h3>Create the scheduled task</h3>
-                    <p>In the Claude desktop app, open Cowork, start a new scheduled task, paste the <a href="#sample-prompt">sample prompt</a> from the size-2 card above, and set the cadence to weekly. Run it once by hand first and read the result critically. Tighten the prompt until the email is something you'd actually want.</p>
+                    <p>In the Claude desktop app, open Cowork, start a new scheduled task, paste the sample prompt below, and set the cadence to weekly. Run it once by hand first and read the result critically. Tighten the prompt until the email is something you'd actually want.</p>
+
+                    <div class="attached" id="sample-prompt">
+            <div class="attached-head">
+                <div>
+                    <div class="attached-label">Sample prompt</div>
+                    <div class="attached-sub">Paste this into a new Cowork scheduled task, swap in your email address, and set it to weekly. Edit the numbers in rule 4 to taste.</div>
+                </div>
+                <button class="copy" type="button" data-copy="sample-prompt-text">Copy prompt</button>
+            </div>
+            <pre class="prompt" id="sample-prompt-text">You are my book-deal scout. Every run, do the following.
+
+1. Open the newest file named goodreads_library_export*.csv in my Google Drive folder "Book deals".
+2. Keep only rows where "Exclusive Shelf" is "to-read". If a row's "Bookshelves" column contains "deal-watch", treat those books as the priority list; otherwise use the whole to-read list. Check at most 40 books per run, and rotate through the rest on later runs.
+3. For each book, check the current Kindle price on Amazon, and look for a current deal on BookBub, Chirp (audiobooks), and Kobo. Note the list price if you can find it.
+4. A deal is SIGNIFICANT if any of these is true:
+   a) at least 50% below list price
+   b) $2.99 or less
+   c) free
+   d) an audiobook under $5
+5. Email me at [my address] with the subject "Book deals, week of [date]". List only the significant deals: title, author, format, price now, list price, store, and a link. One line per book, best deal first.
+6. If there are no significant deals, send one sentence saying so and how many books you checked.
+7. Never guess a price. If you can't verify it, leave the book out and tell me how many you skipped.</pre>
+                    </div>
+
                 </div>
             </div>
             <div class="step">
@@ -617,10 +617,8 @@
 
 <section>
     <div class="container">
-        <div class="bottom">
-            <h2>My recommendation</h2>
-            <p>Spend twenty minutes on BookBub's wishlist tonight with your top ten books. If that scratches the itch, you're done and you paid nothing. If you find yourself wanting the whole list watched, the Cowork scheduled task is a real, working answer on a Pro plan, and the prompt above is most of the work. Skip size 3 unless it sounds fun.</p>
-            <p style="margin-top:18px;">Questions, or want me to sit with you while you set it up? <a href="mailto:mdulin@gmail.com">mdulin@gmail.com</a>.</p>
+        <div class="contact">
+            <p>If you want to contact Mike, his email is <a href="mailto:mdulin@gmail.com">mdulin@gmail.com</a>.</p>
         </div>
     </div>
 </section>
