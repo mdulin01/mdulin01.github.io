@@ -213,6 +213,43 @@
   .lanes .empty-lane{grid-column:1/-1;padding:14px;font-size:12.5px;color:var(--muted);font-style:italic}
   @media(max-width:700px){.lanes{grid-template-columns:120px 1fr}}
 
+  /* ---- help overlay ---- */
+  .helpbtn{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;border:2px solid var(--peri);background:#fff;color:var(--peri);font-weight:800;font-size:15px;cursor:pointer;vertical-align:middle;margin-left:10px;font-family:inherit}
+  .helpbtn:hover{background:var(--peri);color:#fff}
+  .help-ov{position:fixed;inset:0;z-index:80;background:rgba(20,25,45,.55);display:flex;align-items:flex-start;justify-content:center;padding:28px 16px;overflow:auto}
+  .help-ov[hidden]{display:none}
+  .help{background:#fff;border-radius:18px;max-width:960px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.35);overflow:hidden;animation:pop .15s ease}
+  @keyframes pop{from{transform:translateY(8px);opacity:.6}to{transform:none;opacity:1}}
+  .help-h{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 55%,var(--peri));color:#fff;padding:22px 26px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+  .help-h h2{font-size:22px;font-weight:800;line-height:1.2}
+  .help-h p{font-size:14px;opacity:.9;margin-top:6px;line-height:1.5;max-width:720px}
+  .help-h .x{border:none;background:rgba(255,255,255,.16);color:#fff;border-radius:9px;width:34px;height:34px;font-size:18px;cursor:pointer;flex:none}
+  .help-h .x:hover{background:rgba(255,255,255,.3)}
+  .help-b{padding:20px 26px 24px}
+  .help-b h3{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:800;margin:18px 0 10px;display:flex;align-items:center;gap:10px}
+  .help-b h3::after{content:"";flex:1;height:1px;background:var(--line)}
+  .help-b h3:first-child{margin-top:0}
+  .agenda{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .ag{border:1px solid var(--line);border-top:4px solid var(--ac);border-radius:12px;padding:12px 13px;background:#fff}
+  .ag .n{width:26px;height:26px;border-radius:50%;background:var(--ac);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .ag .t{font-size:14px;font-weight:800;color:var(--navy);margin-top:8px;line-height:1.25}
+  .ag .d{font-size:12.5px;color:#41505a;line-height:1.45;margin-top:5px}
+  .ag .m{font-size:11px;color:var(--muted);font-weight:700;margin-top:7px}
+  .tabsg{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
+  .tg{display:grid;grid-template-columns:150px 1fr;gap:10px;font-size:13px;line-height:1.5;padding:6px 0;border-bottom:1px dashed var(--line)}
+  .tg b{color:var(--navy)}
+  .howto{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .hw{background:#F6F8FB;border-radius:10px;padding:12px 14px}
+  .hw .k{font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.4px}
+  .hw ul{margin:6px 0 0;padding-left:17px;font-size:13px;line-height:1.55;color:#41505a}
+  .rules{background:#FFFBEE;border-left:4px solid var(--warn);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.55;color:#41505a}
+  .rules ul{margin:4px 0 0;padding-left:17px}
+  .help-f{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  .help-f .st{font-size:11.5px;color:var(--muted);margin-left:auto}
+  @media(max-width:900px){.agenda{grid-template-columns:1fr 1fr}.howto,.tabsg{grid-template-columns:1fr}.tg{grid-template-columns:120px 1fr}}
+  @media(max-width:560px){.agenda{grid-template-columns:1fr}.help-h{padding:18px}.help-b{padding:16px}}
+  @media print{.help-ov{position:static;background:none;padding:0}.help{box-shadow:none}}
+
   /* ---- change log ---- */
   .log{font-size:12.5px;line-height:1.6}
   .log li{margin:4px 0}
@@ -247,7 +284,7 @@
       <svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg>
       <div class="wordmark"><b>Avance</b>Care</div>
     </div>
-    <div class="meta"><div class="t">Referral Coordinator Workflow — Process Redesign</div><a href="/avance/">← All dashboards</a> · <a onclick="window.avanceSignOut&&window.avanceSignOut()" style="cursor:pointer">Sign out</a></div>
+    <div class="meta"><div class="t">Referral Coordinator Workflow — Process Redesign</div><a href="/avance/">← All dashboards</a> · <a onclick="window.avanceSignOut&&window.avanceSignOut()" style="cursor:pointer">Sign out</a><button class="helpbtn" id="helpBtn" title="How to use this page" aria-label="How to use this page">?</button></div>
   </div>
 
   <div class="hero">
@@ -394,6 +431,58 @@
   </div>
 </div>
 
+<div class="help-ov" id="helpOv" hidden>
+  <div class="help" role="dialog" aria-labelledby="helpTitle">
+    <div class="help-h">
+      <div>
+        <h2 id="helpTitle">How we'll use this page today</h2>
+        <p>This is a working copy of the referral team's own workflow map, rebuilt so we can mark it up together and leave the room with decisions written down. Nothing here is final. The current-state map is a transcription — if it is wrong, say so and it gets fixed.</p>
+      </div>
+      <button class="x" id="helpX" aria-label="Close">✕</button>
+    </div>
+    <div class="help-b">
+      <h3>Agenda</h3>
+      <div class="agenda">
+        <div class="ag" style="--ac:#2B2C6B"><div class="n">1</div><div class="t">Confirm the current state</div><div class="d">Walk the map left to right. Is this what actually happens? Click any step to see what the map says and the questions we have.</div><div class="m">Current-state map · ~10 min</div></div>
+        <div class="ag" style="--ac:#D4A017"><div class="n">2</div><div class="t">Find the gaps</div><div class="d">Drag the day slider. Amber means no one is doing anything on that day. Switch scenarios to follow a booked vs. unbooked referral.</div><div class="m">Day slider · ~5 min</div></div>
+        <div class="ag" style="--ac:#5C6CB8"><div class="n">3</div><div class="t">React to the observations</div><div class="d">Twelve draft observations. For each: agree, disagree, or discuss, and a one-line response. Disagreeing is useful — it means the map is missing something you do.</div><div class="m">Observations tab · ~15 min</div></div>
+        <div class="ag" style="--ac:#0E8A6E"><div class="n">4</div><div class="t">Draw the future state</div><div class="d">Reorder, add, and remove steps live. Give each step an owner and a day target. The coverage bar shows whether the redesign still has holes.</div><div class="m">Future state editor · ~20 min</div></div>
+        <div class="ag" style="--ac:#2F9E45"><div class="n">5</div><div class="t">Capture and close</div><div class="d">Everything marked is compiled as text. Copy or email it before we leave. The next version of this page is built from those notes.</div><div class="m">Meeting notes tab · ~5 min</div></div>
+      </div>
+
+      <h3>The tabs</h3>
+      <div class="tabsg">
+        <div class="tg"><b>Current-state map</b><span>The team's map as drawn: day bands, steps, the scheduling decision, closure triggers. Click a step for detail and to record a decision.</span></div>
+        <div class="tg"><b>Observations</b><span>Draft discussion points tagged Gap, Ambiguity, Measurement, or Hand-off. Filter by tag or by "not yet marked".</span></div>
+        <div class="tg"><b>Future state — editor</b><span>Editable step strip seeded from the current state, plus a day-coverage bar and an owner swimlane that build themselves.</span></div>
+        <div class="tg"><b>Meeting notes</b><span>Live compilation of every decision, vote, note, and the redesign. Copy, download, or email.</span></div>
+        <div class="tg"><b>Change log</b><span>What changed in each version of this page, so the team can see how it evolves between sessions.</span></div>
+      </div>
+
+      <h3>How to interact</h3>
+      <div class="howto">
+        <div class="hw"><div class="k">On the map</div><ul><li><b>Click a step</b> to open its detail below the map.</li><li>In the detail panel, choose <b>Keep / Change / Drop / Discuss</b>, pick who <b>should own</b> it, and type a note. The choice shows as a badge on the step.</li><li><b>Drag the day slider</b> to see where a referral sits on any day; amber means the map has nothing for that day.</li></ul></div>
+        <div class="hw"><div class="k">On the observations</div><ul><li><b>Agree / Disagree / Discuss</b> on each one, plus a short response.</li><li>Use the filters to focus on one category or on what is still unmarked.</li><li>The counter at the top right shows progress through the twelve.</li></ul></div>
+        <div class="hw"><div class="k">In the editor</div><ul><li><b>Drag the ⠿ handle</b> or use ◀ ▶ to reorder a step.</li><li><b>＋</b> on a card inserts a step after it; <b>✕</b> removes it; "Add step at end" appends.</li><li>Edit name, day range, owner, actions, and rationale directly on the card. The coverage bar and swimlane update as you type.</li><li>"Reset to current state" puts the original steps back.</li></ul></div>
+      </div>
+
+      <h3>Ground rules</h3>
+      <div class="rules"><ul>
+        <li><b>Everything you mark is saved only on this laptop.</b> Before we close, someone opens Meeting notes and hits Copy or Email. That text is what the next version is built from.</li>
+        <li><b>No patient information anywhere on this page.</b> Use "a patient" or a made-up example, never a name, MRN, or date of birth, in notes.</li>
+        <li><b>"Discuss" is a valid answer.</b> If we cannot settle something in the room, mark it Discuss with a note on who will find out.</li>
+        <li>The <b>Feedback</b> button at the bottom right sends a note to Mike about the page itself, separate from the meeting notes.</li>
+      </ul></div>
+
+      <div class="help-f">
+        <button class="primbtn" id="helpGo">Start with the current-state map</button>
+        <button class="ghostbtn" id="helpPrint">Print this guide</button>
+        <span class="st">Reopen any time with the <b>?</b> button at the top right · Esc closes</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
@@ -429,6 +518,7 @@ const OBS=[
 ];
 
 const LOG=[
+  {v:"v0.4",d:"2026-09-17",t:"Added the ? guide at the top right (also at /acreferrals/#help): agenda for the session, what each tab is for, how to interact with the map, observations and editor, and ground rules on saving notes and keeping patient information off the page."},
   {v:"v0.3",d:"2026-09-17",t:"Page moved to /acreferrals (old address redirects). Future-state tab is now an editor: an ordered strip of step cards seeded from the current state, drag or arrow-button reordering, insert / add / remove, inline editing of name, day range, owner, actions and note, a day-coverage bar that shows undrawn days, and an auto-built swimlane by owner. The redesign is included in Meeting notes once edited."},
   {v:"v0.2",d:"2026-09-17",t:"Interactive review: day slider with two scenarios that highlights where a referral sits on any day and flags undrawn days; keep / change / drop / discuss decision, owner and note on every step; agree / disagree / discuss and note on every observation with category filters; Meeting notes tab that compiles all marks for copy, download or email. Marks are saved in the browser."},
   {v:"v0.1",d:"2026-09-17",t:"Current-state map transcribed from the referral team's workflow diagram (stages, day bands, decision loop, closure triggers). Added step-detail panel with implied owners, systems, and questions; added 12 draft observations for the review meeting. Future-state tab is a placeholder."}
@@ -674,6 +764,17 @@ renderBadges(); renderNotes(); renderSim();
 
 $("#logList").innerHTML=LOG.map(l=>'<li><b>'+l.v+'</b> · '+l.d+' — '+esc(l.t)+'</li>').join("");
 $("#verTag").textContent="Current state · "+LOG[0].v+" · "+LOG[0].d;
+
+/* ---------- help overlay ---------- */
+function helpOpen(){ $("#helpOv").hidden=false; document.body.style.overflow="hidden"; $("#helpX").focus(); }
+function helpClose(){ $("#helpOv").hidden=true; document.body.style.overflow=""; if(location.hash==="#help"){ try{history.replaceState(null,"",location.pathname);}catch(e){} } }
+$("#helpBtn").addEventListener("click",helpOpen);
+$("#helpX").addEventListener("click",helpClose);
+$("#helpGo").addEventListener("click",()=>{ helpClose(); const t=$$(".tab").find(x=>x.dataset.pane==="map"); if(t) t.click(); window.scrollTo({top:0,behavior:"smooth"}); });
+$("#helpPrint").addEventListener("click",()=>window.print());
+$("#helpOv").addEventListener("click",e=>{ if(e.target===$("#helpOv")) helpClose(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#helpOv").hidden) helpClose(); });
+if((location.hash||"")==="#help") helpOpen();
 
 $$(".tab").forEach(t=>t.addEventListener("click",()=>{
   $$(".tab").forEach(x=>x.classList.toggle("on",x===t));
