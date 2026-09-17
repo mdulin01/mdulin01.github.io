@@ -16,6 +16,11 @@
       "permanent": true
     },
     {
+      "source": "/avancereferrals/",
+      "destination": "/acreferrals/",
+      "permanent": true
+    },
+    {
       "source": "/avancereferrals/:path*",
       "destination": "/acreferrals/:path*",
       "permanent": true
