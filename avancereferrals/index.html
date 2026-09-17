@@ -109,6 +109,59 @@
   .ob .ow{font-size:11.5px;color:var(--muted);margin-top:5px}
   .ob .ow b{color:var(--ink)}
 
+  /* ---- day simulator ---- */
+  .sim{display:grid;grid-template-columns:1fr 360px;gap:18px;align-items:center}
+  .sim .day{font-size:34px;font-weight:800;color:var(--navy);line-height:1}
+  .sim .day small{font-size:12px;font-weight:700;color:var(--muted);margin-left:6px}
+  .sim input[type=range]{width:100%;accent-color:var(--navy);margin-top:10px}
+  .sim .ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
+  .sim .scen{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .sim .scen button{font:inherit;font-size:12px;font-weight:700;padding:6px 11px;border-radius:18px;border:1px solid #CBD2EC;background:#fff;color:var(--navy);cursor:pointer}
+  .sim .scen button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .sim .where{border-left:4px solid var(--peri);background:#F6F8FB;border-radius:8px;padding:12px 14px;min-height:88px}
+  .sim .where.gap{border-left-color:var(--warn);background:#FFFBEE}
+  .sim .where .wl{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800}
+  .sim .where .wt{font-size:15px;font-weight:800;color:var(--navy);margin-top:3px}
+  .sim .where .wd{font-size:12.5px;color:#41505a;margin-top:4px;line-height:1.5}
+  .now{box-shadow:0 0 0 3px var(--green),var(--shadow-lg)!important}
+  .dec.now .dia{box-shadow:0 0 0 3px var(--green)}
+  .dec.now{box-shadow:none!important}
+
+  /* ---- mark-up ---- */
+  .mk{position:absolute;top:8px;right:9px;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;z-index:2}
+  .start{position:relative}
+  .mk.keep{background:#E6F2E6;color:var(--green-dark)}.mk.change{background:#FCF3DC;color:#9A6E00}.mk.drop{background:#FBEAE8;color:var(--bad)}.mk.discuss{background:#EEF1FB;color:var(--peri)}
+  .mk.note{background:#F0F2F6;color:var(--muted)}
+  .markup{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .markup h5{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .markup h5 span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--muted)}
+  .mrow{display:grid;grid-template-columns:auto auto 1fr;gap:10px 16px;align-items:start}
+  .seg{display:inline-flex;border:1px solid #CBD2EC;border-radius:9px;overflow:hidden}
+  .seg button{font:inherit;font-size:12px;font-weight:700;padding:7px 11px;border:none;border-right:1px solid #CBD2EC;background:#fff;color:var(--muted);cursor:pointer}
+  .seg button:last-child{border-right:none}
+  .seg button.on.keep{background:#E6F2E6;color:var(--green-dark)}.seg button.on.change{background:#FCF3DC;color:#9A6E00}.seg button.on.drop{background:#FBEAE8;color:var(--bad)}.seg button.on.discuss{background:#EEF1FB;color:var(--peri)}
+  .seg button.on.agree{background:#E6F2E6;color:var(--green-dark)}.seg button.on.disagree{background:#FBEAE8;color:var(--bad)}
+  .fld label{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:4px}
+  .fld select,.fld textarea{font:inherit;font-size:12.5px;border:1px solid #CBD2EC;border-radius:8px;padding:7px 9px;color:var(--ink);background:#fff;width:100%}
+  .fld textarea{min-height:60px;resize:vertical}
+  .obctl{margin-top:9px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-start}
+  .obctl textarea{flex:1;min-width:220px;min-height:36px;font:inherit;font-size:12px;border:1px solid #CBD2EC;border-radius:8px;padding:6px 9px;resize:vertical}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+  .filters .f{font:inherit;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:18px;border:1px solid #CBD2EC;background:#fff;color:var(--navy);cursor:pointer}
+  .filters .f.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .filters .sum{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:600}
+  .ob.dim{opacity:.35}
+
+  /* ---- meeting notes ---- */
+  .nbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .primbtn{font:inherit;font-size:13px;font-weight:700;padding:9px 16px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer}
+  .primbtn:hover{background:var(--navy-deep)}
+  .ghostbtn{font:inherit;font-size:13px;font-weight:600;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--muted);cursor:pointer}
+  .ghostbtn:hover{background:#F4F6FA;color:var(--ink)}
+  .ghostbtn.danger:hover{color:var(--bad);border-color:#E4B4AE}
+  .nbar .st{font-size:12px;color:var(--muted);margin-left:auto}
+  .npre{font:12.5px/1.55 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:#F6F8FB;border:1px dashed #C7D0E8;border-radius:10px;padding:14px 16px;color:#33414e;max-height:520px;overflow:auto}
+
   /* ---- change log ---- */
   .log{font-size:12.5px;line-height:1.6}
   .log li{margin:4px 0}
@@ -120,7 +173,8 @@
     .fcell{padding-right:0;margin-bottom:12px}
     .fcell::before,.fcell::after{display:none!important}
     .dec{min-height:180px}
-    .branches,.dgrid{grid-template-columns:1fr}
+    .branches,.dgrid,.sim{grid-template-columns:1fr}
+    .mrow{grid-template-columns:1fr}
     .bb.row{grid-template-columns:1fr}
     .bnode .arrow{display:none}
     .cb{grid-template-columns:1fr}
@@ -159,6 +213,7 @@
     <button class="tab on" data-pane="map">Current-state map</button>
     <button class="tab" data-pane="obs">Observations for discussion<span class="cnt" id="obsCount">0</span></button>
     <button class="tab" data-pane="future">Future state</button>
+    <button class="tab" data-pane="notes">Meeting notes<span class="cnt" id="noteCount">0</span></button>
     <button class="tab" data-pane="log">Change log</button>
   </div></div>
 
@@ -175,6 +230,17 @@
         <div class="band">Day 30–35<small>—</small></div>
         <div class="band ov">Day 30–45<small>Second outreach</small></div>
         <div class="band">Day 45+<small>Booked / monitor</small></div>
+      </div>
+
+      <div class="sec">Where is a referral on day…? <span>— drag the slider; the matching step lights up green, and days with no drawn activity are flagged</span></div>
+      <div class="card sim">
+        <div>
+          <div class="day"><span id="simDay">0</span><small>days since order</small></div>
+          <input type="range" id="simRange" min="0" max="120" value="0" step="1" aria-label="Days since referral order">
+          <div class="ticks"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span><span>105</span><span>120</span></div>
+          <div class="scen"><span style="font-size:11px;color:var(--muted);font-weight:700;align-self:center">Scenario:</span><button data-scen="sched" class="on">Scheduled at first outreach</button><button data-scen="unbooked">Still unbooked after Day 21</button></div>
+        </div>
+        <div class="where" id="simWhere"></div>
       </div>
 
       <div class="sec">Coordinator workflow <span>— Day 0 through the scheduling decision · click a step for detail</span></div>
@@ -220,6 +286,7 @@
     <!-- =================== OBSERVATIONS =================== -->
     <div class="pane" id="pane-obs" hidden>
       <div class="note" style="margin-bottom:14px">Draft observations from reading the current-state map. They are prompts for the meeting, not conclusions — expect several to be answered by “the team already does this, it just isn't drawn.” Mark each one keep / drop / reword and I will update the page.</div>
+      <div class="filters" id="obsFilters"><button class="f on" data-f="all">All</button><button class="f" data-f="gap">Gap</button><button class="f" data-f="amb">Ambiguity</button><button class="f" data-f="meas">Measurement</button><button class="f" data-f="hand">Hand-off</button><button class="f" data-f="open">Not yet marked</button><span class="sum" id="obsSum"></span></div>
       <div class="obs" id="obsList"></div>
     </div>
 
@@ -238,6 +305,19 @@
       </div>
     </div>
 
+    <!-- =================== MEETING NOTES =================== -->
+    <div class="pane" id="pane-notes" hidden>
+      <div class="note" style="margin-bottom:14px">Everything marked on the map or the observations tab is compiled here as plain text. Decisions and notes are saved in this browser only, so the person driving the screen should copy or download the notes at the end of the meeting and send them to Mike. Paste the text back to Claude to get the next version of the page.</div>
+      <div class="nbar">
+        <button class="primbtn" id="copyNotes">Copy notes</button>
+        <button class="ghostbtn" id="dlNotes">Download .md</button>
+        <button class="ghostbtn" id="mailNotes">Email notes</button>
+        <button class="ghostbtn danger" id="resetNotes">Clear all marks</button>
+        <span class="st" id="noteStatus"></span>
+      </div>
+      <div class="npre" id="notesPre"></div>
+    </div>
+
     <!-- =================== CHANGE LOG =================== -->
     <div class="pane" id="pane-log" hidden>
       <div class="card"><ul class="log" id="logList" style="list-style:none"></ul></div>
@@ -248,6 +328,9 @@
 </div>
 
 <script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function li(a){return a.map(x=>"<li>"+esc(x)+"</li>").join("");}
 /* ---------- content ---------- */
 const STEPS={
   d0:{ref:"Day 0",title:"Referral order created",says:["Ordering provider places the referral order in the EHR.","Clock for every downstream day-band starts here."],owner:"Ordering provider (PCP)",systems:["EHR order"],q:["Is Day 0 the order signing time, or when the order lands in the coordinator's work queue?","Does the order carry urgency, preferred specialist, and payer information at creation, or does the coordinator add these at triage?"]},
@@ -279,13 +362,102 @@ const OBS=[
 ];
 
 const LOG=[
+  {v:"v0.2",d:"2026-09-17",t:"Interactive review: day slider with two scenarios that highlights where a referral sits on any day and flags undrawn days; keep / change / drop / discuss decision, owner and note on every step; agree / disagree / discuss and note on every observation with category filters; Meeting notes tab that compiles all marks for copy, download or email. Marks are saved in the browser."},
   {v:"v0.1",d:"2026-09-17",t:"Current-state map transcribed from the referral team's workflow diagram (stages, day bands, decision loop, closure triggers). Added step-detail panel with implied owners, systems, and questions; added 12 draft observations for the review meeting. Future-state tab is a placeholder."}
 ];
 
+/* ---------- day simulator ---------- */
+const OWNERS=["(not decided)","Referral coordinator","Ordering provider / PCP","Specialist intake","Patient","Payer","Automated (EHR / portal)","Shared — needs definition"];
+function whereOnDay(d,scen){
+  if(d===0) return {id:"d0",t:"Day 0 — Referral order created",d:"The ordering provider signs the order. The coordinator clock starts."};
+  if(d<=2) return {id:"triage",t:"Days 0–2 — Receipt & Triage",d:"Coordinator reviews the order and demographics, verifies insurance or submits PA, and routes notes to the specialist."};
+  if(d<=7) return {id:"auth",t:"Days 3–7 — Auth & Scheduling Check",d:"Coordinator confirms PA approval and contacts specialist intake to confirm receipt and scheduling."};
+  if(d<=13) return {id:null,gap:true,t:"Days 8–13 — nothing drawn",d:"The map has no coordinator activity between the auth check and first patient outreach. The patient has not yet been contacted by Avance."};
+  if(d<=21) return {id:"out1",t:"Days 14–21 — First Patient Outreach",d:"Coordinator checks with the specialist about patient contact and reaches the patient by portal, text or call to help with booking and barriers."};
+  if(scen==="sched"){
+    if(d<=45) return {id:"booked",t:"Appointment booked — waiting for the visit",d:"Referral is scheduled (the map's examples are Day 60 and Day 120). The map says keep it active and monitor."};
+    if(d<=59) return {id:"monitor",t:"Monitor & follow-up",d:"Booked but the visit may not have happened yet. Nothing on the map defines what monitoring consists of."};
+    if(d<=90) return {id:"preclose",t:"Days 60–90 — Pre-closure review",d:"Confirm the visit occurred and the consult note was received, then close. If the appointment was booked for Day 120, the visit has not happened yet."};
+    return {id:"monitor",gap:true,t:"Day 90+ — beyond the map",d:"A referral booked at Day 120 is still open after the pre-closure window. The map does not say what happens to it."};
+  } else {
+    if(d<=29) return {id:"dec",gap:true,t:"Days 22–29 — decision pending, nothing drawn",d:"Referral is unbooked after first outreach, but second outreach does not start until Day 30. No activity is drawn for these days."};
+    if(d<=45) return {id:"out2",t:"Days 30–45 — Second outreach & re-triage",d:"Second patient touchpoint, wait-time check, and offer of an alternate specialist if the wait exceeds 60–90 days. Loops back to the scheduling decision."};
+    if(d<=59) return {id:"dec",gap:true,t:"Days 46–59 — still unbooked, nothing drawn",d:"Closure requires 3+ attempts; only two outreach events exist on the map. There is no drawn third attempt and no defined point to close as non-responsive."};
+    if(d<=90) return {id:"reasons",t:"Days 60–90 — closure window",d:"Pre-closure review would find no visit. Likely closure reasons: non-responsive (3+ attempts), patient refusal, or care rerouted."};
+    return {id:"reasons",gap:true,t:"Day 90+ — should be closed",d:"An unbooked referral still open past Day 90 has fallen out of the drawn process."};
+  }
+}
+let scen="sched";
+function renderSim(){
+  const d=+$("#simRange").value; $("#simDay").textContent=d;
+  const w=whereOnDay(d,scen);
+  $$("[data-id]").forEach(e=>e.classList.toggle("now",!!w.id&&e.dataset.id===w.id));
+  const box=$("#simWhere"); box.className="where"+(w.gap?" gap":"");
+  box.innerHTML='<div class="wl">'+(w.gap?"Not covered by the map":"Per the current-state map")+'</div><div class="wt">'+esc(w.t)+'</div><div class="wd">'+esc(w.d)+'</div>';
+}
+$("#simRange").addEventListener("input",renderSim);
+$$(".scen button").forEach(b=>b.addEventListener("click",()=>{scen=b.dataset.scen;$$(".scen button").forEach(x=>x.classList.toggle("on",x===b));renderSim();}));
+
+/* ---------- mark-up state ---------- */
+const SKEY="avanceReferralsMarksV1";
+let M={steps:{},obs:{}};
+try{M=Object.assign(M,JSON.parse(localStorage.getItem(SKEY)||"{}"));}catch(e){}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(M));}catch(e){} renderBadges(); renderNotes(); }
+function stepMark(id){return M.steps[id]||(M.steps[id]={decision:"",owner:"",note:""});}
+function obsMark(i){return M.obs[i]||(M.obs[i]={vote:"",note:""});}
+function renderBadges(){
+  $$("[data-id]").forEach(e=>{
+    const m=M.steps[e.dataset.id]; let old=e.querySelector(".mk"); if(old) old.remove();
+    if(!m||(!m.decision&&!m.note&&!m.owner)) return;
+    const b=document.createElement("span"); b.className="mk "+(m.decision||"note"); b.textContent=m.decision||"note";
+    if(e.classList.contains("dec")) b.style.cssText="top:0;right:0"; e.appendChild(b);
+  });
+  let n=0; Object.values(M.steps).forEach(m=>{if(m.decision||m.note||m.owner)n++;}); Object.values(M.obs).forEach(m=>{if(m.vote||m.note)n++;});
+  $("#noteCount").textContent=n;
+}
+function markupHTML(id){
+  const m=stepMark(id);
+  return '<div class="markup"><h5>Meeting mark-up <span>— saved in this browser as you type</span></h5><div class="mrow">'+
+    '<div class="fld"><label>Decision</label><div class="seg" data-step="'+id+'">'+["keep","change","drop","discuss"].map(k=>'<button class="'+k+(m.decision===k?" on":"")+'" data-k="'+k+'">'+k[0].toUpperCase()+k.slice(1)+'</button>').join("")+'</div></div>'+
+    '<div class="fld"><label>Should own this</label><select data-owner="'+id+'">'+OWNERS.map(o=>'<option'+(m.owner===o?" selected":"")+'>'+o+'</option>').join("")+'</select></div>'+
+    '<div class="fld"><label>Note</label><textarea data-note="'+id+'" placeholder="What the team said, what should change, who follows up…">'+esc(m.note)+'</textarea></div>'+
+  '</div></div>';
+}
+function wireMarkup(root){
+  root.querySelectorAll(".seg[data-step] button").forEach(b=>b.addEventListener("click",()=>{
+    const m=stepMark(b.parentNode.dataset.step); m.decision=(m.decision===b.dataset.k?"":b.dataset.k);
+    b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.k===m.decision)); save();
+  }));
+  root.querySelectorAll("select[data-owner]").forEach(s=>s.addEventListener("change",()=>{stepMark(s.dataset.owner).owner=(s.value===OWNERS[0]?"":s.value);save();}));
+  root.querySelectorAll("textarea[data-note]").forEach(t=>t.addEventListener("input",()=>{stepMark(t.dataset.note).note=t.value;save();}));
+}
+
+/* ---------- meeting notes ---------- */
+function notesText(){
+  const L=[]; const today=new Date().toISOString().slice(0,10);
+  L.push("# Avance referral workflow — meeting notes ("+today+")"); L.push("Page: mikedulinmd.app/avancereferrals · map "+LOG[0].v); L.push("");
+  L.push("## Step decisions");
+  let any=false;
+  Object.keys(STEPS).forEach(id=>{const m=M.steps[id]; if(!m||(!m.decision&&!m.owner&&!m.note)) return; any=true;
+    L.push("- **"+STEPS[id].title+"** ("+STEPS[id].ref+")"+(m.decision?" — "+m.decision.toUpperCase():""));
+    if(m.owner) L.push("  - Owner: "+m.owner); if(m.note) L.push("  - Note: "+m.note.trim().replace(/\n+/g," / "));});
+  if(!any) L.push("- (none marked yet)");
+  L.push(""); L.push("## Observations"); any=false;
+  OBS.forEach((o,i)=>{const m=M.obs[i]; if(!m||(!m.vote&&!m.note)) return; any=true;
+    L.push("- "+(i+1)+". "+o.t+(m.vote?" — "+m.vote.toUpperCase():"")); if(m.note) L.push("  - Note: "+m.note.trim().replace(/\n+/g," / "));});
+  if(!any) L.push("- (none marked yet)");
+  const un=OBS.map((o,i)=>i).filter(i=>!(M.obs[i]&&(M.obs[i].vote||M.obs[i].note)));
+  if(un.length&&un.length<OBS.length){L.push(""); L.push("Not discussed: "+un.map(i=>i+1).join(", "));}
+  return L.join("\n");
+}
+function renderNotes(){ $("#notesPre").textContent=notesText(); }
+function status(t){ const e=$("#noteStatus"); e.textContent=t; setTimeout(()=>{if(e.textContent===t)e.textContent="";},2500); }
+$("#copyNotes").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(notesText());status("Copied.");}catch(e){status("Copy blocked — select the text below and copy.");}});
+$("#dlNotes").addEventListener("click",()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([notesText()],{type:"text/markdown"}));a.download="avance-referral-workflow-notes-"+new Date().toISOString().slice(0,10)+".md";a.click();status("Downloaded.");});
+$("#mailNotes").addEventListener("click",()=>{location.href="mailto:?subject="+encodeURIComponent("Avance referral workflow — meeting notes")+"&body="+encodeURIComponent(notesText());});
+$("#resetNotes").addEventListener("click",()=>{if(!confirm("Clear every decision, owner, vote and note on this page? This cannot be undone."))return; M={steps:{},obs:{}}; save(); renderObs(); $("#detail").innerHTML='<div class="empty">Marks cleared. Click a step to start again.</div>'; $$("[data-id]").forEach(e=>e.classList.remove("sel")); status("Cleared.");});
+
 /* ---------- render ---------- */
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
-function li(a){return a.map(x=>"<li>"+esc(x)+"</li>").join("");}
 
 function select(id){
   $$("[data-id]").forEach(e=>e.classList.toggle("sel",e.dataset.id===id));
@@ -297,18 +469,36 @@ function select(id){
       '<div class="dcol"><h5>What the map says</h5><ul>'+li(s.says)+'</ul></div>'+
       '<div class="dcol"><h5>Owner &amp; systems (as implied)</h5><ul><li><b>Owner:</b> '+esc(s.owner)+'</li>'+s.systems.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul></div>'+
       '<div class="dcol q"><h5>Questions for the team</h5><ul>'+li(s.q)+'</ul></div>'+
-    '</div>';
+    '</div>'+markupHTML(id);
+  wireMarkup($("#detail"));
   $("#detail").scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 $$("[data-id]").forEach(e=>e.addEventListener("click",()=>select(e.dataset.id)));
 
-$("#obsList").innerHTML=OBS.map((o,i)=>
-  '<div class="ob"><span class="chip '+o.cls+'">'+({gap:"Gap",amb:"Ambiguity",meas:"Measurement",hand:"Hand-off"})[o.c]+'</span>'+
-  '<div><div class="ot">'+(i+1)+'. '+esc(o.t)+'</div><div class="od">'+esc(o.d)+'</div><div class="ow">Where: <b>'+esc(o.w)+'</b></div></div></div>').join("");
+let obsFilter="all";
+function renderObs(){
+  $("#obsList").innerHTML=OBS.map((o,i)=>{const m=obsMark(i);
+    const show=obsFilter==="all"||obsFilter===o.c||(obsFilter==="open"&&!m.vote&&!m.note);
+    return '<div class="ob'+(show?"":" dim")+'"><span class="chip '+o.cls+'">'+({gap:"Gap",amb:"Ambiguity",meas:"Measurement",hand:"Hand-off"})[o.c]+'</span>'+
+    '<div><div class="ot">'+(i+1)+'. '+esc(o.t)+'</div><div class="od">'+esc(o.d)+'</div><div class="ow">Where: <b>'+esc(o.w)+'</b></div>'+
+    '<div class="obctl"><div class="seg" data-ob="'+i+'">'+["agree","disagree","discuss"].map(k=>'<button class="'+k+(m.vote===k?" on":"")+'" data-k="'+k+'">'+k[0].toUpperCase()+k.slice(1)+'</button>').join("")+'</div>'+
+    '<textarea data-obnote="'+i+'" placeholder="Team response / what to do about it…">'+esc(m.note)+'</textarea></div></div></div>';}).join("");
+  $("#obsList").querySelectorAll(".seg[data-ob] button").forEach(b=>b.addEventListener("click",()=>{
+    const m=obsMark(b.parentNode.dataset.ob); m.vote=(m.vote===b.dataset.k?"":b.dataset.k);
+    b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.k===m.vote)); save(); renderObsSum();
+  }));
+  $("#obsList").querySelectorAll("textarea[data-obnote]").forEach(t=>t.addEventListener("input",()=>{obsMark(t.dataset.obnote).note=t.value;save();renderObsSum();}));
+  renderObsSum();
+}
+function renderObsSum(){const v={agree:0,disagree:0,discuss:0};let marked=0;OBS.forEach((o,i)=>{const m=M.obs[i];if(!m)return;if(m.vote)v[m.vote]++;if(m.vote||m.note)marked++;});
+  $("#obsSum").textContent=marked+" of "+OBS.length+" marked · "+v.agree+" agree · "+v.disagree+" disagree · "+v.discuss+" discuss";}
+$$("#obsFilters .f").forEach(f=>f.addEventListener("click",()=>{obsFilter=f.dataset.f;$$("#obsFilters .f").forEach(x=>x.classList.toggle("on",x===f));renderObs();}));
+renderObs();
 $("#obsCount").textContent=OBS.length;
+renderBadges(); renderNotes(); renderSim();
 
 $("#logList").innerHTML=LOG.map(l=>'<li><b>'+l.v+'</b> · '+l.d+' — '+esc(l.t)+'</li>').join("");
-$("#verTag").textContent="Current state · "+LOG[LOG.length-1].v+" · "+LOG[LOG.length-1].d;
+$("#verTag").textContent="Current state · "+LOG[0].v+" · "+LOG[0].d;
 
 $$(".tab").forEach(t=>t.addEventListener("click",()=>{
   $$(".tab").forEach(x=>x.classList.toggle("on",x===t));
