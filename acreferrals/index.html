@@ -271,6 +271,26 @@
   @media(max-width:560px){.agenda{grid-template-columns:1fr}.help-h{padding:18px}.help-b{padding:16px}}
   @media print{.help-ov{position:static;background:none;padding:0}.help{box-shadow:none}}
 
+  /* ---- publish dialog ---- */
+  .pub{background:#fff;border-radius:18px;max-width:720px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.35);overflow:hidden;animation:pop .15s ease}
+  .pub .help-h h2{font-size:19px}
+  .pub .fldg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .pub label{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:4px}
+  .pub input,.pub textarea{font:inherit;font-size:13px;border:1px solid #CBD2EC;border-radius:8px;padding:8px 10px;color:var(--ink);background:#fff;width:100%}
+  .pub textarea{min-height:64px;resize:vertical}
+  .pub .full{grid-column:1/-1}
+  .pubs{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+  .pubs h5{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800;margin-bottom:8px}
+  .pubrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:12.5px;flex-wrap:wrap}
+  .pubrow .pt{font-weight:800;color:var(--navy)}
+  .pubrow .pm{color:var(--muted);font-size:11.5px}
+  .pubrow .pa{margin-left:auto;display:flex;gap:6px}
+  .pubrow .pa button{font:inherit;font-size:11.5px;font-weight:700;padding:5px 9px;border-radius:7px;border:1px solid #CBD2EC;background:#fff;color:var(--navy);cursor:pointer}
+  .pubrow .pa button:hover{background:#EEF1FB}
+  .pubrow .pa button.x:hover{background:#FBEAE8;color:var(--bad);border-color:#E4B4AE}
+  .pub .st{font-size:12px;color:var(--muted)}
+  @media(max-width:600px){.pub .fldg{grid-template-columns:1fr}}
+
   /* ---- change log ---- */
   .log{font-size:12.5px;line-height:1.6}
   .log li{margin:4px 0}
@@ -416,6 +436,7 @@
       <div class="note" style="margin-bottom:12px">Draw the redesign live. The strip starts as a copy of the current-state steps. Drag a card by its ⠿ handle (or use ◀ ▶) to reorder, edit any field in place, use ＋ to insert a step after a card, and ✕ to remove one. Set an owner on each step and the swimlane below builds itself. Edits are saved in this browser and included in Meeting notes.</div>
       <div class="fsbar">
         <button class="primbtn" id="fsAdd">＋ Add step at end</button>
+        <button class="primbtn" id="fsPub" style="background:var(--green-dark)">Publish ▸</button>
         <button class="ghostbtn" id="fsBlank">Start from blank</button>
         <button class="ghostbtn danger" id="fsReset">Reset to current state</button>
         <span class="st" id="fsStatus"></span>
@@ -496,7 +517,7 @@
       <div class="howto">
         <div class="hw"><div class="k">On the map</div><ul><li><b>Click a step</b> to open its detail below the map.</li><li>In the detail panel, choose <b>Keep / Change / Drop / Discuss</b>, pick who <b>should own</b> it, and type a note. The choice shows as a badge on the step.</li><li><b>Drag the day slider</b> to see where a referral sits on any day; amber means the map has nothing for that day.</li></ul></div>
         <div class="hw"><div class="k">On the observations</div><ul><li><b>Agree / Disagree / Discuss</b> on each one, plus a short response.</li><li>Use the filters to focus on one category or on what is still unmarked.</li><li>The counter at the top right shows progress through the twelve.</li></ul></div>
-        <div class="hw"><div class="k">In the editor</div><ul><li><b>Drag the ⠿ handle</b> or use ◀ ▶ to reorder a step.</li><li><b>＋</b> on a card inserts a step after it; <b>✕</b> removes it; "Add step at end" appends.</li><li>Edit name, day range, owner, actions, and rationale directly on the card. The coverage bar and swimlane update as you type.</li><li>"Reset to current state" puts the original steps back.</li></ul></div>
+        <div class="hw"><div class="k">In the editor</div><ul><li><b>Drag the ⠿ handle</b> or use ◀ ▶ to reorder a step.</li><li><b>＋</b> on a card inserts a step after it; <b>✕</b> removes it; "Add step at end" appends.</li><li>Edit name, day range, owner, actions, and rationale directly on the card. The coverage bar and swimlane update as you type.</li><li>"Reset to current state" puts the original steps back.</li><li><b>Publish ▸</b> makes a clean, printable document of the redesign (flow, coverage, swimlane, table, what changed). Open it to print or save as PDF, or download the file to email.</li></ul></div>
       </div>
 
       <h3>Ground rules</h3>
@@ -512,6 +533,30 @@
         <button class="ghostbtn" id="helpPrint">Print this guide</button>
         <span class="st">Reopen any time with the <b>?</b> button at the top right · Esc closes</span>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="help-ov" id="pubOv" hidden>
+  <div class="pub" role="dialog" aria-labelledby="pubTitle">
+    <div class="help-h">
+      <div><h2 id="pubTitle">Publish the future-state draft</h2><p>Creates a clean, self-contained document of the redesign as it stands now: the flow, day coverage, swimlane, a step table, and what changed against the current state. Open it to print or save as PDF, or download the file to attach to an email. Each publish is kept below so earlier versions can be reopened.</p></div>
+      <button class="x" id="pubX" aria-label="Close">✕</button>
+    </div>
+    <div class="help-b">
+      <div class="fldg">
+        <div><label>Document title</label><input id="pubT" maxlength="120" value="Referral Coordinator Workflow — Future State (Draft)"></div>
+        <div><label>Version label</label><input id="pubV" maxlength="40" placeholder="e.g., Draft 1 — workshop 17 Sep"></div>
+        <div><label>Prepared by</label><input id="pubBy" maxlength="80" placeholder="Name / team (optional)"></div>
+        <div><label>Status</label><input id="pubS" maxlength="40" value="Draft for discussion"></div>
+        <div class="full"><label>Note to readers</label><textarea id="pubN" placeholder="Context, what is still open, who to send comments to… (optional, no patient details)"></textarea></div>
+      </div>
+      <div class="nbar" style="margin-bottom:0">
+        <button class="primbtn" id="pubGo" style="background:var(--green-dark)">Publish &amp; open</button>
+        <button class="ghostbtn" id="pubDl">Publish &amp; download .html</button>
+        <span class="st" id="pubStatus"></span>
+      </div>
+      <div class="pubs"><h5>Published versions (saved in this browser)</h5><div id="pubList"></div></div>
     </div>
   </div>
 </div>
@@ -551,6 +596,7 @@ const OBS=[
 ];
 
 const LOG=[
+  {v:"v0.6",d:"2026-09-17",t:"Publish ▸ on the future-state editor: name a version, add a note to readers, and produce a self-contained document with the redesigned flow, day coverage, swimlane by owner, step table, and an automatic 'what changed from the current state' section. Opens in a new tab for print / save-as-PDF, or downloads as an .html file to attach to email. Published versions are kept in the browser and can be reopened, downloaded, or restored into the editor."},
   {v:"v0.5",d:"2026-09-17",t:"Observations tab: add an observation from the page (category, title, where, description). Added items are numbered after the built-in twelve, can be edited or removed in place, take the same agree / disagree / discuss votes, appear under an 'Added in meeting' filter, and are written into Meeting notes with their text."},
   {v:"v0.4",d:"2026-09-17",t:"Added the ? guide at the top right (also at /acreferrals/#help): agenda for the session, what each tab is for, how to interact with the map, observations and editor, and ground rules on saving notes and keeping patient information off the page."},
   {v:"v0.3",d:"2026-09-17",t:"Page moved to /acreferrals (old address redirects). Future-state tab is now an editor: an ordered strip of step cards seeded from the current state, drag or arrow-button reordering, insert / add / remove, inline editing of name, day range, owner, actions and note, a day-coverage bar that shows undrawn days, and an auto-built swimlane by owner. The redesign is included in Meeting notes once edited."},
@@ -734,6 +780,112 @@ $("#fsAdd").addEventListener("click",()=>$("#fsAdd2").click());
 $("#fsBlank").addEventListener("click",()=>{ if(!confirm("Clear the redesign strip and start from a single empty step?")) return; FS={steps:[newStep(null)],touched:true}; fsSave(true); renderAllFS(); fsStatus("Started blank."); });
 $("#fsReset").addEventListener("click",()=>{ if(!confirm("Discard the redesign and reload the current-state steps?")) return; FS={steps:JSON.parse(JSON.stringify(FS_SEED)),touched:false}; fsSave(false); renderAllFS(); fsStatus("Reset to current state."); });
 
+/* ---------- publish future state ---------- */
+const PKEY="avanceReferralsPublishedV1";
+let PUBS=[]; try{PUBS=JSON.parse(localStorage.getItem(PKEY)||"[]"); if(!Array.isArray(PUBS)) PUBS=[];}catch(e){}
+function pubsSave(){ try{localStorage.setItem(PKEY,JSON.stringify(PUBS));}catch(e){} renderPubList(); }
+function fmtTs(iso){ const d=new Date(iso); return d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}); }
+function norm(t){ return (t||"").trim().toLowerCase().replace(/\s+/g," "); }
+function fsDiff(steps){
+  const seedBy={}; FS_SEED.forEach(x=>seedBy[norm(x.title)]=x);
+  const curBy={}; steps.forEach(x=>{ if(!curBy[norm(x.title)]) curBy[norm(x.title)]=x; });
+  const added=steps.filter(x=>!seedBy[norm(x.title)]);
+  const removed=FS_SEED.filter(x=>!curBy[norm(x.title)]);
+  const changed=[];
+  steps.forEach(x=>{ const sd=seedBy[norm(x.title)]; if(!sd) return; const ch=[];
+    if((sd.owner||"")!==(x.owner||"")) ch.push("owner "+(sd.owner||"unset")+" → "+(x.owner||"unset"));
+    if(sd.from!==x.from||sd.to!==x.to) ch.push("days "+sd.from+"–"+sd.to+" → "+x.from+"–"+x.to);
+    if(sd.actions.join("|")!==x.actions.join("|")) ch.push("actions edited");
+    if(sd.type!==x.type) ch.push("type "+sd.type+" → "+x.type);
+    if(ch.length) changed.push({t:x.title,ch}); });
+  const common=steps.map(x=>norm(x.title)).filter(k=>seedBy[k]);
+  const seedOrder=FS_SEED.map(x=>norm(x.title)).filter(k=>curBy[k]);
+  const reordered=common.join("|")!==seedOrder.join("|");
+  return {added,removed,changed,reordered};
+}
+function coverageSegs(steps,MAX){
+  const cover=new Array(MAX+1).fill(null);
+  steps.forEach((st,i)=>{ for(let d=Math.min(st.from,MAX); d<=Math.min(st.to,MAX); d++) if(cover[d]===null) cover[d]=i; });
+  const segs=[]; let cur=cover[0], start=0;
+  for(let d=1; d<=MAX+1; d++){ if(d===MAX+1||cover[d]!==cur){ segs.push({i:cur,from:start,to:d-1}); cur=cover[d]; start=d; } }
+  return segs;
+}
+function publishHTML(snap){
+  const S=snap.steps, MAX=120, e=esc, owners=[]; S.forEach(x=>{ if(!owners.includes(x.owner)) owners.push(x.owner); });
+  const segs=coverageSegs(S,MAX), gaps=segs.filter(g=>g.i===null), gapDays=gaps.reduce((a,g)=>a+(g.to-g.from+1),0);
+  const diff=fsDiff(S);
+  const cards=S.map((st,i)=>'<div class="c t-'+st.type+'" style="--oc:'+oc(st.owner)+'"><div class="ch"><span class="n">'+(i+1)+'</span><span class="ty">'+(st.type==="step"?"Step":st.type==="decision"?"Decision":"Closure")+'</span><span class="dy">Day '+st.from+(st.to!==st.from?"–"+st.to:"")+'</span></div>'+
+    '<div class="ct">'+e(st.title||"(untitled)")+'</div><div class="ow"><i></i>'+e(st.owner||"Owner not set")+'</div>'+
+    (st.actions.length?'<ul>'+st.actions.map(a=>"<li>"+e(a)+"</li>").join("")+'</ul>':'')+(st.note?'<div class="rn">'+e(st.note)+'</div>':'')+'</div>').join("");
+  const bar=segs.map(g=>{ const w=((g.to-g.from+1)/(MAX+1)*100).toFixed(2)+"%"; if(g.i===null) return '<div class="sg gap" style="width:'+w+'" title="Days '+g.from+'–'+g.to+': no step"></div>'; const st=S[g.i]; return '<div class="sg" style="width:'+w+';background:'+oc(st.owner)+'" title="'+e(st.title)+' · days '+g.from+'–'+g.to+'"><span>'+e(st.title)+'</span></div>'; }).join("");
+  const cols="repeat("+S.length+",minmax(60px,1fr))";
+  const lanes='<div class="lh">Owner</div><div class="lhd" style="grid-template-columns:'+cols+'">'+S.map((st,i)=>'<div>'+(i+1)+'</div>').join("")+'</div>'+
+    owners.map(o=>'<div class="lh"><i style="background:'+oc(o)+'"></i>'+e(o||"(no owner)")+'</div><div class="lr" style="grid-template-columns:'+cols+'">'+S.map(st=>'<div class="lc">'+(st.owner===o?'<span class="lp" style="background:'+oc(o)+'">'+e(st.title||"(untitled)")+'</span>':'')+'</div>').join("")+'</div>').join("");
+  const table='<table><thead><tr><th>#</th><th>Step</th><th>Days</th><th>Owner</th><th>Actions</th><th>Rationale / note</th></tr></thead><tbody>'+
+    S.map((st,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+e(st.title||"(untitled)")+'</b>'+(st.type!=="step"?' <small>'+st.type+'</small>':'')+'</td><td>'+st.from+(st.to!==st.from?"–"+st.to:"")+'</td><td><i class="sw" style="background:'+oc(st.owner)+'"></i>'+e(st.owner||"—")+'</td><td>'+(st.actions.length?'<ul>'+st.actions.map(a=>"<li>"+e(a)+"</li>").join("")+'</ul>':'—')+'</td><td>'+e(st.note||"")+'</td></tr>').join("")+'</tbody></table>';
+  const changes=(!diff.added.length&&!diff.removed.length&&!diff.changed.length&&!diff.reordered)?'<p class="muted">No changes from the current-state steps yet.</p>':
+    '<div class="chg">'+(diff.added.length?'<div><h4>Added</h4><ul>'+diff.added.map(x=>'<li>'+e(x.title||"(untitled)")+' <small>days '+x.from+'–'+x.to+(x.owner?" · "+e(x.owner):"")+'</small></li>').join("")+'</ul></div>':'')+
+    (diff.removed.length?'<div><h4>Removed</h4><ul>'+diff.removed.map(x=>'<li>'+e(x.title)+'</li>').join("")+'</ul></div>':'')+
+    (diff.changed.length?'<div><h4>Changed</h4><ul>'+diff.changed.map(x=>'<li>'+e(x.t)+' <small>'+e(x.ch.join("; "))+'</small></li>').join("")+'</ul></div>':'')+
+    (diff.reordered?'<div><h4>Sequence</h4><ul><li>Steps carried over from the current state are in a different order.</li></ul></div>':'')+'</div>';
+  const summary='<div class="kp"><div><b>'+S.length+'</b><span>steps</span></div><div><b>'+owners.filter(Boolean).length+'</b><span>owners</span></div><div><b>'+(MAX+1-gapDays)+'</b><span>of 121 days covered</span></div><div class="'+(gapDays?"warn":"")+'"><b>'+gapDays+'</b><span>days with no step</span></div><div><b>'+diff.added.length+'</b><span>steps added</span></div></div>';
+  return '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+e(snap.title)+'</title><style>'+
+  ':root{--navy:#2B2C6B;--peri:#5C6CB8;--green:#4CB749;--green-dark:#2F9E45;--ink:#26303A;--muted:#6B7A80;--line:#E4E8EE;--bg:#F4F6F8}'+
+  '*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);font-size:13px;line-height:1.45}'+
+  '.pg{max-width:1200px;margin:0 auto;padding:22px 26px 50px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}.brand{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:300;color:#6D6E71}.brand b{font-weight:700;color:#4A5BA8}'+
+  '.tools{display:flex;gap:8px}.tools button{font:inherit;font-size:12.5px;font-weight:700;padding:8px 14px;border-radius:8px;border:1px solid #CBD2EC;background:#fff;color:var(--navy);cursor:pointer}.tools button.p{background:var(--navy);color:#fff;border-color:var(--navy)}'+
+  '.hd{background:linear-gradient(120deg,#232456,#2B2C6B 55%,#5C6CB8);color:#fff;border-radius:14px;padding:20px 24px;margin-bottom:16px}.hd h1{font-size:22px;font-weight:800;line-height:1.2}.hd .m{font-size:12.5px;opacity:.9;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}.hd .m span b{font-weight:800}.badge{display:inline-block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:4px 10px;margin-bottom:8px}'+
+  '.rn0{background:#fff;border-left:4px solid var(--peri);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;white-space:pre-wrap}'+
+  '.kp{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}.kp div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.kp b{display:block;font-size:22px;font-weight:800;color:var(--navy);line-height:1}.kp span{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px}.kp .warn b{color:#9A6E00}'+
+  'h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:800;margin:18px 0 10px;display:flex;align-items:center;gap:10px}h2::after{content:"";flex:1;height:1px;background:var(--line)}'+
+  '.flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px}.c{background:#fff;border:1px solid var(--line);border-top:5px solid var(--oc);border-radius:11px;padding:10px 12px;break-inside:avoid}.c.t-decision{border-top-style:double;border-top-width:7px}.c.t-closure{border-top-color:var(--navy)}'+
+  '.ch{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}.ch .n{width:20px;height:20px;border-radius:50%;background:var(--oc);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px}.ch .dy{margin-left:auto;color:var(--navy)}'+
+  '.ct{font-size:14px;font-weight:800;color:var(--navy);margin-top:6px;line-height:1.25}.ow{font-size:11.5px;color:var(--muted);font-weight:700;margin-top:4px;display:flex;align-items:center;gap:6px}.ow i{width:10px;height:10px;border-radius:3px;background:var(--oc)}.c ul{margin:7px 0 0;padding-left:16px;font-size:12px;color:#41505a;line-height:1.45}.rn{margin-top:7px;font-size:11.5px;color:#41505a;background:#F6F8FB;border-radius:7px;padding:6px 8px;font-style:italic}'+
+  '.cov{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}.bar{display:flex;height:24px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:repeating-linear-gradient(135deg,#FFF6D6 0 6px,#FCEBB0 6px 12px)}.sg{position:relative;height:100%;border-right:1px solid rgba(255,255,255,.7)}.sg.gap{background:transparent}.sg span{position:absolute;inset:0;font-size:9.5px;font-weight:800;color:#fff;padding:0 5px;line-height:24px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.ax{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;margin-top:3px}.cs{font-size:11.5px;color:var(--muted);margin-top:5px}.cs b{color:#9A6E00}'+
+  '.lanes{display:grid;grid-template-columns:160px 1fr;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}.lh{background:#F0F3F7;padding:8px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px}.lh i{width:10px;height:10px;border-radius:3px}.lhd{display:grid;padding:6px 8px;border-bottom:1px solid var(--line);background:#F7F9FB}.lhd div{font-size:9.5px;font-weight:800;color:var(--muted);text-align:center}.lr{display:grid;border-bottom:1px solid var(--line);padding:6px 8px;min-height:40px;align-items:center}.lc{position:relative;display:flex;align-items:center;justify-content:center;min-height:28px}.lc::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#E4E8EE}.lp{position:relative;z-index:1;font-size:10px;font-weight:700;color:#fff;border-radius:14px;padding:3px 8px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}'+
+  'table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:12px}th{background:#F0F3F7;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--line)}td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}td ul{margin:0;padding-left:15px}td small{color:var(--muted);text-transform:uppercase;font-size:9.5px;font-weight:800;margin-left:4px}.sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px}tr{break-inside:avoid}'+
+  '.chg{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.chg div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px}.chg h4{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--navy);font-weight:800;margin-bottom:6px}.chg ul{margin:0;padding-left:16px;font-size:12px;line-height:1.5}.chg small{color:var(--muted)}.muted{color:var(--muted);font-style:italic}'+
+  '.ft{margin-top:24px;font-size:10.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:10px}'+
+  '@page{size:landscape;margin:12mm}@media print{body{background:#fff}.pg{padding:0;max-width:none}.tools{display:none}.hd{-webkit-print-color-adjust:exact;print-color-adjust:exact}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-after:avoid}.lanes,.cov{break-inside:avoid}}'+
+  '@media(max-width:800px){.kp{grid-template-columns:repeat(2,1fr)}.lanes{grid-template-columns:110px 1fr}}'+
+  '</style></head><body><div class="pg">'+
+  '<div class="top"><div class="brand"><svg width="34" height="27" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg><span><b>Avance</b>Care</span></div><div class="tools"><button class="p" onclick="window.print()">Print / Save as PDF</button></div></div>'+
+  '<div class="hd"><span class="badge">'+e(snap.status||"Draft")+'</span><h1>'+e(snap.title)+'</h1><div class="m">'+(snap.version?'<span>Version: <b>'+e(snap.version)+'</b></span>':'')+'<span>Published: <b>'+e(fmtTs(snap.ts))+'</b></span>'+(snap.by?'<span>Prepared by: <b>'+e(snap.by)+'</b></span>':'')+'<span>Source: <b>mikedulinmd.app/acreferrals</b></span></div></div>'+
+  (snap.note?'<div class="rn0">'+e(snap.note)+'</div>':'')+summary+
+  '<h2>Redesigned flow — in order</h2><div class="flow">'+cards+'</div>'+
+  '<h2>Day coverage (days 0–120)</h2><div class="cov"><div class="bar">'+bar+'</div><div class="ax"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span><span>105</span><span>120</span></div><div class="cs">'+(gapDays?'<b>'+gapDays+' of 121 days have no step</b> — '+gaps.map(g=>g.from===g.to?"day "+g.from:"days "+g.from+"–"+g.to).join(", "):"Every day from 0 to 120 is covered by a step.")+'</div></div>'+
+  '<h2>Swimlane by owner</h2><div class="lanes">'+lanes+'</div>'+
+  '<h2>Step table</h2>'+table+
+  '<h2>What changed from the current-state map</h2>'+changes+
+  '<div class="ft">Draft produced in the Avance referral process-redesign working session · illustrative content, no patient information · generated from the future-state editor at mikedulinmd.app/acreferrals</div>'+
+  '</div></body></html>';
+}
+function pubMake(){
+  const snap={id:Date.now(),ts:new Date().toISOString(),title:$("#pubT").value.trim()||"Referral Coordinator Workflow — Future State (Draft)",version:$("#pubV").value.trim(),by:$("#pubBy").value.trim(),status:$("#pubS").value.trim()||"Draft",note:$("#pubN").value.trim(),steps:JSON.parse(JSON.stringify(FS.steps))};
+  PUBS.unshift(snap); if(PUBS.length>20) PUBS.length=20; pubsSave(); return snap;
+}
+function pubBlobUrl(snap){ return URL.createObjectURL(new Blob([publishHTML(snap)],{type:"text/html"})); }
+function pubFile(snap){ return (snap.title||"future-state").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)+"-"+snap.ts.slice(0,10)+".html"; }
+function pubOpen(snap){ const w=window.open(pubBlobUrl(snap),"_blank"); if(!w) pubStatus("Pop-up blocked — use Download instead."); }
+function pubDownload(snap){ const a=document.createElement("a"); a.href=pubBlobUrl(snap); a.download=pubFile(snap); document.body.appendChild(a); a.click(); a.remove(); }
+function pubStatus(t){ const el=$("#pubStatus"); el.textContent=t; setTimeout(()=>{if(el.textContent===t)el.textContent="";},3000); }
+function renderPubList(){
+  $("#pubList").innerHTML=PUBS.length?PUBS.map(pb=>'<div class="pubrow"><span class="pt">'+esc(pb.version||pb.title)+'</span><span class="pm">'+esc(fmtTs(pb.ts))+' · '+pb.steps.length+' steps'+(pb.by?" · "+esc(pb.by):"")+'</span><span class="pa"><button data-po="'+pb.id+'">Open</button><button data-pd="'+pb.id+'">Download</button><button data-pr="'+pb.id+'">Restore to editor</button><button class="x" data-px="'+pb.id+'">Remove</button></span></div>').join(""):'<div class="st">Nothing published yet.</div>';
+  const find=id=>PUBS.find(x=>String(x.id)===id);
+  $("#pubList").querySelectorAll("[data-po]").forEach(b=>b.onclick=()=>pubOpen(find(b.dataset.po)));
+  $("#pubList").querySelectorAll("[data-pd]").forEach(b=>b.onclick=()=>pubDownload(find(b.dataset.pd)));
+  $("#pubList").querySelectorAll("[data-pr]").forEach(b=>b.onclick=()=>{ const pb=find(b.dataset.pr); if(!confirm("Replace the current editor contents with this published version?")) return; FS={steps:JSON.parse(JSON.stringify(pb.steps)),touched:true}; fsSave(true); renderAllFS(); pubClose(); fsStatus("Restored “"+(pb.version||pb.title)+"”."); });
+  $("#pubList").querySelectorAll("[data-px]").forEach(b=>b.onclick=()=>{ if(!confirm("Remove this published version from the list?")) return; PUBS=PUBS.filter(x=>String(x.id)!==b.dataset.px); pubsSave(); });
+}
+function pubOpenDlg(){ $("#pubOv").hidden=false; document.body.style.overflow="hidden"; if(!$("#pubV").value) $("#pubV").value="Draft "+(PUBS.length+1)+" — "+new Date().toLocaleDateString(undefined,{month:"short",day:"numeric"}); renderPubList(); $("#pubV").focus(); }
+function pubClose(){ $("#pubOv").hidden=true; document.body.style.overflow=""; }
+$("#fsPub").addEventListener("click",pubOpenDlg);
+$("#pubX").addEventListener("click",pubClose);
+$("#pubOv").addEventListener("click",e=>{ if(e.target===$("#pubOv")) pubClose(); });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#pubOv").hidden) pubClose(); });
+$("#pubGo").addEventListener("click",()=>{ const sn=pubMake(); pubOpen(sn); $("#pubV").value=""; pubStatus("Published and opened in a new tab."); });
+$("#pubDl").addEventListener("click",()=>{ const sn=pubMake(); pubDownload(sn); $("#pubV").value=""; pubStatus("Published — file downloaded. Attach it to an email or open it in any browser."); });
+
 /* ---------- meeting notes ---------- */
 function notesText(){
   const L=[]; const today=new Date().toISOString().slice(0,10);
@@ -754,6 +906,7 @@ function notesText(){
   const un=AO.filter(x=>!(M.obs[x.key]&&(M.obs[x.key].vote||M.obs[x.key].note)));
   if(un.length&&un.length<AO.length){L.push(""); L.push("Not discussed: "+un.map(x=>x.num).join(", "));}
   const ft=(typeof FS!=="undefined"&&FS)?fsText():null; if(ft){L.push(""); L.push(ft);}
+  if(typeof PUBS!=="undefined"&&PUBS.length){L.push(""); L.push("Published future-state versions: "+PUBS.slice().reverse().map(pb=>(pb.version||pb.title)+" ("+fmtTs(pb.ts)+")").join("; "));}
   return L.join("\n");
 }
 function renderNotes(){ $("#notesPre").textContent=notesText(); }
