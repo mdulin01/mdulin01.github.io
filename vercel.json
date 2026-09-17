@@ -9,6 +9,16 @@
       "source": "/climate",
       "destination": "/climate.html",
       "permanent": false
+    },
+    {
+      "source": "/avancereferrals",
+      "destination": "/acreferrals/",
+      "permanent": true
+    },
+    {
+      "source": "/avancereferrals/:path*",
+      "destination": "/acreferrals/:path*",
+      "permanent": true
     }
   ]
 }

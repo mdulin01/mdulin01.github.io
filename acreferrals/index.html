@@ -162,6 +162,57 @@
   .nbar .st{font-size:12px;color:var(--muted);margin-left:auto}
   .npre{font:12.5px/1.55 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;background:#F6F8FB;border:1px dashed #C7D0E8;border-radius:10px;padding:14px 16px;color:#33414e;max-height:520px;overflow:auto}
 
+  /* ---- future-state editor ---- */
+  .fsbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  .fsbar .st{font-size:12px;color:var(--muted);margin-left:auto}
+  .cov{margin:6px 0 16px}
+  .cov .covbar{display:flex;height:22px;border-radius:7px;overflow:hidden;border:1px solid var(--line);background:repeating-linear-gradient(135deg,#FFF6D6 0 6px,#FCEBB0 6px 12px)}
+  .cov .covseg{height:100%;min-width:2px;position:relative;border-right:1px solid rgba(255,255,255,.7)}
+  .cov .covseg span{position:absolute;inset:0;font-size:9.5px;font-weight:800;color:#fff;padding:0 5px;line-height:22px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .cov .covax{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-weight:700;margin-top:2px}
+  .cov .covsum{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .cov .covsum b{color:#9A6E00}
+  .fslist{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 14px;align-items:stretch;scroll-snap-type:x proximity}
+  .fs{flex:0 0 268px;scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-top:5px solid var(--oc,var(--peri));border-radius:12px;box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column}
+  .fs.dragging{opacity:.45}
+  .fs.over{outline:2px dashed var(--navy);outline-offset:3px}
+  .fs.t-decision{border-top-style:double;border-top-width:7px}
+  .fs.t-closure{border-top-color:var(--navy)}
+  .fs .fh{display:flex;align-items:center;gap:6px;padding:8px 10px 6px;border-bottom:1px dashed var(--line)}
+  .fs .grip{cursor:grab;color:#B8C0CC;font-size:16px;line-height:1;padding:0 3px;user-select:none;touch-action:none}
+  .fs .grip:active{cursor:grabbing}
+  .fs .idx{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.3px}
+  .fs .fh select{font:inherit;font-size:11px;font-weight:700;border:1px solid #E4E8EE;border-radius:6px;padding:3px 5px;color:var(--navy);background:#fff;margin-left:auto}
+  .fs .ib{border:none;background:#F0F2F6;border-radius:6px;width:24px;height:24px;font-size:13px;cursor:pointer;color:var(--muted);flex:none;line-height:1}
+  .fs .ib:hover{background:#E4E7EE;color:var(--ink)}
+  .fs .ib.del:hover{background:#FBEAE8;color:var(--bad)}
+  .fs .fb{padding:9px 11px 11px;display:grid;gap:7px;flex:1}
+  .fs input,.fs textarea,.fs select.own{font:inherit;border:1px solid #E4E8EE;border-radius:7px;padding:6px 8px;color:var(--ink);background:#fff;width:100%;font-size:12.5px}
+  .fs input.ttl{font-weight:800;color:var(--navy);font-size:13.5px}
+  .fs .days{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:6px;align-items:center;font-size:10.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+  .fs .days input{padding:5px 6px;text-align:center}
+  .fs textarea{min-height:70px;resize:vertical;font-size:12px;line-height:1.45}
+  .fs textarea.nt{min-height:40px}
+  .fs .lbl{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:-3px}
+  .fs .ownrow{display:flex;gap:6px;align-items:center}
+  .fs .ownrow i{width:12px;height:12px;border-radius:3px;background:var(--oc,var(--peri));flex:none}
+  .fs .addafter{position:absolute;right:-13px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:1px solid #CBD2EC;background:#fff;color:var(--navy);font-size:15px;line-height:1;cursor:pointer;z-index:2;box-shadow:var(--shadow)}
+  .fs .addafter:hover{background:var(--navy);color:#fff}
+  .fsadd{flex:0 0 160px;border:2px dashed #CBD2EC;border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--peri);font-weight:800;font-size:13px;cursor:pointer;min-height:200px;background:transparent}
+  .fsadd:hover{background:#EEF1FB;border-color:var(--peri)}
+  .lanes{display:grid;grid-template-columns:170px 1fr;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .lanes .lh{background:#F0F3F7;padding:9px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:7px}
+  .lanes .lh i{width:10px;height:10px;border-radius:3px;flex:none}
+  .lanes .lr{border-bottom:1px solid var(--line);display:grid;gap:0;align-items:center;padding:6px 8px;min-height:44px}
+  .lanes .lcell{min-height:30px;display:flex;align-items:center;justify-content:center;position:relative}
+  .lanes .lcell::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#E4E8EE}
+  .lanes .lpill{position:relative;z-index:1;font-size:10.5px;font-weight:700;color:#fff;background:var(--oc,var(--peri));border-radius:14px;padding:3px 9px;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .lanes .lpill.ldec{border-radius:4px}
+  .lanes .lhead{display:grid;padding:6px 8px;border-bottom:1px solid var(--line);background:#F7F9FB}
+  .lanes .lhead div{font-size:9.5px;font-weight:800;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 3px}
+  .lanes .empty-lane{grid-column:1/-1;padding:14px;font-size:12.5px;color:var(--muted);font-style:italic}
+  @media(max-width:700px){.lanes{grid-template-columns:120px 1fr}}
+
   /* ---- change log ---- */
   .log{font-size:12.5px;line-height:1.6}
   .log li{margin:4px 0}
@@ -212,7 +263,7 @@
   <div class="tabs"><div class="tabs-in">
     <button class="tab on" data-pane="map">Current-state map</button>
     <button class="tab" data-pane="obs">Observations for discussion<span class="cnt" id="obsCount">0</span></button>
-    <button class="tab" data-pane="future">Future state</button>
+    <button class="tab" data-pane="future">Future state — editor</button>
     <button class="tab" data-pane="notes">Meeting notes<span class="cnt" id="noteCount">0</span></button>
     <button class="tab" data-pane="log">Change log</button>
   </div></div>
@@ -292,10 +343,26 @@
 
     <!-- =================== FUTURE STATE =================== -->
     <div class="pane" id="pane-future" hidden>
-      <div class="card">
-        <h3 style="font-size:15px;font-weight:800;color:var(--navy)">Future-state map — not started</h3>
-        <p style="font-size:13px;color:#41505a;margin-top:8px;line-height:1.55;max-width:820px">This tab will hold the redesigned workflow once the team has reacted to the current-state map and the observations. Suggested inputs to capture in the meeting so the redesign can be drawn next:</p>
-        <ul style="font-size:13px;color:#41505a;margin:10px 0 0 18px;line-height:1.6">
+      <div class="note" style="margin-bottom:12px">Draw the redesign live. The strip starts as a copy of the current-state steps. Drag a card by its ⠿ handle (or use ◀ ▶) to reorder, edit any field in place, use ＋ to insert a step after a card, and ✕ to remove one. Set an owner on each step and the swimlane below builds itself. Edits are saved in this browser and included in Meeting notes.</div>
+      <div class="fsbar">
+        <button class="primbtn" id="fsAdd">＋ Add step at end</button>
+        <button class="ghostbtn" id="fsBlank">Start from blank</button>
+        <button class="ghostbtn danger" id="fsReset">Reset to current state</button>
+        <span class="st" id="fsStatus"></span>
+      </div>
+
+      <div class="sec">Day coverage <span>— which days 0–120 have a defined step in the redesign · striped = no step covers those days</span></div>
+      <div class="cov" id="fsCov"></div>
+
+      <div class="sec">Redesigned flow <span>— in order, left to right</span></div>
+      <div class="fslist" id="fsList"></div>
+
+      <div class="sec">Swimlane by owner <span>— one row per owner, steps in sequence · set owners on the cards to populate</span></div>
+      <div class="lanes" id="fsLanes"></div>
+
+      <div class="card" style="margin-top:18px">
+        <h3 style="font-size:13px;font-weight:800;color:var(--navy)">Inputs worth settling while drawing</h3>
+        <ul style="font-size:12.5px;color:#41505a;margin:8px 0 0 18px;line-height:1.6">
           <li>Which steps are truly the coordinator's, and which belong to the ordering provider, specialist intake, or the patient.</li>
           <li>Target day for each hand-off (receipt → PA → specialist confirmation → first outreach → scheduled → note back).</li>
           <li>The urgent / STAT variant of this routine path, if one exists.</li>
@@ -362,6 +429,7 @@ const OBS=[
 ];
 
 const LOG=[
+  {v:"v0.3",d:"2026-09-17",t:"Page moved to /acreferrals (old address redirects). Future-state tab is now an editor: an ordered strip of step cards seeded from the current state, drag or arrow-button reordering, insert / add / remove, inline editing of name, day range, owner, actions and note, a day-coverage bar that shows undrawn days, and an auto-built swimlane by owner. The redesign is included in Meeting notes once edited."},
   {v:"v0.2",d:"2026-09-17",t:"Interactive review: day slider with two scenarios that highlights where a referral sits on any day and flags undrawn days; keep / change / drop / discuss decision, owner and note on every step; agree / disagree / discuss and note on every observation with category filters; Meeting notes tab that compiles all marks for copy, download or email. Marks are saved in the browser."},
   {v:"v0.1",d:"2026-09-17",t:"Current-state map transcribed from the referral team's workflow diagram (stages, day bands, decision loop, closure triggers). Added step-detail panel with implied owners, systems, and questions; added 12 draft observations for the review meeting. Future-state tab is a placeholder."}
 ];
@@ -413,6 +481,7 @@ function renderBadges(){
     if(e.classList.contains("dec")) b.style.cssText="top:0;right:0"; e.appendChild(b);
   });
   let n=0; Object.values(M.steps).forEach(m=>{if(m.decision||m.note||m.owner)n++;}); Object.values(M.obs).forEach(m=>{if(m.vote||m.note)n++;});
+  if(typeof FS!=="undefined"&&FS&&FS.touched) n++;
   $("#noteCount").textContent=n;
 }
 function markupHTML(id){
@@ -432,10 +501,115 @@ function wireMarkup(root){
   root.querySelectorAll("textarea[data-note]").forEach(t=>t.addEventListener("input",()=>{stepMark(t.dataset.note).note=t.value;save();}));
 }
 
+/* ---------- future-state editor ---------- */
+const FKEY="avanceReferralsFutureV1";
+const OWNER_COLORS={"Referral coordinator":"#5C6CB8","Ordering provider / PCP":"#2B2C6B","Specialist intake":"#0E8A6E","Patient":"#B5651D","Payer":"#6D28D9","Automated (EHR / portal)":"#2F9E45","Shared — needs definition":"#9A6E00","":"#B8C0CC"};
+const FS_SEED=[
+  {type:"step",title:"Referral order created",from:0,to:0,owner:"Ordering provider / PCP",actions:["Order signed in EHR"],note:""},
+  {type:"step",title:"Receipt & Triage",from:0,to:2,owner:"Referral coordinator",actions:["Review order & demographics","Verify insurance / submit PA","Route notes to specialist"],note:""},
+  {type:"step",title:"Auth & Scheduling Check",from:3,to:7,owner:"Referral coordinator",actions:["Confirm PA approval","Contact specialist intake (confirm receipt & scheduling)"],note:""},
+  {type:"step",title:"First Patient Outreach",from:14,to:21,owner:"Referral coordinator",actions:["Check with specialist re: patient contact","Contact patient (portal / text / call) — booking & barriers"],note:""},
+  {type:"decision",title:"Is referral scheduled?",from:21,to:21,owner:"Referral coordinator",actions:["Yes → appointment booked, monitor","No → second outreach & re-triage"],note:""},
+  {type:"step",title:"Second outreach & re-triage",from:30,to:45,owner:"Referral coordinator",actions:["Second patient touchpoint","Check wait times","If >60–90 days, offer alternate specialist"],note:""},
+  {type:"step",title:"Appointment booked — monitor & follow-up",from:22,to:59,owner:"Referral coordinator",actions:["Keep referral active"],note:""},
+  {type:"step",title:"Pre-closure review",from:60,to:90,owner:"Referral coordinator",actions:["Confirm visit occurred","Confirm consult note received"],note:""},
+  {type:"closure",title:"Close referral",from:90,to:90,owner:"Referral coordinator",actions:["Update EHR order status","Attach consult note to PCP chart","Task PCP if non-fulfilment"],note:""}
+];
+let FS=null;
+function fsLoad(){try{const j=JSON.parse(localStorage.getItem(FKEY)||"null");if(j&&Array.isArray(j.steps))FS=j;}catch(e){} if(!FS)FS={steps:JSON.parse(JSON.stringify(FS_SEED)),touched:false};}
+function fsSave(touch){ if(touch) FS.touched=true; try{localStorage.setItem(FKEY,JSON.stringify(FS));}catch(e){} renderBadges(); renderNotes(); }
+function fsStatus(t){const e=$("#fsStatus");e.textContent=t;setTimeout(()=>{if(e.textContent===t)e.textContent="";},2500);}
+function newStep(after){return {type:"step",title:"",from:after?after.to:0,to:after?after.to:0,owner:"",actions:[],note:""};}
+function oc(o){return OWNER_COLORS[o]||"#5C6CB8";}
+function num(v,d){v=parseInt(v,10);return isNaN(v)?d:Math.max(0,Math.min(365,v));}
+
+function renderFS(){
+  const L=$("#fsList");
+  L.innerHTML=FS.steps.map((st,i)=>'<div class="fs t-'+st.type+'" data-i="'+i+'" style="--oc:'+oc(st.owner)+'">'+
+    '<div class="fh"><span class="grip" title="Drag to reorder">⠿</span><span class="idx">'+(i+1)+'</span>'+
+      '<select data-f="type"><option value="step"'+(st.type==="step"?" selected":"")+'>Step</option><option value="decision"'+(st.type==="decision"?" selected":"")+'>Decision</option><option value="closure"'+(st.type==="closure"?" selected":"")+'>Closure</option></select>'+
+      '<button class="ib" data-act="left" title="Move left">◀</button><button class="ib" data-act="right" title="Move right">▶</button><button class="ib del" data-act="del" title="Remove step">✕</button></div>'+
+    '<div class="fb">'+
+      '<input class="ttl" data-f="title" placeholder="Step name" value="'+esc(st.title).replace(/"/g,"&quot;")+'">'+
+      '<div class="days"><span>Day</span><input type="number" min="0" max="365" data-f="from" value="'+st.from+'"><span>to</span><input type="number" min="0" max="365" data-f="to" value="'+st.to+'"></div>'+
+      '<div class="ownrow"><i></i><select class="own" data-f="owner">'+OWNERS.map((o,k)=>'<option value="'+(k?o:"")+'"'+((k?o:"")===st.owner?" selected":"")+'>'+o+'</option>').join("")+'</select></div>'+
+      '<div class="lbl">'+(st.type==="decision"?"Branches (one per line)":st.type==="closure"?"Closure actions (one per line)":"Actions (one per line)")+'</div>'+
+      '<textarea data-f="actions" placeholder="One action per line">'+esc(st.actions.join("\n"))+'</textarea>'+
+      '<div class="lbl">Note / rationale</div><textarea class="nt" data-f="note" placeholder="Why this changes, systems, measures…">'+esc(st.note)+'</textarea>'+
+    '</div><button class="addafter" data-act="after" title="Insert a step after this one">＋</button></div>').join("")+
+    '<button class="fsadd" id="fsAdd2">＋ Add step</button>';
+  L.querySelectorAll(".fs").forEach(card=>{
+    const i=+card.dataset.i, st=FS.steps[i];
+    card.querySelectorAll("[data-f]").forEach(el=>{
+      const ev=(el.tagName==="SELECT")?"change":"input";
+      el.addEventListener(ev,()=>{
+        const f=el.dataset.f;
+        if(f==="actions") st.actions=el.value.split("\n").map(x=>x.trim()).filter(Boolean);
+        else if(f==="from"||f==="to"){ st[f]=num(el.value,st[f]); if(st.from>st.to){ if(f==="from") st.to=st.from; else st.from=st.to; } }
+        else st[f]=el.value;
+        fsSave(true);
+        if(f==="owner"||f==="type"||f==="from"||f==="to"||f==="title"){ renderCov(); renderLanes(); if(f==="owner") card.style.setProperty("--oc",oc(st.owner)); if(f==="type"){card.className="fs t-"+st.type;} }
+      });
+    });
+    card.querySelectorAll("[data-act]").forEach(b=>b.addEventListener("click",()=>{
+      const a=b.dataset.act;
+      if(a==="del"){ if(st.title&&!confirm("Remove “"+st.title+"” from the redesign?")) return; FS.steps.splice(i,1); }
+      else if(a==="left"&&i>0){ FS.steps.splice(i-1,0,FS.steps.splice(i,1)[0]); }
+      else if(a==="right"&&i<FS.steps.length-1){ FS.steps.splice(i+1,0,FS.steps.splice(i,1)[0]); }
+      else if(a==="after"){ FS.steps.splice(i+1,0,newStep(st)); }
+      fsSave(true); renderAllFS(); if(a==="after"){ const c=$("#fsList .fs[data-i='"+(i+1)+"'] input.ttl"); if(c){c.focus(); c.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});} }
+    }));
+    /* drag & drop via handle */
+    const grip=card.querySelector(".grip");
+    grip.addEventListener("mousedown",()=>card.draggable=true);
+    grip.addEventListener("touchstart",()=>card.draggable=true,{passive:true});
+    card.addEventListener("dragstart",e=>{ if(!card.draggable){e.preventDefault();return;} dragI=i; card.classList.add("dragging"); if(e.dataTransfer){e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain",String(i));}catch(x){}} });
+    card.addEventListener("dragend",()=>{ card.classList.remove("dragging"); card.draggable=false; L.querySelectorAll(".fs.over").forEach(x=>x.classList.remove("over")); });
+    card.addEventListener("dragover",e=>{ if(dragI===null||dragI===i) return; e.preventDefault(); if(e.dataTransfer)e.dataTransfer.dropEffect="move"; card.classList.add("over"); });
+    card.addEventListener("dragleave",()=>card.classList.remove("over"));
+    card.addEventListener("drop",e=>{ e.preventDefault(); if(dragI===null||dragI===i) return; const mv=FS.steps.splice(dragI,1)[0]; FS.steps.splice(i,0,mv); dragI=null; fsSave(true); renderAllFS(); });
+  });
+  $("#fsAdd2").addEventListener("click",()=>{ FS.steps.push(newStep(FS.steps[FS.steps.length-1])); fsSave(true); renderAllFS(); const c=$("#fsList .fs:last-of-type input.ttl"); if(c){c.focus();c.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});} });
+}
+let dragI=null;
+
+function renderCov(){
+  const MAX=120, cover=new Array(MAX+1).fill(null);
+  FS.steps.forEach((st,i)=>{ for(let d=Math.min(st.from,MAX); d<=Math.min(st.to,MAX); d++) if(cover[d]===null) cover[d]=i; });
+  const segs=[]; let cur=cover[0], start=0;
+  for(let d=1; d<=MAX+1; d++){ if(d===MAX+1||cover[d]!==cur){ segs.push({i:cur,from:start,to:d-1}); cur=cover[d]; start=d; } }
+  const bar=segs.map(sg=>{ const w=((sg.to-sg.from+1)/(MAX+1)*100).toFixed(2)+"%"; if(sg.i===null) return '<div class="covseg" style="width:'+w+';background:transparent" title="Days '+sg.from+'–'+sg.to+': no step"></div>';
+    const st=FS.steps[sg.i]; return '<div class="covseg" style="width:'+w+';background:'+oc(st.owner)+'" title="'+esc(st.title||"(untitled)")+' · days '+sg.from+'–'+sg.to+'"><span>'+esc(st.title||"(untitled)")+'</span></div>'; }).join("");
+  const gaps=segs.filter(s=>s.i===null); const gapDays=gaps.reduce((a,s)=>a+(s.to-s.from+1),0);
+  $("#fsCov").innerHTML='<div class="covbar">'+bar+'</div><div class="covax"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span><span>105</span><span>120</span></div>'+
+    '<div class="covsum">'+(gapDays?'<b>'+gapDays+' of 121 days have no step</b> — '+gaps.map(g=>g.from===g.to?"day "+g.from:"days "+g.from+"–"+g.to).join(", "):"Every day from 0 to 120 is covered by a step.")+'</div>';
+}
+function renderLanes(){
+  const owners=[]; FS.steps.forEach(st=>{ if(!owners.includes(st.owner)) owners.push(st.owner); });
+  const n=FS.steps.length, cols="repeat("+Math.max(n,1)+",minmax(70px,1fr))";
+  if(!n){ $("#fsLanes").innerHTML='<div class="empty-lane">No steps yet.</div>'; return; }
+  let h='<div class="lh">Owner</div><div class="lhead" style="grid-template-columns:'+cols+'">'+FS.steps.map((st,i)=>'<div title="'+esc(st.title)+'">'+(i+1)+'</div>').join("")+'</div>';
+  owners.forEach(o=>{ h+='<div class="lh"><i style="background:'+oc(o)+'"></i>'+esc(o||"(no owner)")+'</div><div class="lr" style="grid-template-columns:'+cols+'">'+
+    FS.steps.map(st=>'<div class="lcell">'+(st.owner===o?'<span class="lpill'+(st.type==="decision"?" ldec":"")+'" style="--oc:'+oc(o)+'" title="'+esc(st.title)+' · days '+st.from+'–'+st.to+'">'+esc(st.title||"(untitled)")+'</span>':"")+'</div>').join("")+'</div>'; });
+  $("#fsLanes").innerHTML=h;
+}
+function renderAllFS(){ renderFS(); renderCov(); renderLanes(); }
+function fsText(){
+  if(!FS.touched) return null;
+  const L=["## Future-state draft ("+FS.steps.length+" steps, drawn in the meeting)"];
+  FS.steps.forEach((st,i)=>{ L.push((i+1)+". **"+(st.title||"(untitled)")+"**"+(st.type!=="step"?" ["+st.type+"]":"")+" — days "+st.from+"–"+st.to+(st.owner?" — owner: "+st.owner:" — owner: not set"));
+    st.actions.forEach(a=>L.push("   - "+a)); if(st.note) L.push("   - Note: "+st.note.trim().replace(/\n+/g," / ")); });
+  return L.join("\n");
+}
+fsLoad(); renderAllFS();
+$("#fsAdd").addEventListener("click",()=>$("#fsAdd2").click());
+$("#fsBlank").addEventListener("click",()=>{ if(!confirm("Clear the redesign strip and start from a single empty step?")) return; FS={steps:[newStep(null)],touched:true}; fsSave(true); renderAllFS(); fsStatus("Started blank."); });
+$("#fsReset").addEventListener("click",()=>{ if(!confirm("Discard the redesign and reload the current-state steps?")) return; FS={steps:JSON.parse(JSON.stringify(FS_SEED)),touched:false}; fsSave(false); renderAllFS(); fsStatus("Reset to current state."); });
+
 /* ---------- meeting notes ---------- */
 function notesText(){
   const L=[]; const today=new Date().toISOString().slice(0,10);
-  L.push("# Avance referral workflow — meeting notes ("+today+")"); L.push("Page: mikedulinmd.app/avancereferrals · map "+LOG[0].v); L.push("");
+  L.push("# Avance referral workflow — meeting notes ("+today+")"); L.push("Page: mikedulinmd.app/acreferrals · map "+LOG[0].v); L.push("");
   L.push("## Step decisions");
   let any=false;
   Object.keys(STEPS).forEach(id=>{const m=M.steps[id]; if(!m||(!m.decision&&!m.owner&&!m.note)) return; any=true;
@@ -448,6 +622,7 @@ function notesText(){
   if(!any) L.push("- (none marked yet)");
   const un=OBS.map((o,i)=>i).filter(i=>!(M.obs[i]&&(M.obs[i].vote||M.obs[i].note)));
   if(un.length&&un.length<OBS.length){L.push(""); L.push("Not discussed: "+un.map(i=>i+1).join(", "));}
+  const ft=(typeof FS!=="undefined"&&FS)?fsText():null; if(ft){L.push(""); L.push(ft);}
   return L.join("\n");
 }
 function renderNotes(){ $("#notesPre").textContent=notesText(); }
