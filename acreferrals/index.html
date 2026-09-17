@@ -152,6 +152,27 @@
   .filters .sum{margin-left:auto;font-size:11.5px;color:var(--muted);font-weight:600}
   .ob.dim{opacity:.35}
 
+  /* ---- add observation ---- */
+  .addob{background:#fff;border:1px dashed #CBD2EC;border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .addob[hidden]{display:none}
+  .addob h4{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);font-weight:800;margin-bottom:10px}
+  .addob .row{display:grid;grid-template-columns:160px 1fr 1fr;gap:10px;margin-bottom:10px}
+  .addob label{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:4px}
+  .addob input,.addob select,.addob textarea{font:inherit;font-size:13px;border:1px solid #CBD2EC;border-radius:8px;padding:8px 10px;color:var(--ink);background:#fff;width:100%}
+  .addob textarea{min-height:70px;resize:vertical}
+  .addob .acts{display:flex;gap:8px;align-items:center;margin-top:4px}
+  .addob .err{font-size:12px;color:var(--bad);font-weight:600;margin-left:6px}
+  .ob.custom{border-left:4px solid var(--green)}
+  .ob .obtag{display:inline-block;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:#E6F2E6;color:var(--green-dark);border-radius:10px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+  .ob .edit{display:grid;gap:6px;margin-top:4px}
+  .ob .edit input,.ob .edit textarea,.ob .edit select{font:inherit;font-size:12.5px;border:1px solid #E4E8EE;border-radius:7px;padding:6px 8px;color:var(--ink);background:#fff;width:100%}
+  .ob .edit input.t{font-weight:800;color:var(--navy);font-size:13.5px}
+  .ob .edit textarea{min-height:56px;resize:vertical;line-height:1.45}
+  .ob .edit .er{display:grid;grid-template-columns:150px 1fr auto;gap:6px;align-items:center}
+  .ob .rm{border:none;background:#F0F2F6;border-radius:7px;padding:6px 10px;font:inherit;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer}
+  .ob .rm:hover{background:#FBEAE8;color:var(--bad)}
+  @media(max-width:760px){.addob .row{grid-template-columns:1fr}.ob .edit .er{grid-template-columns:1fr}}
+
   /* ---- meeting notes ---- */
   .nbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
   .primbtn{font:inherit;font-size:13px;font-weight:700;padding:9px 16px;border-radius:8px;border:none;background:var(--navy);color:#fff;cursor:pointer}
@@ -373,8 +394,20 @@
 
     <!-- =================== OBSERVATIONS =================== -->
     <div class="pane" id="pane-obs" hidden>
-      <div class="note" style="margin-bottom:14px">Draft observations from reading the current-state map. They are prompts for the meeting, not conclusions — expect several to be answered by “the team already does this, it just isn't drawn.” Mark each one keep / drop / reword and I will update the page.</div>
-      <div class="filters" id="obsFilters"><button class="f on" data-f="all">All</button><button class="f" data-f="gap">Gap</button><button class="f" data-f="amb">Ambiguity</button><button class="f" data-f="meas">Measurement</button><button class="f" data-f="hand">Hand-off</button><button class="f" data-f="open">Not yet marked</button><span class="sum" id="obsSum"></span></div>
+      <div class="note" style="margin-bottom:14px">Draft observations from reading the current-state map. They are prompts for the meeting, not conclusions — expect several to be answered by “the team already does this, it just isn't drawn.” Mark each one agree / disagree / discuss, and add anything the room raises that is missing — added items are numbered after these and go into the notes.</div>
+      <div class="nbar" style="margin-bottom:10px"><button class="primbtn" id="obAddBtn">＋ Add an observation</button><span class="st">Anything the room raises that is not on the list — it gets a number, votes, and goes into the notes.</span></div>
+      <div class="addob" id="obForm" hidden>
+        <h4>New observation</h4>
+        <div class="row">
+          <div><label>Category</label><select id="obC"><option value="gap">Gap — something missing</option><option value="amb">Ambiguity — unclear or undefined</option><option value="meas">Measurement — cannot be reported</option><option value="hand">Hand-off — ownership or notification</option></select></div>
+          <div><label>Title (one line)</label><input id="obT" maxlength="120" placeholder="e.g., No step for specialist cancellations"></div>
+          <div><label>Where in the workflow</label><input id="obW" maxlength="80" placeholder="e.g., Monitor & follow-up"></div>
+        </div>
+        <label>What is the issue and why it matters</label>
+        <textarea id="obD" placeholder="Describe it the way you would explain it to someone who was not in the room. No patient details."></textarea>
+        <div class="acts"><button class="primbtn" id="obSave">Add to the list</button><button class="ghostbtn" id="obCancel">Cancel</button><span class="err" id="obErr"></span></div>
+      </div>
+      <div class="filters" id="obsFilters"><button class="f on" data-f="all">All</button><button class="f" data-f="gap">Gap</button><button class="f" data-f="amb">Ambiguity</button><button class="f" data-f="meas">Measurement</button><button class="f" data-f="hand">Hand-off</button><button class="f" data-f="open">Not yet marked</button><button class="f" data-f="custom">Added in meeting</button><span class="sum" id="obsSum"></span></div>
       <div class="obs" id="obsList"></div>
     </div>
 
@@ -518,6 +551,7 @@ const OBS=[
 ];
 
 const LOG=[
+  {v:"v0.5",d:"2026-09-17",t:"Observations tab: add an observation from the page (category, title, where, description). Added items are numbered after the built-in twelve, can be edited or removed in place, take the same agree / disagree / discuss votes, appear under an 'Added in meeting' filter, and are written into Meeting notes with their text."},
   {v:"v0.4",d:"2026-09-17",t:"Added the ? guide at the top right (also at /acreferrals/#help): agenda for the session, what each tab is for, how to interact with the map, observations and editor, and ground rules on saving notes and keeping patient information off the page."},
   {v:"v0.3",d:"2026-09-17",t:"Page moved to /acreferrals (old address redirects). Future-state tab is now an editor: an ordered strip of step cards seeded from the current state, drag or arrow-button reordering, insert / add / remove, inline editing of name, day range, owner, actions and note, a day-coverage bar that shows undrawn days, and an auto-built swimlane by owner. The redesign is included in Meeting notes once edited."},
   {v:"v0.2",d:"2026-09-17",t:"Interactive review: day slider with two scenarios that highlights where a referral sits on any day and flags undrawn days; keep / change / drop / discuss decision, owner and note on every step; agree / disagree / discuss and note on every observation with category filters; Meeting notes tab that compiles all marks for copy, download or email. Marks are saved in the browser."},
@@ -558,8 +592,12 @@ $$(".scen button").forEach(b=>b.addEventListener("click",()=>{scen=b.dataset.sce
 
 /* ---------- mark-up state ---------- */
 const SKEY="avanceReferralsMarksV1";
-let M={steps:{},obs:{}};
+let M={steps:{},obs:{},custom:[]};
 try{M=Object.assign(M,JSON.parse(localStorage.getItem(SKEY)||"{}"));}catch(e){}
+if(!Array.isArray(M.custom)) M.custom=[];
+const CAT={gap:"Gap",amb:"Ambiguity",meas:"Measurement",hand:"Hand-off"}, CATCLS={gap:"c-gap",amb:"c-amb",meas:"c-meas",hand:"c-hand"};
+/* one list for built-in and meeting-added observations; keys: "0".."11" built-in, "c<id>" custom */
+function allObs(){ return OBS.map((o,i)=>({key:String(i),num:i+1,o,custom:false})).concat(M.custom.map((o,j)=>({key:"c"+o.id,num:OBS.length+j+1,o:Object.assign({cls:CATCLS[o.c]||"c-gap"},o),custom:true}))); }
 function save(){try{localStorage.setItem(SKEY,JSON.stringify(M));}catch(e){} renderBadges(); renderNotes(); }
 function stepMark(id){return M.steps[id]||(M.steps[id]={decision:"",owner:"",note:""});}
 function obsMark(i){return M.obs[i]||(M.obs[i]={vote:"",note:""});}
@@ -570,7 +608,7 @@ function renderBadges(){
     const b=document.createElement("span"); b.className="mk "+(m.decision||"note"); b.textContent=m.decision||"note";
     if(e.classList.contains("dec")) b.style.cssText="top:0;right:0"; e.appendChild(b);
   });
-  let n=0; Object.values(M.steps).forEach(m=>{if(m.decision||m.note||m.owner)n++;}); Object.values(M.obs).forEach(m=>{if(m.vote||m.note)n++;});
+  let n=0; Object.values(M.steps).forEach(m=>{if(m.decision||m.note||m.owner)n++;}); Object.values(M.obs).forEach(m=>{if(m.vote||m.note)n++;}); n+=M.custom.length;
   if(typeof FS!=="undefined"&&FS&&FS.touched) n++;
   $("#noteCount").textContent=n;
 }
@@ -707,11 +745,14 @@ function notesText(){
     if(m.owner) L.push("  - Owner: "+m.owner); if(m.note) L.push("  - Note: "+m.note.trim().replace(/\n+/g," / "));});
   if(!any) L.push("- (none marked yet)");
   L.push(""); L.push("## Observations"); any=false;
-  OBS.forEach((o,i)=>{const m=M.obs[i]; if(!m||(!m.vote&&!m.note)) return; any=true;
-    L.push("- "+(i+1)+". "+o.t+(m.vote?" — "+m.vote.toUpperCase():"")); if(m.note) L.push("  - Note: "+m.note.trim().replace(/\n+/g," / "));});
+  const AO=allObs();
+  AO.forEach(x=>{const m=M.obs[x.key]; const marked=m&&(m.vote||m.note); if(!marked&&!x.custom) return; any=true;
+    L.push("- "+x.num+". "+x.o.t+(x.custom?" (added in meeting · "+CAT[x.o.c]+")":"")+(m&&m.vote?" — "+m.vote.toUpperCase():""));
+    if(x.custom){ if(x.o.w) L.push("  - Where: "+x.o.w); if(x.o.d) L.push("  - "+x.o.d.trim().replace(/\n+/g," / ")); }
+    if(m&&m.note) L.push("  - Note: "+m.note.trim().replace(/\n+/g," / "));});
   if(!any) L.push("- (none marked yet)");
-  const un=OBS.map((o,i)=>i).filter(i=>!(M.obs[i]&&(M.obs[i].vote||M.obs[i].note)));
-  if(un.length&&un.length<OBS.length){L.push(""); L.push("Not discussed: "+un.map(i=>i+1).join(", "));}
+  const un=AO.filter(x=>!(M.obs[x.key]&&(M.obs[x.key].vote||M.obs[x.key].note)));
+  if(un.length&&un.length<AO.length){L.push(""); L.push("Not discussed: "+un.map(x=>x.num).join(", "));}
   const ft=(typeof FS!=="undefined"&&FS)?fsText():null; if(ft){L.push(""); L.push(ft);}
   return L.join("\n");
 }
@@ -720,7 +761,7 @@ function status(t){ const e=$("#noteStatus"); e.textContent=t; setTimeout(()=>{i
 $("#copyNotes").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(notesText());status("Copied.");}catch(e){status("Copy blocked — select the text below and copy.");}});
 $("#dlNotes").addEventListener("click",()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([notesText()],{type:"text/markdown"}));a.download="avance-referral-workflow-notes-"+new Date().toISOString().slice(0,10)+".md";a.click();status("Downloaded.");});
 $("#mailNotes").addEventListener("click",()=>{location.href="mailto:?subject="+encodeURIComponent("Avance referral workflow — meeting notes")+"&body="+encodeURIComponent(notesText());});
-$("#resetNotes").addEventListener("click",()=>{if(!confirm("Clear every decision, owner, vote and note on this page? This cannot be undone."))return; M={steps:{},obs:{}}; save(); renderObs(); $("#detail").innerHTML='<div class="empty">Marks cleared. Click a step to start again.</div>'; $$("[data-id]").forEach(e=>e.classList.remove("sel")); status("Cleared.");});
+$("#resetNotes").addEventListener("click",()=>{if(!confirm("Clear every decision, owner, vote and note on this page, including observations added in the meeting? This cannot be undone."))return; M={steps:{},obs:{},custom:[]}; save(); renderObs(); $("#detail").innerHTML='<div class="empty">Marks cleared. Click a step to start again.</div>'; $$("[data-id]").forEach(e=>e.classList.remove("sel")); status("Cleared.");});
 
 /* ---------- render ---------- */
 
@@ -742,12 +783,24 @@ $$("[data-id]").forEach(e=>e.addEventListener("click",()=>select(e.dataset.id)))
 
 let obsFilter="all";
 function renderObs(){
-  $("#obsList").innerHTML=OBS.map((o,i)=>{const m=obsMark(i);
-    const show=obsFilter==="all"||obsFilter===o.c||(obsFilter==="open"&&!m.vote&&!m.note);
-    return '<div class="ob'+(show?"":" dim")+'"><span class="chip '+o.cls+'">'+({gap:"Gap",amb:"Ambiguity",meas:"Measurement",hand:"Hand-off"})[o.c]+'</span>'+
-    '<div><div class="ot">'+(i+1)+'. '+esc(o.t)+'</div><div class="od">'+esc(o.d)+'</div><div class="ow">Where: <b>'+esc(o.w)+'</b></div>'+
-    '<div class="obctl"><div class="seg" data-ob="'+i+'">'+["agree","disagree","discuss"].map(k=>'<button class="'+k+(m.vote===k?" on":"")+'" data-k="'+k+'">'+k[0].toUpperCase()+k.slice(1)+'</button>').join("")+'</div>'+
-    '<textarea data-obnote="'+i+'" placeholder="Team response / what to do about it…">'+esc(m.note)+'</textarea></div></div></div>';}).join("");
+  $("#obsList").innerHTML=allObs().map(x=>{const o=x.o, m=obsMark(x.key);
+    const show=obsFilter==="all"||obsFilter===o.c||(obsFilter==="open"&&!m.vote&&!m.note)||(obsFilter==="custom"&&x.custom);
+    const body=x.custom
+      ? '<div class="edit" data-cid="'+o.id+'"><input class="t" data-cf="t" value="'+esc(o.t).replace(/"/g,"&quot;")+'" placeholder="Title"><textarea data-cf="d" placeholder="Description">'+esc(o.d)+'</textarea>'+
+        '<div class="er"><select data-cf="c">'+Object.keys(CAT).map(k=>'<option value="'+k+'"'+(o.c===k?" selected":"")+'>'+CAT[k]+'</option>').join("")+'</select><input data-cf="w" value="'+esc(o.w).replace(/"/g,"&quot;")+'" placeholder="Where in the workflow"><button class="rm" data-rm="'+o.id+'">Remove</button></div></div>'
+      : '<div class="od">'+esc(o.d)+'</div><div class="ow">Where: <b>'+esc(o.w)+'</b></div>';
+    return '<div class="ob'+(show?"":" dim")+(x.custom?" custom":"")+'"><span class="chip '+o.cls+'">'+CAT[o.c]+'</span>'+
+    '<div><div class="ot">'+x.num+'. '+(x.custom?'<span style="font-weight:600;color:var(--muted)">added in meeting</span><span class="obtag">new</span>':esc(o.t))+'</div>'+body+
+    '<div class="obctl"><div class="seg" data-ob="'+x.key+'">'+["agree","disagree","discuss"].map(k=>'<button class="'+k+(m.vote===k?" on":"")+'" data-k="'+k+'">'+k[0].toUpperCase()+k.slice(1)+'</button>').join("")+'</div>'+
+    '<textarea data-obnote="'+x.key+'" placeholder="Team response / what to do about it…">'+esc(m.note)+'</textarea></div></div></div>';}).join("");
+  $("#obsList").querySelectorAll(".edit[data-cid] [data-cf]").forEach(el=>el.addEventListener(el.tagName==="SELECT"?"change":"input",()=>{
+    const c=M.custom.find(z=>String(z.id)===el.closest(".edit").dataset.cid); if(!c) return; c[el.dataset.cf]=el.value; save();
+    if(el.dataset.cf==="c"){ const card=el.closest(".ob"); const chip=card.querySelector(".chip"); chip.className="chip "+CATCLS[c.c]; chip.textContent=CAT[c.c]; }
+  }));
+  $("#obsList").querySelectorAll("[data-rm]").forEach(b=>b.addEventListener("click",()=>{
+    const c=M.custom.find(z=>String(z.id)===b.dataset.rm); if(!confirm("Remove “"+(c&&c.t||"this observation")+"” from the list?")) return;
+    M.custom=M.custom.filter(z=>String(z.id)!==b.dataset.rm); delete M.obs["c"+b.dataset.rm]; save(); renderObs();
+  }));
   $("#obsList").querySelectorAll(".seg[data-ob] button").forEach(b=>b.addEventListener("click",()=>{
     const m=obsMark(b.parentNode.dataset.ob); m.vote=(m.vote===b.dataset.k?"":b.dataset.k);
     b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.k===m.vote)); save(); renderObsSum();
@@ -755,11 +808,23 @@ function renderObs(){
   $("#obsList").querySelectorAll("textarea[data-obnote]").forEach(t=>t.addEventListener("input",()=>{obsMark(t.dataset.obnote).note=t.value;save();renderObsSum();}));
   renderObsSum();
 }
-function renderObsSum(){const v={agree:0,disagree:0,discuss:0};let marked=0;OBS.forEach((o,i)=>{const m=M.obs[i];if(!m)return;if(m.vote)v[m.vote]++;if(m.vote||m.note)marked++;});
-  $("#obsSum").textContent=marked+" of "+OBS.length+" marked · "+v.agree+" agree · "+v.disagree+" disagree · "+v.discuss+" discuss";}
+function renderObsSum(){const v={agree:0,disagree:0,discuss:0};let marked=0;const AO=allObs();AO.forEach(x=>{const m=M.obs[x.key];if(!m)return;if(m.vote)v[m.vote]++;if(m.vote||m.note)marked++;});
+  $("#obsSum").textContent=marked+" of "+AO.length+" marked · "+v.agree+" agree · "+v.disagree+" disagree · "+v.discuss+" discuss"+(M.custom.length?" · "+M.custom.length+" added":"");
+  $("#obsCount").textContent=AO.length;}
+/* add-observation form */
+function obFormShow(on){ $("#obForm").hidden=!on; $("#obErr").textContent=""; if(on){ $("#obT").focus(); $("#obForm").scrollIntoView({behavior:"smooth",block:"nearest"}); } }
+$("#obAddBtn").addEventListener("click",()=>obFormShow($("#obForm").hidden));
+$("#obCancel").addEventListener("click",()=>{ obFormShow(false); });
+$("#obSave").addEventListener("click",()=>{
+  const t=$("#obT").value.trim(), d=$("#obD").value.trim(), w=$("#obW").value.trim(), c=$("#obC").value;
+  if(!t){ $("#obErr").textContent="Give it a one-line title."; $("#obT").focus(); return; }
+  const id=Date.now(); M.custom.push({id,c,t,d,w,ts:new Date().toISOString().slice(0,16)});
+  $("#obT").value=""; $("#obD").value=""; $("#obW").value=""; obFormShow(false); save(); renderObs();
+  const last=$("#obsList .ob.custom:last-of-type"); if(last){ last.scrollIntoView({behavior:"smooth",block:"center"}); last.style.outline="2px solid var(--green)"; setTimeout(()=>last.style.outline="",1600); }
+});
+$("#obD").addEventListener("keydown",e=>{ if((e.metaKey||e.ctrlKey)&&e.key==="Enter") $("#obSave").click(); });
 $$("#obsFilters .f").forEach(f=>f.addEventListener("click",()=>{obsFilter=f.dataset.f;$$("#obsFilters .f").forEach(x=>x.classList.toggle("on",x===f));renderObs();}));
 renderObs();
-$("#obsCount").textContent=OBS.length;
 renderBadges(); renderNotes(); renderSim();
 
 $("#logList").innerHTML=LOG.map(l=>'<li><b>'+l.v+'</b> · '+l.d+' — '+esc(l.t)+'</li>').join("");
