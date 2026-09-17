@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avance Care — Referral Coordinator Workflow (Process Redesign)</title>
+<style>
+  :root{--navy:#2B2C6B;--navy-deep:#232456;--peri:#5C6CB8;--periL:#8A97D1;--green:#4CB749;--green-dark:#2F9E45;--teal:#0E8A6E;--ink:#26303A;--muted:#6B7A80;--care-gray:#6D6E71;--bg:#F4F6F8;--card:#fff;--line:#E4E8EE;--good:#2F9E45;--warn:#D4A017;--bad:#C0392B;--shadow:0 1px 3px rgba(30,40,60,.08),0 1px 2px rgba(30,40,60,.04);--shadow-lg:0 12px 34px rgba(30,40,60,.16);}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+  a{color:var(--peri)}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:13px 26px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .wordmark{font-size:21px;font-weight:300;color:var(--care-gray)}.wordmark b{font-weight:700;color:#4A5BA8}
+  .meta{text-align:right;font-size:12px;color:var(--muted)}.meta .t{font-size:15px;font-weight:700;color:var(--ink)}.meta a{font-weight:700;text-decoration:none}
+  .hero{background:linear-gradient(120deg,var(--navy-deep),var(--navy) 55%,var(--peri));color:#fff;padding:26px 26px 22px}
+  .hero-in{max-width:1380px;margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .hero h1{font-size:23px;font-weight:800}.hero p{font-size:13.5px;opacity:.9;margin-top:6px;max-width:820px;line-height:1.5}
+  .ver{font-size:11.5px;font-weight:700;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);padding:6px 11px;border-radius:20px;white-space:nowrap}
+  .tabs{background:#fff;border-bottom:1px solid var(--line);padding:0 26px}
+  .tabs-in{max-width:1380px;margin:0 auto;display:flex;gap:4px;overflow-x:auto}
+  .tab{border:none;background:none;font:inherit;font-size:13px;font-weight:700;color:var(--muted);padding:13px 14px 11px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--navy)}.tab.on{color:var(--navy);border-bottom-color:var(--navy)}
+  .tab .cnt{font-size:10.5px;font-weight:800;background:#EEF1FB;color:var(--peri);border-radius:20px;padding:1px 7px;margin-left:5px}
+  .wrap{max-width:1380px;margin:0 auto;padding:22px 26px 70px}
+  .pane[hidden]{display:none}
+  .sec{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:20px 2px 12px;display:flex;align-items:center;gap:8px}
+  .sec span{font-weight:600;text-transform:none;letter-spacing:0;color:var(--peri);font-size:11px}
+  .sec:first-child{margin-top:0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;box-shadow:var(--shadow)}
+  .note{font-size:12.5px;color:#41505a;background:#F6F8FB;border-left:3px solid var(--peri);padding:9px 12px;border-radius:8px;line-height:1.5}
+
+  /* ---- day rail ---- */
+  .rail{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:14px}
+  .band{background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font-size:11px;font-weight:800;color:var(--navy);text-align:center;position:relative}
+  .band small{display:block;font-weight:600;color:var(--muted);font-size:10px;margin-top:1px}
+  .band.ov{border-color:#E9D4A1;background:#FFFBEE}
+  .band.ov::after{content:"overlaps";position:absolute;top:-8px;right:6px;font-size:9px;font-weight:800;color:#9A6E00;background:#FCF3DC;border-radius:10px;padding:1px 6px}
+
+  /* ---- flow ---- */
+  .flow{display:grid;grid-template-columns:150px repeat(3,1fr) 230px;gap:0;align-items:stretch}
+  .fcell{position:relative;padding-right:26px}
+  .fcell:last-child{padding-right:0}
+  .fcell:not(:last-child)::after{content:"";position:absolute;right:6px;top:50%;width:14px;height:14px;border-top:2px solid var(--periL);border-right:2px solid var(--periL);transform:translateY(-50%) rotate(45deg)}
+  .fcell:not(:last-child)::before{content:"";position:absolute;right:6px;left:calc(100% - 26px);top:50%;height:2px;background:var(--periL)}
+  .start{height:100%;min-height:150px;border-radius:14px;background:linear-gradient(140deg,var(--green-dark),var(--green));color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,box-shadow .12s}
+  .start:hover,.node:hover,.dec:hover,.close:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .start .d{font-size:11px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;opacity:.9}
+  .start .t{font-size:15px;font-weight:800;margin-top:6px;line-height:1.25}
+  .node{height:100%;background:#fff;border:1px solid var(--line);border-top:5px solid var(--accent,var(--peri));border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);cursor:pointer;transition:transform .12s,box-shadow .12s;position:relative}
+  .node.sel,.start.sel,.dec.sel,.close.sel{outline:2px solid var(--navy);outline-offset:2px}
+  .node .days{font-size:10.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--accent,var(--peri))}
+  .node .nt{font-size:14.5px;font-weight:800;color:var(--navy);margin-top:3px;line-height:1.25}
+  .node ul{margin:9px 0 0;padding-left:17px;font-size:12.5px;color:#41505a;line-height:1.5}
+  .node .owner{margin-top:10px;font-size:10.5px;color:var(--muted);font-weight:600}
+  .node .owner b{color:var(--ink)}
+  .dec{height:100%;min-height:150px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .12s;position:relative}
+  .dec .dia{width:150px;height:150px;transform:rotate(45deg);background:#fff;border:2px solid var(--navy);border-radius:14px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center}
+  .dec .dia span{transform:rotate(-45deg);text-align:center;font-size:12px;font-weight:800;color:var(--navy);line-height:1.3;width:110px}
+
+  /* ---- branches ---- */
+  .branches{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:22px}
+  .branch{border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);overflow:hidden}
+  .bh{padding:9px 14px;font-size:11.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#fff;display:flex;align-items:center;gap:8px}
+  .bh.yes{background:var(--green-dark)}.bh.no{background:var(--bad)}
+  .bh small{font-weight:600;text-transform:none;letter-spacing:0;opacity:.9;margin-left:auto;font-size:11px}
+  .bb{padding:14px;display:grid;gap:10px}
+  .bb.row{grid-template-columns:1fr 1fr 1fr}
+  .bnode{border:1px solid var(--line);border-left:4px solid var(--accent,var(--peri));border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;transition:transform .12s,box-shadow .12s;position:relative}
+  .bnode:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .bnode.sel{outline:2px solid var(--navy);outline-offset:2px}
+  .bnode .days{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--accent,var(--peri))}
+  .bnode .nt{font-size:13px;font-weight:800;color:var(--navy);margin-top:2px;line-height:1.25}
+  .bnode ul{margin:7px 0 0;padding-left:16px;font-size:12px;color:#41505a;line-height:1.45}
+  .bnode .arrow{position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--periL);font-size:15px}
+  .loop{grid-column:1/-1;font-size:11.5px;color:var(--bad);font-weight:700;display:flex;align-items:center;gap:6px;padding-top:2px}
+
+  /* ---- closure ---- */
+  .closure{margin-top:22px;border-radius:14px;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);overflow:hidden}
+  .ch{background:var(--navy);color:#fff;padding:10px 16px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+  .cb{display:grid;grid-template-columns:1fr 1.3fr 120px;gap:16px;padding:16px;align-items:stretch}
+  .close{border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;transition:transform .12s,box-shadow .12s;background:#fff}
+  .close h4{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:7px}
+  .close h4 i{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-size:11px;color:#fff}
+  .close.reasons h4{color:var(--bad)}.close.reasons h4 i{background:var(--bad)}
+  .close.action h4{color:var(--green-dark)}.close.action h4 i{background:var(--green-dark)}
+  .close ul,.close ol{margin:8px 0 0;padding-left:18px;font-size:12.5px;line-height:1.55;color:#41505a}
+  .end{display:flex;align-items:center;justify-content:center}
+  .end div{width:96px;height:96px;border-radius:50%;border:6px solid var(--navy);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--navy);background:#fff}
+
+  /* ---- detail ---- */
+  .detail{margin-top:22px}
+  .dhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .dhead h3{font-size:16px;font-weight:800;color:var(--navy)}
+  .dhead .ref{font-size:11px;font-weight:700;color:var(--periL);text-transform:uppercase;letter-spacing:.4px}
+  .dgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:12px}
+  .dcol h5{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800;margin-bottom:6px}
+  .dcol ul{margin:0;padding-left:17px;font-size:12.5px;line-height:1.55;color:#41505a}
+  .dcol.q ul li::marker{color:var(--warn)}
+  .empty{font-size:12.5px;color:var(--muted);font-style:italic}
+
+  /* ---- observations ---- */
+  .obs{display:grid;gap:10px}
+  .ob{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow);display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start}
+  .chip{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:4px 8px;border-radius:20px;text-align:center}
+  .c-gap{background:#FBEAE8;color:var(--bad)}.c-amb{background:#FCF3DC;color:#9A6E00}.c-meas{background:#EEF1FB;color:var(--peri)}.c-hand{background:#E6F2E6;color:var(--green-dark)}
+  .ob .ot{font-size:13.5px;font-weight:800;color:var(--navy)}
+  .ob .od{font-size:12.5px;color:#41505a;line-height:1.5;margin-top:3px}
+  .ob .ow{font-size:11.5px;color:var(--muted);margin-top:5px}
+  .ob .ow b{color:var(--ink)}
+
+  /* ---- change log ---- */
+  .log{font-size:12.5px;line-height:1.6}
+  .log li{margin:4px 0}
+  .log b{color:var(--navy)}
+  .foot{margin-top:28px;font-size:11px;color:var(--muted);line-height:1.6}
+
+  @media(max-width:1000px){
+    .flow{grid-template-columns:1fr 1fr}
+    .fcell{padding-right:0;margin-bottom:12px}
+    .fcell::before,.fcell::after{display:none!important}
+    .dec{min-height:180px}
+    .branches,.dgrid{grid-template-columns:1fr}
+    .bb.row{grid-template-columns:1fr}
+    .bnode .arrow{display:none}
+    .cb{grid-template-columns:1fr}
+    .rail{grid-template-columns:repeat(4,1fr)}
+  }
+  @media(max-width:600px){
+    .flow{grid-template-columns:1fr}
+    .rail{grid-template-columns:repeat(2,1fr)}
+    .ob{grid-template-columns:1fr}
+    .topbar,.hero,.tabs,.wrap{padding-left:16px;padding-right:16px}
+  }
+  @media print{.tabs,.topbar .meta,#fbBtn{display:none!important}.pane[hidden]{display:block!important}}
+</style>
+</head>
+<body>
+<div id="appShell" style="display:none">
+  <div class="topbar">
+    <div class="brand">
+      <svg width="38" height="30" viewBox="0 0 120 96"><polygon points="34,14 56,90 8,90" fill="#5FBE57"/><polygon points="64,8 98,90 38,90" fill="#4A5BA8"/></svg>
+      <div class="wordmark"><b>Avance</b>Care</div>
+    </div>
+    <div class="meta"><div class="t">Referral Coordinator Workflow — Process Redesign</div><a href="/avance/">← All dashboards</a> · <a onclick="window.avanceSignOut&&window.avanceSignOut()" style="cursor:pointer">Sign out</a></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-in">
+      <div>
+        <h1>Routine Referral Coordinator Workflow &amp; Timeline</h1>
+        <p>Current-state map as drawn by the Avance referral team, transcribed one-to-one so we can review it together and mark up what changes. Click any step to see what the map says, who owns it, and the open questions we should settle before redesigning.</p>
+      </div>
+      <div class="ver" id="verTag">Current state · v0.1 · 2026-09-17</div>
+    </div>
+  </div>
+
+  <div class="tabs"><div class="tabs-in">
+    <button class="tab on" data-pane="map">Current-state map</button>
+    <button class="tab" data-pane="obs">Observations for discussion<span class="cnt" id="obsCount">0</span></button>
+    <button class="tab" data-pane="future">Future state</button>
+    <button class="tab" data-pane="log">Change log</button>
+  </div></div>
+
+  <div class="wrap">
+
+    <!-- =================== MAP =================== -->
+    <div class="pane" id="pane-map">
+      <div class="sec">Timeline rail <span>— day bands exactly as labeled on the team's map; amber bands overlap a neighbor</span></div>
+      <div class="rail">
+        <div class="band">Day 0–10<small>Receipt → auth check</small></div>
+        <div class="band">Day 11–20<small>—</small></div>
+        <div class="band ov">Day 14–21<small>First outreach</small></div>
+        <div class="band">Day 21–30<small>—</small></div>
+        <div class="band">Day 30–35<small>—</small></div>
+        <div class="band ov">Day 30–45<small>Second outreach</small></div>
+        <div class="band">Day 45+<small>Booked / monitor</small></div>
+      </div>
+
+      <div class="sec">Coordinator workflow <span>— Day 0 through the scheduling decision · click a step for detail</span></div>
+      <div class="flow">
+        <div class="fcell"><div class="start" data-id="d0"><div class="d">Day 0</div><div class="t">Referral order created</div></div></div>
+        <div class="fcell"><div class="node" data-id="triage" style="--accent:#5C6CB8"><div class="days">Days 0–2</div><div class="nt">Receipt &amp; Triage</div><ul><li>Review order &amp; demographics</li><li>Verify insurance / submit PA</li><li>Route notes to specialist</li></ul><div class="owner">Owner (implied): <b>Referral coordinator</b></div></div></div>
+        <div class="fcell"><div class="node" data-id="auth" style="--accent:#0E8A6E"><div class="days">Days 3–7</div><div class="nt">Auth &amp; Scheduling Check</div><ul><li>Confirm PA approval</li><li>Contact specialist intake (confirm receipt &amp; scheduling)</li></ul><div class="owner">Owner (implied): <b>Referral coordinator</b></div></div></div>
+        <div class="fcell"><div class="node" data-id="out1" style="--accent:#2B2C6B"><div class="days">Days 14–21</div><div class="nt">First Patient Outreach</div><ul><li>Check with specialist (re: patient contact)</li><li>Contact patient (portal / text / call) to assist with booking &amp; barriers</li></ul><div class="owner">Owner (implied): <b>Referral coordinator</b></div></div></div>
+        <div class="fcell"><div class="dec" data-id="dec"><div class="dia"><span>Is referral scheduled?</span></div></div></div>
+      </div>
+
+      <div class="branches">
+        <div class="branch">
+          <div class="bh yes">Yes — scheduled <small>→ keep active until closure</small></div>
+          <div class="bb row">
+            <div class="bnode" data-id="booked" style="--accent:#2F9E45"><div class="days">Appointment</div><div class="nt">Appointment booked</div><ul><li>e.g., Day 60, Day 120</li></ul><span class="arrow">➤</span></div>
+            <div class="bnode" data-id="monitor" style="--accent:#2F9E45"><div class="days">Ongoing</div><div class="nt">Monitor &amp; follow-up</div><ul><li>Keep referral active</li></ul><span class="arrow">➤</span></div>
+            <div class="bnode" data-id="preclose" style="--accent:#2F9E45"><div class="days">Days 60–90</div><div class="nt">Pre-closure review</div><ul><li>Confirm visit occurred / note received</li></ul></div>
+          </div>
+        </div>
+        <div class="branch">
+          <div class="bh no">No — still unbooked <small>Days 30–45</small></div>
+          <div class="bb">
+            <div class="bnode" data-id="out2" style="--accent:#C0392B"><div class="days">Days 30–45</div><div class="nt">Second outreach &amp; re-triage</div><ul><li>Second patient touchpoint</li><li>Check wait times</li><li>If &gt;60–90 days, offer alternate specialist</li></ul></div>
+            <div class="loop">↺ Returns to “Is referral scheduled?”</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="closure">
+        <div class="ch">Referral closure &amp; loop-closure triggers</div>
+        <div class="cb">
+          <div class="close reasons" data-id="reasons"><h4><i>✕</i>Reasons to close</h4><ul><li>Note received &amp; reviewed</li><li>Patient refusal</li><li>Non-responsive (3+ attempts)</li><li>Payer denial (final)</li><li>Care rerouted</li></ul></div>
+          <div class="close action" data-id="action"><h4><i>✓</i>Closure action</h4><ol><li>Update EHR order status to “Closed / Completed”</li><li>Ensure consult note is attached to PCP chart</li><li>Send task to PCP for review if non-fulfilment</li></ol></div>
+          <div class="end"><div>CLOSED</div></div>
+        </div>
+      </div>
+
+      <div class="sec">Step detail <span id="dsub">— select a step above</span></div>
+      <div class="card detail" id="detail"><div class="empty">Click any step, the decision diamond, or a closure box to see what the map specifies, the implied owner and systems, and the questions to raise with the team.</div></div>
+    </div>
+
+    <!-- =================== OBSERVATIONS =================== -->
+    <div class="pane" id="pane-obs" hidden>
+      <div class="note" style="margin-bottom:14px">Draft observations from reading the current-state map. They are prompts for the meeting, not conclusions — expect several to be answered by “the team already does this, it just isn't drawn.” Mark each one keep / drop / reword and I will update the page.</div>
+      <div class="obs" id="obsList"></div>
+    </div>
+
+    <!-- =================== FUTURE STATE =================== -->
+    <div class="pane" id="pane-future" hidden>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:800;color:var(--navy)">Future-state map — not started</h3>
+        <p style="font-size:13px;color:#41505a;margin-top:8px;line-height:1.55;max-width:820px">This tab will hold the redesigned workflow once the team has reacted to the current-state map and the observations. Suggested inputs to capture in the meeting so the redesign can be drawn next:</p>
+        <ul style="font-size:13px;color:#41505a;margin:10px 0 0 18px;line-height:1.6">
+          <li>Which steps are truly the coordinator's, and which belong to the ordering provider, specialist intake, or the patient.</li>
+          <li>Target day for each hand-off (receipt → PA → specialist confirmation → first outreach → scheduled → note back).</li>
+          <li>The urgent / STAT variant of this routine path, if one exists.</li>
+          <li>What “scheduled” means for the measure: appointment date in the EHR, specialist confirmation, or patient confirmation.</li>
+          <li>Which closure reasons count as completed, redirected, or closed-incomplete for the Referral Completion dashboard.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- =================== CHANGE LOG =================== -->
+    <div class="pane" id="pane-log" hidden>
+      <div class="card"><ul class="log" id="logList" style="list-style:none"></ul></div>
+    </div>
+
+    <div class="foot">Working document for the Avance referral process-redesign effort · current-state content transcribed from the referral team's workflow map · no patient information. Related: <a href="/avance-referral-completion.html">Referral Completion</a> · <a href="/avance-referrals-outgoing.html">Outgoing Referrals</a> · <a href="/avance-imaging-workflow.html">Imaging workflow map</a>.</div>
+  </div>
+</div>
+
+<script>
+/* ---------- content ---------- */
+const STEPS={
+  d0:{ref:"Day 0",title:"Referral order created",says:["Ordering provider places the referral order in the EHR.","Clock for every downstream day-band starts here."],owner:"Ordering provider (PCP)",systems:["EHR order"],q:["Is Day 0 the order signing time, or when the order lands in the coordinator's work queue?","Does the order carry urgency, preferred specialist, and payer information at creation, or does the coordinator add these at triage?"]},
+  triage:{ref:"Days 0–2 · Receipt & Triage",title:"Receipt & Triage",says:["Review order & demographics.","Verify insurance / submit prior authorization.","Route notes to specialist."],owner:"Referral coordinator",systems:["EHR work queue","Payer portal (PA)","Fax / Carelink to specialist"],q:["What is the trigger for the coordinator to see a new order — a work queue, an in-basket message, or a report?","Is PA submitted for every referral or only for payers/specialties that require it? Who maintains that rule set?","Is the specialist chosen here, and by whom (provider preference, patient preference, in-network list)?"]},
+  auth:{ref:"Days 3–7 · Auth & Scheduling Check",title:"Auth & Scheduling Check",says:["Confirm PA approval.","Contact specialist intake to confirm receipt and scheduling."],owner:"Referral coordinator",systems:["Payer portal","Phone / fax to specialist intake"],q:["What happens on a PA denial at this point — appeal, peer-to-peer, redirect? The map only lists “payer denial (final)” as a closure reason.","Is “confirm receipt & scheduling” a phone call per referral, or can specialist confirmation arrive electronically?","Nothing is drawn for Days 8–13. Is that intentional wait time, or an undocumented step?"]},
+  out1:{ref:"Days 14–21 · First Patient Outreach",title:"First Patient Outreach",says:["Check with specialist regarding patient contact.","Contact patient via portal / text / call to assist with booking and barriers."],owner:"Referral coordinator",systems:["Patient portal","SMS","Phone"],q:["Why is first patient contact at Day 14, not at Day 0–2? Is this by design (give the specialist two weeks to reach the patient) or a capacity constraint?","Which channel is tried first, and how many attempts count as one “outreach”?","How are barriers (transport, cost, distance, language) recorded so they can be addressed rather than just noted?"]},
+  dec:{ref:"Decision",title:"Is referral scheduled?",says:["Yes → appointment booked, monitor and follow up.","No (still unbooked, Days 30–45) → second outreach & re-triage, then re-evaluate."],owner:"Referral coordinator",systems:["EHR referral status"],q:["What is the source of truth for “scheduled” — an appointment date entered in the EHR, a specialist confirmation, or the patient saying so?","How often is this decision re-checked between Day 21 and Day 30? The map jumps from Day 21 to Day 30–45."]},
+  booked:{ref:"Yes path",title:"Appointment booked",says:["Example appointment dates on the map: Day 60, Day 120 — i.e., specialist wait times routinely exceed the 45-day rail."],owner:"Referral coordinator (recording); specialist (scheduling)",systems:["EHR referral status / appointment date"],q:["Is the appointment date captured in a structured field so wait time can be measured by specialty?","Is a booked date beyond 60–90 days acceptable, or should it trigger the alternate-specialist offer even though the referral is technically scheduled?"]},
+  monitor:{ref:"Yes path",title:"Monitor & follow-up",says:["Keep the referral active until the visit happens and the note returns."],owner:"Referral coordinator",systems:["EHR work queue"],q:["What does monitoring consist of — a periodic report, a tickler, or manual review of every open referral?","Who is notified when a booked appointment is cancelled or no-showed at the specialist?"]},
+  preclose:{ref:"Days 60–90 · Pre-closure review",title:"Pre-closure review",says:["Review the referral before closing: confirm the visit occurred and the consult note was received."],owner:"Referral coordinator",systems:["EHR", "Fax / Carelink inbound"],q:["Is Day 60–90 a fixed review window regardless of the appointment date, or 30 days after the booked visit?","What is done when the visit occurred but no note has arrived — request from the specialist, close as completed, or leave open?"]},
+  out2:{ref:"Days 30–45 · Second outreach & re-triage",title:"Second outreach & re-triage",says:["Second patient touchpoint.","Check specialist wait times.","If wait exceeds 60–90 days, offer an alternate specialist."],owner:"Referral coordinator",systems:["Portal / SMS / phone","Specialist wait-time knowledge"],q:["Closure requires 3+ attempts, but the map draws only two outreach events. Where is the third attempt?","Is there a maintained list of alternate specialists with current wait times, or is this tribal knowledge?","Does offering an alternate specialist require the ordering provider to re-order, or can the coordinator redirect?"]},
+  reasons:{ref:"Closure triggers",title:"Reasons to close",says:["Note received & reviewed.","Patient refusal.","Non-responsive (3+ attempts).","Payer denial (final).","Care rerouted."],owner:"Referral coordinator",systems:["EHR referral status"],q:["Only “note received & reviewed” is a completed outcome; the other four are closed-incomplete or redirected. Does the EHR status distinguish them so the completion rate can be measured?","“Care rerouted” — rerouted to an alternate specialist should stay open under the new referral, not close as done. Is that how it is recorded today?","“Reviewed” by whom — the PCP or the coordinator?"]},
+  action:{ref:"Closure action",title:"Closure action",says:["1. Update EHR order status to Closed / Completed.","2. Ensure the consult note is attached to the PCP chart.","3. Send a task to the PCP for review if non-fulfilment."],owner:"Referral coordinator",systems:["EHR order status","Chart / media attachment","PCP in-basket task"],q:["Step 3 only tasks the PCP on non-fulfilment. Does the PCP also see completed consult notes, and is that a task or just a chart document?","Is there a single closed status, or separate Completed vs Closed-incomplete statuses? This determines whether the ≥80% completion goal can be reported."]}
+};
+
+const OBS=[
+  {c:"gap",cls:"c-gap",t:"Days 8–13 and Days 22–29 have no drawn activity",d:"The map moves from the Day 3–7 auth check straight to Day 14–21 outreach, and from Day 21 to Day 30–45. Either these are deliberate waiting periods or there is undocumented work. If they are waits, the redesign question is whether the wait is for the specialist, the payer, or coordinator capacity.",w:"Auth & Scheduling Check · First Patient Outreach"},
+  {c:"gap",cls:"c-gap",t:"First patient contact happens two weeks after the order",d:"Patients are not contacted by Avance until Day 14–21. Many patients will not know a referral exists, who will call them, or what to do if no one does. An early “your referral was sent to X, expect a call by Y” message could be automated at Day 0–2.",w:"First Patient Outreach"},
+  {c:"gap",cls:"c-gap",t:"Three attempts required to close, two outreach events drawn",d:"Closure lists “non-responsive (3+ attempts)” but the workflow only shows a first and a second outreach. The third attempt and its timing should be explicit, or the closure threshold should match the workflow.",w:"Second outreach · Reasons to close"},
+  {c:"gap",cls:"c-gap",t:"No path for a PA denial before final",d:"Payer denial appears only as a final closure reason. There is no drawn step for appeal, peer-to-peer, or changing the referral to an in-network or covered alternative when PA is denied at Days 3–7.",w:"Auth & Scheduling Check"},
+  {c:"amb",cls:"c-amb",t:"Timeline rail bands overlap",d:"The rail lists Day 11–20 and Day 14–21, and Day 30–35 and Day 30–45, side by side. Presenting overlapping bands makes it unclear which band a Day 15 or Day 32 referral belongs to and complicates any aging report built from this map.",w:"Timeline rail"},
+  {c:"amb",cls:"c-amb",t:"“Scheduled” is not defined",d:"The central decision depends on whether the referral is scheduled, but the map does not say whether that means an appointment date exists in the EHR, the specialist confirmed, or the patient confirmed. Each gives a different completion rate.",w:"Decision"},
+  {c:"amb",cls:"c-amb",t:"“Care rerouted” closes the referral",d:"Rerouting to an alternate specialist is a redirection, not an outcome. If it closes the original referral without opening a linked one, the patient can fall out of tracking and the completion measure loses the case. This matches the redirection-vs-closed-incomplete distinction already used on the Referral Completion dashboard.",w:"Reasons to close"},
+  {c:"meas",cls:"c-meas",t:"Closure statuses do not separate completed from incomplete",d:"Five closure reasons collapse into one “Closed / Completed” EHR status. To report the ≥80% completion goal and the closed-incomplete reasons on the dashboards, the EHR status or a reason field must distinguish completed, redirected, and closed-incomplete.",w:"Closure action"},
+  {c:"meas",cls:"c-meas",t:"No time stamps are named for hand-offs",d:"None of the steps specifies which EHR event marks its completion, so days-in-stage cannot be measured. Naming the field or status for each hand-off (received, PA submitted, PA approved, specialist confirmed, patient contacted, scheduled, note received) would let the workflow report itself.",w:"All stages"},
+  {c:"hand",cls:"c-hand",t:"Every step is owned by the coordinator",d:"The map is coordinator-centric: the ordering provider appears only at Day 0 and at non-fulfilment, and the specialist and patient appear only as parties to contact. The redesign should make explicit what the provider, specialist intake, and patient are expected to do and by when.",w:"All stages"},
+  {c:"hand",cls:"c-hand",t:"PCP is only notified on non-fulfilment",d:"The closure action tasks the PCP only when the referral is not fulfilled. Confirm whether the PCP reliably sees completed consult notes, and whether the pre-closure review should also notify the PCP when a note is late.",w:"Closure action · Pre-closure review"},
+  {c:"hand",cls:"c-hand",t:"Routine only — urgent / STAT path not shown",d:"The title scopes this to routine referrals. The urgent path, with its ≤24-hour submission target on the Outgoing Referrals dashboard, needs its own map or an explicit variant of this one.",w:"Whole map"}
+];
+
+const LOG=[
+  {v:"v0.1",d:"2026-09-17",t:"Current-state map transcribed from the referral team's workflow diagram (stages, day bands, decision loop, closure triggers). Added step-detail panel with implied owners, systems, and questions; added 12 draft observations for the review meeting. Future-state tab is a placeholder."}
+];
+
+/* ---------- render ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function li(a){return a.map(x=>"<li>"+esc(x)+"</li>").join("");}
+
+function select(id){
+  $$("[data-id]").forEach(e=>e.classList.toggle("sel",e.dataset.id===id));
+  const s=STEPS[id]; if(!s) return;
+  $("#dsub").textContent="— "+s.title;
+  $("#detail").innerHTML=
+    '<div class="dhead"><h3>'+esc(s.title)+'</h3><span class="ref">'+esc(s.ref)+'</span></div>'+
+    '<div class="dgrid">'+
+      '<div class="dcol"><h5>What the map says</h5><ul>'+li(s.says)+'</ul></div>'+
+      '<div class="dcol"><h5>Owner &amp; systems (as implied)</h5><ul><li><b>Owner:</b> '+esc(s.owner)+'</li>'+s.systems.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul></div>'+
+      '<div class="dcol q"><h5>Questions for the team</h5><ul>'+li(s.q)+'</ul></div>'+
+    '</div>';
+  $("#detail").scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+$$("[data-id]").forEach(e=>e.addEventListener("click",()=>select(e.dataset.id)));
+
+$("#obsList").innerHTML=OBS.map((o,i)=>
+  '<div class="ob"><span class="chip '+o.cls+'">'+({gap:"Gap",amb:"Ambiguity",meas:"Measurement",hand:"Hand-off"})[o.c]+'</span>'+
+  '<div><div class="ot">'+(i+1)+'. '+esc(o.t)+'</div><div class="od">'+esc(o.d)+'</div><div class="ow">Where: <b>'+esc(o.w)+'</b></div></div></div>').join("");
+$("#obsCount").textContent=OBS.length;
+
+$("#logList").innerHTML=LOG.map(l=>'<li><b>'+l.v+'</b> · '+l.d+' — '+esc(l.t)+'</li>').join("");
+$("#verTag").textContent="Current state · "+LOG[LOG.length-1].v+" · "+LOG[LOG.length-1].d;
+
+$$(".tab").forEach(t=>t.addEventListener("click",()=>{
+  $$(".tab").forEach(x=>x.classList.toggle("on",x===t));
+  $$(".pane").forEach(p=>p.hidden=(p.id!=="pane-"+t.dataset.pane));
+  try{location.hash=t.dataset.pane;}catch(e){}
+}));
+(function(){const h=(location.hash||"").slice(1);const t=$$(".tab").find(x=>x.dataset.pane===h);if(t)t.click();})();
+</script>
+<script src="/avance-feedback.js"></script>
+<script type="module" src="/avance-auth.js"></script>
+</body>
+</html>
