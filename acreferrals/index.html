@@ -335,6 +335,23 @@
   .bkp .t{font-size:12px;color:var(--muted);flex:1;min-width:240px;line-height:1.5}
   @media(max-width:600px){.topbar .meta .t{display:none}.hero{padding:18px 16px 16px}.hero h1{font-size:19px}.hero p{font-size:13px}}
 
+  /* ---- agreed final ---- */
+  .final-h{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;background:linear-gradient(120deg,#fff,#F1FAF1);border:1px solid #CFE8CF;border-left:6px solid var(--green-dark);border-radius:14px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:16px}
+  .final-h .fb{display:inline-block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;background:#E6F2E6;color:var(--green-dark);border-radius:20px;padding:4px 10px;margin-bottom:8px}
+  .final-h h2{font-size:20px;font-weight:800;color:var(--navy);line-height:1.2}
+  .final-h p{font-size:13px;color:#41505a;margin-top:6px;line-height:1.55;max-width:760px}
+  .final-h .fa{display:flex;flex-direction:column;gap:8px;min-width:230px}
+  .final-h .fa a,.final-h .fa button{font:inherit;font-size:13px;font-weight:700;padding:9px 14px;border-radius:9px;text-decoration:none;text-align:center;cursor:pointer;border:1px solid #CBD2EC;background:#fff;color:var(--navy)}
+  .final-h .fa a:hover,.final-h .fa button:hover{background:#EEF1FB}
+  .final-h .fa .p{background:var(--green-dark);color:#fff;border-color:var(--green-dark)}.final-h .fa .p:hover{background:#27853A}
+  .final-kp{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+  .final-kp div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow)}
+  .final-kp b{display:block;font-size:22px;font-weight:800;color:var(--navy);line-height:1}.final-kp span{font-size:10.5px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+  .final-frame{width:100%;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--shadow);min-height:600px;display:block}
+  .lesson{background:#FFFBEE;border-left:4px solid var(--warn);border-radius:8px;padding:12px 14px;font-size:13px;line-height:1.55;color:#41505a;margin-top:16px}
+  .lesson b{color:var(--navy)}
+  @media(max-width:900px){.final-h{grid-template-columns:1fr}.final-kp{grid-template-columns:repeat(2,1fr)}.final-h .fa{flex-direction:row;flex-wrap:wrap}.final-h .fa a,.final-h .fa button{flex:1}}
+
   /* ---- change log ---- */
   .log{font-size:12.5px;line-height:1.6}
   .log li{margin:4px 0}
@@ -375,15 +392,16 @@
   <div class="hero">
     <div class="hero-in">
       <div>
-        <h1>Routine Referral Coordinator Workflow &amp; Timeline</h1>
-        <p>Current-state map as drawn by the Avance referral team, transcribed one-to-one so we can review it together and mark up what changes. Click any step to see what the map says, who owns it, and the open questions we should settle before redesigning.</p>
+        <h1>Referral Coordinator Workflow — Process Redesign</h1>
+        <p>The working session ran on 17–18 September 2026. The agreed future state is on the first tab. The current-state map, the day slider, the observations the team voted on, the editor and the meeting notes remain available for the next round.</p>
       </div>
       <div class="ver" id="verTag">Current state · v0.1 · 2026-09-17</div>
     </div>
   </div>
 
   <div class="tabs"><div class="tabs-in">
-    <button class="tab on" data-pane="map">Current-state map</button>
+    <button class="tab on" data-pane="final">Agreed future state</button>
+    <button class="tab" data-pane="map">Current-state map</button>
     <button class="tab" data-pane="obs">Observations for discussion<span class="cnt" id="obsCount">0</span></button>
     <button class="tab" data-pane="future">Future state — editor</button>
     <button class="tab" data-pane="notes">Meeting notes<span class="cnt" id="noteCount">0</span></button>
@@ -392,8 +410,27 @@
 
   <div class="wrap">
 
+    <!-- =================== AGREED FINAL =================== -->
+    <div class="pane" id="pane-final">
+      <div class="final-h">
+        <div>
+          <span class="fb">Agreed · workshop of 17–18 Sep 2026 · Draft 5 — FINAL</span>
+          <h2>Referral Coordinator Workflow — Future State</h2>
+          <p>The redesign the referral team agreed in the working session, as published from the editor on 18 Sep 2026. Six steps, three owners, every day from 0 to 120 covered. The current-state map, observations and votes that led here are on the other tabs; the editor still holds the tools if the team wants to iterate further.</p>
+        </div>
+        <div class="fa">
+          <a class="p" href="/acreferrals/future-state-final-2026-09-18.pdf" target="_blank" rel="noopener">Download the PDF (as sent)</a>
+          <button id="finOpen">Open printable version</button>
+          <button id="finDl">Download as .html</button>
+          <button id="finEdit">Load into the editor</button>
+        </div>
+      </div>
+      <iframe class="final-frame" id="finFrame" title="Agreed future-state document" loading="eager"></iframe>
+      <div class="lesson"><b>Lesson from the session for next time.</b> Several people used the page at once and the session leader drove from a different laptop than the one that opened it. Marks live in one browser, so the group depended on the backup file and on re-publishing to stay in step. The next version of a tool like this needs a shared, named session (a short code the room joins) with a live store behind it, a clear "who is driving" indicator, and per-person votes that merge rather than overwrite. Design that in from the start rather than adding it later.</div>
+    </div>
+
     <!-- =================== MAP =================== -->
-    <div class="pane" id="pane-map">
+    <div class="pane" id="pane-map" hidden>
       <div class="sec">Timeline rail <span>— day bands exactly as labeled on the team's map; amber bands overlap a neighbor</span></div>
       <div class="rail">
         <div class="band">Day 0–10<small>Receipt → auth check</small></div>
@@ -479,6 +516,7 @@
       <div class="fsbar">
         <button class="primbtn" id="fsAdd">＋ Add step at end</button>
         <button class="primbtn" id="fsPub" style="background:var(--green-dark)">Publish ▸</button>
+        <button class="ghostbtn" id="fsFinal">Start from agreed final</button>
         <button class="ghostbtn" id="fsBlank">Start from blank</button>
         <button class="ghostbtn danger" id="fsReset">Reset to current state</button>
         <span class="st" id="fsStatus"></span>
@@ -535,7 +573,7 @@
     <div class="help-h">
       <div>
         <h2 id="helpTitle">How we'll use this page today</h2>
-        <p>This is a working copy of the referral team's own workflow map, rebuilt so we can mark it up together and leave the room with decisions written down. Nothing here is final. The current-state map is a transcription — if it is wrong, say so and it gets fixed.</p>
+        <p>This page was built for the referral team's redesign session on 17–18 September 2026. The session is complete and the agreed future state is on the first tab. The rest of this guide describes how the working tabs were used and still work, should the team run another round.</p>
       </div>
       <button class="x" id="helpX" aria-label="Close">✕</button>
     </div>
@@ -646,6 +684,7 @@ const OBS=[
 ];
 
 const LOG=[
+  {v:"v0.8",d:"2026-09-19",t:"Workshop complete. New first tab holds the agreed future state (Draft 5 — FINAL, published from the editor on 18 Sep 2026) rendered from its step data, with the PDF as sent, a printable version, an .html download and a 'load into the editor' option. Editor gains 'Start from agreed final'. Hero and guide updated to reflect that the session has run. Lesson recorded for next time: several people used the page at once and the leader drove from a second laptop; a tool like this needs a shared named session with a live store, a who-is-driving indicator and per-person votes that merge, designed in from the start."},
   {v:"v0.7",d:"2026-09-17",t:"Usability pass: step detail opens in a side panel (bottom sheet on phones) with previous / next so the map stays visible; tab bar stays pinned while scrolling; progress bars for steps marked and observations marked; observation filters hide rather than fade, and voted cards are colour-edged; Meeting notes shows a formatted view with a Markdown toggle; backup / restore file to carry everything to another laptop; cards are keyboard-reachable."},
   {v:"v0.6",d:"2026-09-17",t:"Publish ▸ on the future-state editor: name a version, add a note to readers, and produce a self-contained document with the redesigned flow, day coverage, swimlane by owner, step table, and an automatic 'what changed from the current state' section. Opens in a new tab for print / save-as-PDF, or downloads as an .html file to attach to email. Published versions are kept in the browser and can be reopened, downloaded, or restored into the editor."},
   {v:"v0.5",d:"2026-09-17",t:"Observations tab: add an observation from the page (category, title, where, description). Added items are numbered after the built-in twelve, can be edited or removed in place, take the same agree / disagree / discuss votes, appear under an 'Added in meeting' filter, and are written into Meeting notes with their text."},
@@ -939,6 +978,27 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!$("#pubOv").hidde
 $("#pubGo").addEventListener("click",()=>{ const sn=pubMake(); pubOpen(sn); $("#pubV").value=""; pubStatus("Published and opened in a new tab."); });
 $("#pubDl").addEventListener("click",()=>{ const sn=pubMake(); pubDownload(sn); $("#pubV").value=""; pubStatus("Published — file downloaded. Attach it to an email or open it in any browser."); });
 
+/* ---------- agreed final future state (published 18 Sep 2026, Draft 5 — FINAL) ---------- */
+const FINAL={id:"final-2026-09-18",ts:"2026-09-18T13:23:00",title:"Referral Coordinator Workflow — Future State",version:"Draft 5 — FINAL",by:"Avance referral team working session",status:"Agreed · 18 Sep 2026",note:"Agreed future state from the process-redesign working session. Routine referrals; urgent / STAT keep the certified-letter step. Automated outreach replaces coordinator phone follow-up at days 14–21, 45–60 and 120.",
+steps:[
+  {type:"step",title:"Referral order created",from:0,to:0,owner:"Ordering provider / PCP",actions:["Order signed in EHR"],note:"Medical Neighborhood project may encourage more point of care specialist choice for providers."},
+  {type:"step",title:"Receipt & Triage",from:0,to:4,owner:"Referral coordinator",actions:["Review order & demographics","Enter into Carelink, Infina or Fax notes to specialist","Monitor failed fax box","Send MyChart message to patient with specialist information"],note:"Explore text messaging as an option to send patient specialist information. Epic troubleshooting: lack of ability to send MyChart message from referral. Review options for other programs to overlay in Epic to automate entry into CareLink portals. Provider re-education on the responsibilities."},
+  {type:"step",title:"First Patient Follow-Up Outreach",from:14,to:21,owner:"Automated (EHR / portal)",actions:["Text/message outreach in bulk to patients whose routine referrals are in Pending Appointment Details status, reminding them and directing to MyChart for details."],note:"This is your first one."},
+  {type:"step",title:"Second outreach & re-triage",from:45,to:60,owner:"Automated (EHR / portal)",actions:["Second reminder of open referral; automated outreach for those still in pending appointment status."],note:"Add interactive message component for patient to disposition the referral: scheduled, or declined."},
+  {type:"step",title:"Closure Outreach",from:120,to:120,owner:"Automated (EHR / portal)",actions:["Automated message for pending-appointment referrals that the referral is being closed. If you still wish to schedule, reach out to the specialist. If you have been seen, please have them send us notes."],note:"Keep Certified Letter for Stat/Urgent as the last step."},
+  {type:"closure",title:"Close referral",from:0,to:120,owner:"Referral coordinator",actions:["Update EHR order status","Attach consult note to PCP chart","Task PCP if non-fulfilment","Reasons: Declined, Closed Loop, No-Show, Unable to Reach after 120 days, No Longer Needed","Communicate outcome to PCP"],note:"Psych/BH: close after confirming appointment is scheduled. Pain/Nutrition: try to get note to close loop. Easy button for order cancellation: open-orders option to Discontinue. Providers should initiate cancellation if the referral is no longer needed."}
+]};
+(function(){
+  const fr=$("#finFrame"); fr.srcdoc=publishHTML(FINAL);
+  const fit=()=>{ try{ const h=fr.contentDocument.documentElement.scrollHeight; if(h>200) fr.style.height=(h+24)+"px"; }catch(e){} };
+  fr.addEventListener("load",()=>{ fit(); setTimeout(fit,300); }); window.addEventListener("resize",fit);
+  $("#finOpen").addEventListener("click",()=>pubOpen(FINAL));
+  $("#finDl").addEventListener("click",()=>pubDownload(FINAL));
+  const loadFinal=()=>{ if(!confirm("Replace the editor contents with the agreed final future state?")) return; FS={steps:JSON.parse(JSON.stringify(FINAL.steps)),touched:true}; fsSave(true); renderAllFS(); const t=$$(".tab").find(x=>x.dataset.pane==="future"); if(t) t.click(); fsStatus("Loaded the agreed final state."); };
+  $("#finEdit").addEventListener("click",loadFinal);
+  $("#fsFinal").addEventListener("click",loadFinal);
+})();
+
 /* ---------- meeting notes ---------- */
 function notesText(){
   const L=[]; const today=new Date().toISOString().slice(0,10);
@@ -1068,7 +1128,7 @@ renderObs();
 renderBadges(); renderNotes(); renderSim();
 
 $("#logList").innerHTML=LOG.map(l=>'<li><b>'+l.v+'</b> · '+l.d+' — '+esc(l.t)+'</li>').join("");
-$("#verTag").textContent="Current state · "+LOG[0].v+" · "+LOG[0].d;
+$("#verTag").textContent="Workshop complete · page "+LOG[0].v+" · "+LOG[0].d;
 
 /* ---------- help overlay ---------- */
 function helpOpen(){ $("#helpOv").hidden=false; document.body.style.overflow="hidden"; $("#helpX").focus(); }
@@ -1086,7 +1146,8 @@ $$(".tab").forEach(t=>t.addEventListener("click",()=>{
   $$(".pane").forEach(p=>p.hidden=(p.id!=="pane-"+t.dataset.pane));
   try{location.hash=t.dataset.pane;}catch(e){}
 }));
-(function(){const h=(location.hash||"").slice(1);const t=$$(".tab").find(x=>x.dataset.pane===h);if(t)t.click();})();
+function tabFromHash(){const h=(location.hash||"").slice(1);const t=$$(".tab").find(x=>x.dataset.pane===h);if(t&&!t.classList.contains("on"))t.click();}
+tabFromHash(); window.addEventListener("hashchange",tabFromHash);
 </script>
 <script src="/avance-feedback.js"></script>
 <script type="module" src="/avance-auth.js"></script>
